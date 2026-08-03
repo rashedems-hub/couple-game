@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>لعبة الأزواج</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#3a0f21">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="لعبة الأزواج">
+<link rel="apple-touch-icon" href="icon-192.png">
+<script>
+window.onerror = function(msg, src, line, col, err){
+  var el = document.getElementById('debug-error-banner');
+  if(el){
+    el.style.display='block';
+    var stack = err && err.stack ? (' | ' + err.stack.slice(0,200)) : '';
+    el.textContent = 'خطأ JS: ' + msg + ' (ملف: ' + src + ' سطر ' + line + ':' + col + ')' + stack;
+  }
+};
+window.addEventListener('unhandledrejection', function(ev){
+  var el = document.getElementById('debug-error-banner');
+  var reason = ev.reason && ev.reason.message ? ev.reason.message : ev.reason;
+  if(el){ el.style.display='block'; el.textContent = 'خطأ Promise: ' + reason; }
+});
+</script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Aref+Ruqaa:wght@400;700&family=Tajawal:wght@300;400;500;700;900&display=swap');
+
+:root{
+  --wine-950:#230811;
+  --wine-900:#3a0f21;
+  --wine-800:#4d1530;
+  --wine-700:#6b1b38;
+  --cream:#f7ead9;
+  --cream-dim:#e9d7bd;
+  --gold:#c9a15a;
+  --gold-light:#e8c988;
+  --ember:#e2554f;
+  --ember-light:#f0837c;
+  --text-dark:#2a1210;
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+body{margin:0;}
+.app-root{
+  min-height:600px;
+  font-family:'Tajawal',sans-serif;
+  background:
+    radial-gradient(ellipse at 20% 0%, rgba(226,85,79,0.18), transparent 55%),
+    radial-gradient(ellipse at 80% 100%, rgba(201,161,90,0.15), transparent 55%),
+    linear-gradient(160deg, var(--wine-950), var(--wine-900) 45%, var(--wine-800));
+  color:var(--cream);
+  padding:28px 18px 40px;
+  position:relative;
+  overflow:hidden;
+  border-radius:18px;
+}
+.embers{position:absolute; inset:0; pointer-events:none; overflow:hidden; z-index:0;}
+.ember-dot{
+  position:absolute; bottom:-10px; width:5px; height:5px; border-radius:50%;
+  background:var(--gold-light); opacity:0.55; filter:blur(0.5px);
+  animation:rise linear infinite;
+}
+@keyframes rise{
+  0%{transform:translateY(0) translateX(0); opacity:0;}
+  10%{opacity:0.6;}
+  100%{transform:translateY(-620px) translateX(var(--drift,20px)); opacity:0;}
+}
+.screen{position:relative; z-index:1; max-width:420px; margin:0 auto; display:flex; flex-direction:column; align-items:center; text-align:center;}
+.hidden{display:none !important;}
+
+.brand{margin-bottom:6px;}
+.brand-icon{font-size:34px; display:block; margin-bottom:6px;}
+h1.title{
+  font-family:'Aref Ruqaa', serif;
+  font-size:34px;
+  margin:0 0 4px;
+  color:var(--gold-light);
+  letter-spacing:0.5px;
+}
+.subtitle{font-size:14px; color:var(--cream-dim); margin:0 0 30px; font-weight:300; line-height:1.8;}
+
+.card-panel{
+  width:100%;
+  background:linear-gradient(155deg, rgba(247,234,217,0.06), rgba(247,234,217,0.02));
+  border:1px solid rgba(201,161,90,0.35);
+  border-radius:20px;
+  padding:26px 22px;
+  backdrop-filter:blur(6px);
+  box-shadow:0 20px 40px -20px rgba(0,0,0,0.6);
+}
+
+.btn{
+  width:100%;
+  border:none;
+  border-radius:14px;
+  padding:16px 18px;
+  font-family:'Tajawal',sans-serif;
+  font-size:16px;
+  font-weight:700;
+  cursor:pointer;
+  transition:transform .15s ease, box-shadow .15s ease, opacity .15s ease;
+  margin-top:12px;
+}
+.btn:active{transform:scale(0.97);}
+.btn-primary{
+  background:linear-gradient(135deg, var(--ember), #b8342f);
+  color:var(--cream);
+  box-shadow:0 10px 22px -8px rgba(226,85,79,0.55);
+}
+.btn-gold{
+  background:linear-gradient(135deg, var(--gold-light), var(--gold));
+  color:var(--wine-950);
+  box-shadow:0 10px 22px -8px rgba(201,161,90,0.5);
+}
+.btn-ghost{
+  background:transparent;
+  border:1px solid rgba(201,161,90,0.5);
+  color:var(--cream-dim);
+}
+.btn:disabled{opacity:0.4; cursor:not-allowed; transform:none;}
+
+input[type=text]{
+  width:100%;
+  padding:15px 16px;
+  border-radius:12px;
+  border:1px solid rgba(201,161,90,0.4);
+  background:rgba(247,234,217,0.06);
+  color:var(--cream);
+  font-family:'Tajawal',sans-serif;
+  font-size:16px;
+  margin-top:10px;
+  text-align:center;
+  outline:none;
+}
+input[type=text]::placeholder{color:rgba(247,234,217,0.4);}
+input[type=text]:focus{border-color:var(--gold-light);}
+label.field-label{font-size:12px; color:var(--cream-dim); align-self:flex-start; margin-top:16px; margin-right:2px;}
+
+.divider-word{margin:22px 0; display:flex; align-items:center; gap:10px; width:100%; color:var(--cream-dim); font-size:12px;}
+.divider-word::before, .divider-word::after{content:""; flex:1; height:1px; background:rgba(201,161,90,0.3);}
+
+/* level picker */
+.level-row{display:flex; gap:10px; width:100%; margin-top:10px;}
+.level-opt{
+  flex:1; padding:14px 6px; border-radius:12px; border:1.5px solid rgba(201,161,90,0.35);
+  background:rgba(247,234,217,0.04); cursor:pointer; transition:all .15s;
+}
+.level-opt.active{border-color:var(--gold-light); background:rgba(201,161,90,0.18); box-shadow:0 0 0 1px var(--gold-light) inset;}
+.level-flames{font-size:18px; margin-bottom:4px; letter-spacing:2px;}
+.level-name{font-size:12px; color:var(--cream-dim); font-weight:700;}
+.level-opt.active .level-name{color:var(--gold-light);}
+
+.room-code-display{
+  font-family:'Tajawal',sans-serif;
+  font-size:42px; font-weight:900; letter-spacing:10px; color:var(--gold-light);
+  margin:14px 0 4px;
+}
+.hint-text{font-size:12.5px; color:var(--cream-dim); line-height:1.8; margin-top:4px;}
+.pulse-dot{display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--ember); margin-left:6px; animation:pulse 1.3s infinite;}
+@keyframes pulse{0%,100%{opacity:0.3;}50%{opacity:1;}}
+
+/* game screen */
+.turn-banner{
+  width:100%; padding:12px 14px; border-radius:14px; margin-bottom:18px;
+  background:linear-gradient(135deg, rgba(201,161,90,0.16), rgba(201,161,90,0.05));
+  border:1px solid rgba(201,161,90,0.35);
+  font-size:14.5px; font-weight:700; color:var(--gold-light);
+}
+.level-badge{
+  display:inline-flex; align-items:center; gap:6px; cursor:pointer;
+  background:rgba(247,234,217,0.07); border:1px solid rgba(201,161,90,0.3);
+  padding:8px 16px; border-radius:20px; font-size:12.5px; margin-bottom:20px; color:var(--cream-dim);
+}
+
+.stage{width:100%; perspective:1400px; margin-bottom:8px;}
+.card3d{
+  width:100%; min-height:220px; position:relative; transform-style:preserve-3d;
+  transition:transform .7s cubic-bezier(.2,.8,.2,1);
+}
+.card3d.flipped{transform:rotateY(180deg);}
+.card-face{
+  position:absolute; inset:0; backface-visibility:hidden; border-radius:20px;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  padding:26px 20px;
+}
+.card-back{
+  background:
+    repeating-linear-gradient(45deg, rgba(201,161,90,0.06) 0 10px, transparent 10px 20px),
+    linear-gradient(155deg, var(--wine-700), var(--wine-900));
+  border:1.5px solid var(--gold);
+  box-shadow:0 20px 40px -18px rgba(0,0,0,0.7);
+}
+.card-back .seal{font-size:44px;}
+.card-back .back-txt{margin-top:10px; color:var(--gold-light); font-size:13px; letter-spacing:2px;}
+.card-front{
+  background:linear-gradient(155deg, var(--cream), var(--cream-dim));
+  color:var(--text-dark);
+  transform:rotateY(180deg);
+  border:1.5px solid var(--gold);
+  box-shadow:0 20px 40px -18px rgba(0,0,0,0.7);
+}
+.card-type-tag{
+  font-size:11px; font-weight:700; color:var(--wine-700);
+  background:rgba(107,27,56,0.1); padding:5px 12px; border-radius:20px; margin-bottom:14px;
+}
+.card-text{
+  font-family:'Aref Ruqaa', serif;
+  font-size:22px; line-height:1.7; font-weight:700;
+}
+.empty-stage{
+  width:100%; min-height:220px; border-radius:20px; border:1.5px dashed rgba(201,161,90,0.35);
+  display:flex; align-items:center; justify-content:center; color:var(--cream-dim); font-size:14px; padding:20px; text-align:center;
+}
+
+.players-strip{display:flex; gap:8px; width:100%; margin-top:18px;}
+.player-chip{
+  flex:1; padding:10px 8px; border-radius:12px; font-size:12.5px; font-weight:700;
+  background:rgba(247,234,217,0.05); border:1px solid rgba(201,161,90,0.25); color:var(--cream-dim);
+}
+.player-chip.turn{background:rgba(226,85,79,0.18); border-color:var(--ember-light); color:var(--ember-light);}
+
+.rating-panel{
+  width:100%; padding:20px 16px; border-radius:18px; margin-bottom:8px;
+  background:linear-gradient(155deg, rgba(201,161,90,0.14), rgba(201,161,90,0.04));
+  border:1px solid rgba(201,161,90,0.4);
+}
+.stars-row{display:flex; justify-content:center; gap:8px; margin-top:12px;}
+.star-btn{
+  width:52px; height:52px; border-radius:50%; border:1.5px solid rgba(201,161,90,0.4);
+  background:rgba(247,234,217,0.05); color:var(--gold-light); font-size:22px;
+  display:flex; align-items:center; justify-content:center; cursor:pointer;
+  transition:transform .12s ease, background .12s ease;
+}
+.star-btn:active{transform:scale(0.9);}
+.star-btn:hover{background:rgba(201,161,90,0.22);}
+
+.level-modal-backdrop{
+  position:fixed; inset:0; background:rgba(20,5,10,0.7); z-index:10;
+  display:flex; align-items:center; justify-content:center; padding:20px;
+}
+.level-modal{
+  background:linear-gradient(155deg, var(--wine-900), var(--wine-950));
+  border:1px solid rgba(201,161,90,0.4); border-radius:18px; padding:24px 20px; max-width:380px; width:100%;
+}
+.small-close{margin-top:6px; font-size:12px; color:var(--cream-dim); text-decoration:underline; cursor:pointer; background:none; border:none;}
+
+.top-actions{display:flex; justify-content:space-between; width:100%; margin-bottom:10px;}
+.icon-btn{background:none; border:none; color:var(--cream-dim); font-size:13px; cursor:pointer;}
+</style>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js" crossorigin="anonymous"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js" crossorigin="anonymous"></script>
+</head>
+<body>
+<div id="debug-error-banner" style="display:none; position:fixed; top:0; left:0; right:0; background:#b8342f; color:#fff; font-size:12px; padding:8px 12px; z-index:99999; text-align:center; direction:rtl; font-family:sans-serif;"></div>
+<div class="app-root" id="app">
+  <div class="embers" id="embers"></div>
+
+  <!-- SCREEN: HOME -->
+  <div class="screen" id="screen-home">
+    <div class="brand">
+      <span class="brand-icon">💌</span>
+      <h1 class="title">لعبة الأزواج</h1>
+      <p class="subtitle">لعبة تقرّبكم لبعض، كل واحد يلعب من جواله<br>اختاروا المستوى وخلوا القلب يسبق العقل</p>
+    </div>
+    <div class="card-panel">
+      <button class="btn btn-primary" onclick="goTo('create')">✨ ابدأ لعبة جديدة</button>
+      <button class="btn btn-ghost" onclick="goTo('join')">🔗 عندي كود، بانضم للعبة</button>
+      <button class="btn btn-ghost" onclick="openAdmin()">⚙️ إدارة التحديات</button>
+    </div>
+  </div>
+
+  <!-- SCREEN: CREATE -->
+  <div class="screen hidden" id="screen-create">
+    <div class="brand">
+      <span class="brand-icon">✨</span>
+      <h1 class="title">لعبة جديدة</h1>
+      <p class="subtitle">اختر اسمك ومستوى اللعبة، وبنعطيك كود تشاركه مع شريكك</p>
+    </div>
+    <div class="card-panel">
+      <label class="field-label">اسمك</label>
+      <input type="text" id="create-name" placeholder="مثلاً: سارة" maxlength="16">
+
+      <label class="field-label">مستوى اللعبة</label>
+      <div class="level-row" id="create-level-row"></div>
+
+      <button class="btn btn-primary" onclick="createRoom()">إنشاء الغرفة</button>
+      <button class="btn btn-ghost" onclick="goTo('home')">رجوع</button>
+    </div>
+  </div>
+
+  <!-- SCREEN: WAITING (creator) -->
+  <div class="screen hidden" id="screen-waiting">
+    <div class="brand">
+      <span class="brand-icon">⏳</span>
+      <h1 class="title">بانتظار شريكك</h1>
+    </div>
+    <div class="card-panel">
+      <p class="hint-text">شارك هذا الكود مع شريكك عشان ينضم للعبة</p>
+      <div class="room-code-display" id="waiting-code">----</div>
+      <p class="hint-text"><span class="pulse-dot"></span> نبحث عن شريكك...</p>
+      <button class="btn btn-ghost" onclick="leaveRoom()">إلغاء</button>
+    </div>
+  </div>
+
+  <!-- SCREEN: JOIN -->
+  <div class="screen hidden" id="screen-join">
+    <div class="brand">
+      <span class="brand-icon">🔗</span>
+      <h1 class="title">انضمام للعبة</h1>
+      <p class="subtitle">أدخل الكود اللي أرسله لك شريكك</p>
+    </div>
+    <div class="card-panel">
+      <label class="field-label">اسمك</label>
+      <input type="text" id="join-name" placeholder="مثلاً: محمد" maxlength="16">
+      <label class="field-label">كود الغرفة</label>
+      <input type="text" id="join-code" placeholder="0000" maxlength="4" inputmode="numeric">
+      <button class="btn btn-primary" onclick="joinRoom()">انضم الآن</button>
+      <button class="btn btn-ghost" onclick="goTo('home')">رجوع</button>
+      <p class="hint-text hidden" id="join-error" style="color:var(--ember-light);"></p>
+    </div>
+  </div>
+
+  <!-- SCREEN: GAME -->
+  <div class="screen hidden" id="screen-game">
+    <div class="top-actions">
+      <button class="icon-btn" onclick="leaveRoom()">🚪 خروج</button>
+      <span class="icon-btn" id="game-code-tag">كود: ----</span>
+    </div>
+
+    <div class="turn-banner" id="turn-banner">دور فلان</div>
+
+    <div class="level-badge" onclick="openLevelModal()" id="level-badge">🔥 المستوى: خفيف</div>
+
+    <div class="stage">
+      <div class="card3d" id="card3d">
+        <div class="card-face card-back">
+          <div class="seal">💞</div>
+          <div class="back-txt">لعبة الأزواج</div>
+        </div>
+        <div class="card-face card-front">
+          <div class="card-type-tag" id="card-type-tag">سؤال</div>
+          <div class="card-text" id="card-text-el">—</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="empty-stage" class="empty-stage">بانتظار سحب البطاقة...</div>
+
+    <div class="rating-panel hidden" id="rating-panel">
+      <p class="hint-text" id="rating-prompt">قيّم أداء شريكك بهالتحدي</p>
+      <div class="stars-row" id="stars-row"></div>
+    </div>
+
+    <button class="btn btn-primary hidden" id="btn-draw" onclick="drawCard()">🎴 اسحب بطاقة</button>
+    <button class="btn btn-gold hidden" id="btn-done" onclick="markDone()">✅ خلصت التحدي</button>
+
+    <div class="players-strip" id="players-strip"></div>
+  </div>
+
+  <!-- LEVEL MODAL -->
+  <div class="level-modal-backdrop hidden" id="level-modal-backdrop">
+    <div class="level-modal">
+      <p class="hint-text" style="margin-bottom:14px;">غيّروا المستوى وقت ما تبون</p>
+      <div class="level-row" id="modal-level-row"></div>
+      <button class="small-close" onclick="closeLevelModal()">إغلاق</button>
+    </div>
+  </div>
+
+  <!-- SCREEN: ADMIN -->
+  <div class="screen hidden" id="screen-admin">
+    <div class="brand">
+      <span class="brand-icon">⚙️</span>
+      <h1 class="title">إدارة التحديات</h1>
+      <p class="subtitle">عدّل أو احذف أو أضف أسئلة وتحديات، والتعديلات تنعكس على الجهازين فورًا</p>
+    </div>
+    <div class="card-panel" style="text-align:center;">
+      <label class="field-label" style="align-self:center;">اختر المستوى</label>
+      <div class="level-row" id="admin-level-row"></div>
+
+      <div id="admin-cards-list" style="margin-top:18px; display:flex; flex-direction:column; gap:10px; text-align:right;"></div>
+
+      <div class="divider-word">إضافة جديد</div>
+      <div class="level-row" id="admin-new-type-row"></div>
+      <textarea id="admin-new-text" placeholder="اكتب نص التحدي أو السؤال هنا..." style="width:100%; min-height:70px; margin-top:10px; padding:12px; border-radius:12px; border:1px solid rgba(201,161,90,0.4); background:rgba(247,234,217,0.06); color:var(--cream); font-family:'Tajawal',sans-serif; font-size:14px; resize:vertical;"></textarea>
+      <button class="btn btn-gold" onclick="addNewCard()">➕ إضافة</button>
+
+      <button class="btn btn-ghost" onclick="goTo('home')">رجوع للرئيسية</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ---------------- content ---------------- */
+const LEVELS = [
+  {id:'light', name:'خفيف', flames:'🔥'},
+  {id:'warm', name:'دافئ', flames:'🔥🔥'},
+  {id:'hot', name:'حماسي', flames:'🔥🔥🔥'}
+];
+
+const DEFAULT_DECKS = {
+  light: [
+    {type:'سؤال', text:'قول لشريكك 3 أشياء تحبها فيه ما قلتها من قبل'},
+    {type:'تحدي', text:'امسكوا أيديكم وانظروا بعيون بعض لمدة 30 ثانية بدون كلام'},
+    {type:'تحدي', text:'اكتب رسالة حب قصيرة لشريكك الحين واقرأها له'},
+    {type:'سؤال', text:'وش أول شي أعجبك في شريكك أول ما تعرفتوا؟'},
+    {type:'تحدي', text:'غنّ جزء من أغنية تذكرك بشريكك'},
+    {type:'سؤال', text:'اذكر أحلى لحظة ضحكتوا فيها مع بعض'},
+    {type:'تحدي', text:'عانق شريكك لمدة دقيقة كاملة بدون ما تفلته'},
+    {type:'سؤال', text:'وش أكثر شي يعجبك في شكل شريكك؟ قوله الحين'},
+    {type:'تحدي', text:'داعب يد شريكك وأنتوا تسولفون عن يوم حلو بينكم'},
+    {type:'سؤال', text:'لو تختصر علاقتكم بكلمة وحدة، وش تكون؟'}
+  ],
+  warm: [
+    {type:'تحدي', text:'قبّل جبين شريكك وقول له كلمة حلوة بأذنه'},
+    {type:'تحدي', text:'دلّك كتف شريكك لمدة دقيقتين بهدوء'},
+    {type:'سؤال', text:'وش أكثر لمسة تحس إنها تقربكم من بعض؟'},
+    {type:'تحدي', text:'اهمس بأذن شريكك بشي يعجبك فيه بصوت خافت'},
+    {type:'تحدي', text:'قبّل يد شريكك واحكي له موقف رومانسي بينكم'},
+    {type:'تحدي', text:'العب بشعر شريكك وأنتوا تتكلمون عن حلمكم المشترك'},
+    {type:'تحدي', text:'قبّل خد شريكك وقول له "مشتاق لك"'},
+    {type:'تحدي', text:'امسك وجه شريكك بهدوء وانظر له قبل ما تقبله'},
+    {type:'تحدي', text:'احضن شريكك من الخلف واهمس له بأذنه'},
+    {type:'سؤال', text:'وش أكثر شي يخليك تحس بالأمان جنب شريكك؟'}
+  ],
+  hot: [
+    {type:'تحدي', text:'قبّل رقبة شريكك بهدوء لمدة نص دقيقة'},
+    {type:'تحدي', text:'اطفوا الأنوار وقربوا من بعض بدون كلام لدقيقة'},
+    {type:'تحدي', text:'اهمس لشريكك بشي يخليه يحمر خجل'},
+    {type:'تحدي', text:'قبّل شريكك قبلة طويلة وخلك بس بهاللحظة'},
+    {type:'تحدي', text:'خلّ شريكك يحس إنك مشتاق له بدون كلام، بس بلمسة'},
+    {type:'سؤال', text:'وش تتمنى يصير بينكم الليلة؟ قوله بصراحة'},
+    {type:'تحدي', text:'اقترب من شريكك وقول له أكثر شي يثير إعجابك فيه الليلة'},
+    {type:'تحدي', text:'امسك شريكك بقوة وقرّبه لك وقبّله'},
+    {type:'سؤال', text:'وش أكثر ذكرى حميمية بينكم تحب تتكرر؟'},
+    {type:'تحدي', text:'خذوا نفس عميق مع بعض واحضنوا بعض بدون ما تفكوا لدقيقتين'}
+  ]
+};
+
+/* ---------------- state ---------------- */
+function getOrCreateDeviceId(){
+  let id = localStorage.getItem('cg_device_id');
+  if(!id){
+    id = 'p_' + Math.random().toString(36).slice(2,9);
+    localStorage.setItem('cg_device_id', id);
+  }
+  return id;
+}
+let myId = getOrCreateDeviceId();
+let currentRoomCode = null;
+let lastCardTimestamp = null;
+let selectedCreateLevel = 'light';
+
+/* ---------------- ambient embers ---------------- */
+function initEmbers(){
+  const wrap = document.getElementById('embers');
+  for(let i=0;i<16;i++){
+    const d = document.createElement('div');
+    d.className = 'ember-dot';
+    d.style.left = Math.random()*100 + '%';
+    d.style.setProperty('--drift', (Math.random()*60-30)+'px');
+    d.style.animationDuration = (6+Math.random()*8)+'s';
+    d.style.animationDelay = (Math.random()*8)+'s';
+    wrap.appendChild(d);
+  }
+}
+initEmbers();
+
+/* ---------------- nav ---------------- */
+function goTo(name){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.add('hidden'));
+  document.getElementById('screen-'+name).classList.remove('hidden');
+}
+
+function renderLevelRow(container, selectedId, onPick){
+  container.innerHTML = '';
+  LEVELS.forEach(lv=>{
+    const el = document.createElement('div');
+    el.className = 'level-opt' + (lv.id===selectedId ? ' active':'');
+    el.innerHTML = `<div class="level-flames">${lv.flames}</div><div class="level-name">${lv.name}</div>`;
+    el.onclick = ()=>onPick(lv.id);
+    container.appendChild(el);
+  });
+}
+function pickCreateLevel(id){
+  selectedCreateLevel = id;
+  renderLevelRow(document.getElementById('create-level-row'), selectedCreateLevel, pickCreateLevel);
+}
+renderLevelRow(document.getElementById('create-level-row'), selectedCreateLevel, pickCreateLevel);
+
+/* ---------------- firebase ---------------- */
+const firebaseConfig = {
+  apiKey: "AIzaSyAOCe2csk6z1MN7H0XPPo_GOKA-ed2l0uY",
+  authDomain: "couple-game-95ed7.firebaseapp.com",
+  databaseURL: "https://couple-game-95ed7-default-rtdb.firebaseio.com",
+  projectId: "couple-game-95ed7",
+  storageBucket: "couple-game-95ed7.firebasestorage.app",
+  messagingSenderId: "849435216562",
+  appId: "1:849435216562:web:3e7e9d022af0c65682d7ab"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+function roomRef(code){ return db.ref('rooms/' + code); }
+
+let liveRef = null;
+function detachLive(){
+  if(liveRef){ liveRef.off(); liveRef = null; }
+}
+function attachLive(code, onChange){
+  detachLive();
+  liveRef = roomRef(code);
+  liveRef.on('value', (snap)=>{
+    const room = snap.exists() ? snap.val() : null;
+    if(room){
+      if(!room.players) room.players = [];
+      onChange(room);
+    }
+  }, (err)=>{
+    console.error('firebase listen error', err);
+  });
+}
+
+async function getRoom(code){
+  try{
+    const snap = await roomRef(code).once('value');
+    const room = snap.exists() ? snap.val() : null;
+    if(room && !room.players) room.players = [];
+    return room;
+  }catch(e){ console.error('read failed', e); return null; }
+}
+async function saveRoom(code, data){
+  try{
+    await roomRef(code).set(data);
+    return true;
+  }catch(e){
+    console.error('save failed', e);
+    return false;
+  }
+}
+
+function genCode(){
+  return String(Math.floor(1000 + Math.random()*9000));
+}
+
+/* ---------------- editable decks (synced via firebase) ---------------- */
+let LIVE_DECKS = {};
+const CARD_TYPES = ['سؤال','تحدي'];
+
+async function ensureDecksSeeded(){
+  try{
+    const snap = await db.ref('decks').once('value');
+    if(!snap.exists()){
+      const seed = {};
+      Object.keys(DEFAULT_DECKS).forEach(level=>{
+        seed[level] = {};
+        DEFAULT_DECKS[level].forEach(card=>{
+          const key = db.ref('decks/'+level).push().key;
+          seed[level][key] = card;
+        });
+      });
+      await db.ref('decks').set(seed);
+    }
+  }catch(e){ console.error('seed failed', e); }
+}
+
+function initDecksSync(){
+  db.ref('decks').on('value', (snap)=>{
+    LIVE_DECKS = snap.val() || {};
+    if(!document.getElementById('screen-admin').classList.contains('hidden')){
+      renderAdminCards();
+    }
+  });
+}
+
+let adminLevel = 'light';
+let newCardType = 'تحدي';
+
+function openAdmin(){
+  goTo('admin');
+  renderAdminLevelRow();
+  renderNewTypeRow();
+  renderAdminCards();
+}
+function renderAdminLevelRow(){
+  renderLevelRow(document.getElementById('admin-level-row'), adminLevel, (id)=>{
+    adminLevel = id;
+    renderAdminLevelRow();
+    renderAdminCards();
+  });
+}
+function renderNewTypeRow(){
+  const row = document.getElementById('admin-new-type-row');
+  row.innerHTML = '';
+  CARD_TYPES.forEach(t=>{
+    const el = document.createElement('div');
+    el.className = 'level-opt' + (t===newCardType ? ' active':'');
+    el.innerHTML = `<div class="level-name">${t}</div>`;
+    el.onclick = ()=>{ newCardType = t; renderNewTypeRow(); };
+    row.appendChild(el);
+  });
+}
+function renderAdminCards(){
+  const list = document.getElementById('admin-cards-list');
+  list.innerHTML = '';
+  const deckObj = LIVE_DECKS[adminLevel] || {};
+  const entries = Object.entries(deckObj);
+  if(entries.length === 0){
+    const p = document.createElement('p');
+    p.className = 'hint-text';
+    p.textContent = 'ما فيه تحديات بهالمستوى، أضف أول واحد تحت 👇';
+    list.appendChild(p);
+    return;
+  }
+  entries.forEach(([key, card])=>{
+    const row = document.createElement('div');
+    row.style.cssText = 'background:rgba(247,234,217,0.05); border:1px solid rgba(201,161,90,0.25); border-radius:14px; padding:12px;';
+
+    const typeSelect = document.createElement('select');
+    typeSelect.style.cssText = 'background:rgba(247,234,217,0.08); color:var(--gold-light); border:1px solid rgba(201,161,90,0.3); border-radius:8px; padding:4px 8px; font-size:12px;';
+    CARD_TYPES.forEach(t=>{
+      const opt = document.createElement('option');
+      opt.value = t; opt.textContent = t;
+      if(t===card.type) opt.selected = true;
+      typeSelect.appendChild(opt);
+    });
+
+    const textarea = document.createElement('textarea');
+    textarea.value = card.text || '';
+    textarea.style.cssText = 'width:100%; min-height:60px; margin-top:8px; padding:10px; border-radius:10px; border:1px solid rgba(201,161,90,0.3); background:rgba(247,234,217,0.05); color:var(--cream); font-family:Tajawal,sans-serif; font-size:13.5px; resize:vertical;';
+
+    const btnRow = document.createElement('div');
+    btnRow.style.cssText = 'display:flex; gap:8px; margin-top:8px;';
+
+    const saveBtn = document.createElement('button');
+    saveBtn.textContent = '💾 حفظ';
+    saveBtn.className = 'btn btn-gold';
+    saveBtn.style.cssText = 'margin-top:0; padding:9px 10px; font-size:12.5px; flex:1;';
+    saveBtn.onclick = ()=>saveCardEdit(adminLevel, key, typeSelect.value, textarea.value);
+
+    const delBtn = document.createElement('button');
+    delBtn.textContent = '🗑️ حذف';
+    delBtn.className = 'btn btn-ghost';
+    delBtn.style.cssText = 'margin-top:0; padding:9px 10px; font-size:12.5px; flex:1; border-color:rgba(226,85,79,0.5); color:var(--ember-light);';
+    delBtn.onclick = ()=>deleteCard(adminLevel, key);
+
+    btnRow.appendChild(saveBtn);
+    btnRow.appendChild(delBtn);
+    row.appendChild(typeSelect);
+    row.appendChild(textarea);
+    row.appendChild(btnRow);
+    list.appendChild(row);
+  });
+}
+async function saveCardEdit(level, key, type, text){
+  text = text.trim();
+  if(!text){ alert('لا تسيب النص فاضي'); return; }
+  try{
+    await db.ref('decks/'+level+'/'+key).set({type, text});
+  }catch(e){ alert('صار خلل بالحفظ، جرب مرة ثانية'); }
+}
+async function deleteCard(level, key){
+  if(!confirm('متأكد تبي تحذف هذا التحدي؟')) return;
+  try{
+    await db.ref('decks/'+level+'/'+key).remove();
+  }catch(e){ alert('صار خلل بالحذف، جرب مرة ثانية'); }
+}
+async function addNewCard(){
+  const textEl = document.getElementById('admin-new-text');
+  const text = textEl.value.trim();
+  if(!text){ alert('اكتب نص التحدي أولاً'); return; }
+  try{
+    await db.ref('decks/'+adminLevel).push({type:newCardType, text});
+    textEl.value = '';
+  }catch(e){ alert('صار خلل بالإضافة، جرب مرة ثانية'); }
+}
+
+ensureDecksSeeded().then(initDecksSync);
+
+/* ---------------- create / join ---------------- */
+async function createRoom(){
+  const name = document.getElementById('create-name').value.trim() || 'أنا';
+  const code = genCode();
+  const room = {
+    code,
+    level: selectedCreateLevel,
+    players: [{id: myId, name}],
+    currentTurnIndex: 0,
+    currentCard: null,
+    usedIds: {light:[], warm:[], hot:[]},
+    updatedAt: Date.now()
+  };
+  const ok = await saveRoom(code, room);
+  if(!ok){
+    alert('صار خلل بحفظ الغرفة، جرب مرة ثانية. لو تكرر الخطأ، تأكد إن الاتصال شغال.');
+    return;
+  }
+  currentRoomCode = code;
+  document.getElementById('waiting-code').textContent = code;
+  goTo('waiting');
+  attachLive(code, (room)=>{
+    if(room.players && room.players.length>=2 && document.getElementById('screen-waiting').classList.contains('hidden')===false){
+      enterGame(room);
+    }
+  });
+}
+
+async function joinRoom(){
+  const name = document.getElementById('join-name').value.trim() || 'أنا';
+  const code = document.getElementById('join-code').value.trim();
+  const errEl = document.getElementById('join-error');
+  errEl.classList.add('hidden');
+
+  if(!code || code.length<4){
+    errEl.textContent = 'أدخل كود صحيح مكوّن من 4 أرقام';
+    errEl.classList.remove('hidden');
+    return;
+  }
+  errEl.textContent = 'جاري البحث عن الغرفة...';
+  errEl.classList.remove('hidden');
+  const room = await getRoom(code);
+  if(!room){
+    errEl.textContent = 'ما لقينا غرفة بهذا الكود. تأكد إن شريكك ضاغط على نفس رابط المشاركة، وإن الكود مكتوب صح (4 أرقام)';
+    errEl.classList.remove('hidden');
+    return;
+  }
+  if(room.players.find(p=>p.id===myId)){
+    currentRoomCode = code;
+    enterGame(room);
+    return;
+  }
+  if(room.players.length>=2){
+    errEl.textContent = 'هذي الغرفة مكتملة';
+    errEl.classList.remove('hidden');
+    return;
+  }
+  room.players.push({id: myId, name});
+  room.updatedAt = Date.now();
+  await saveRoom(code, room);
+  currentRoomCode = code;
+  enterGame(room);
+}
+
+function leaveRoom(){
+  detachLive();
+  currentRoomCode = null;
+  document.getElementById('level-modal-backdrop').classList.add('hidden');
+  goTo('home');
+}
+
+/* ---------------- game ---------------- */
+function enterGame(room){
+  currentRoomCode = room.code;
+  goTo('game');
+  document.getElementById('game-code-tag').textContent = 'كود: ' + room.code;
+  renderRoom(room);
+  attachLive(room.code, renderRoom);
+}
+
+function levelInfo(id){ return LEVELS.find(l=>l.id===id) || LEVELS[0]; }
+
+function avgScore(room, playerId){
+  const s = room.scores && room.scores[playerId];
+  if(!s || !s.count) return null;
+  return s.sum / s.count;
+}
+
+function renderRoom(room){
+  const lv = levelInfo(room.level);
+  document.getElementById('level-badge').textContent = `${lv.flames} المستوى: ${lv.name}`;
+
+  const myIndex = room.players.findIndex(p=>p.id===myId);
+  const turnPlayer = room.players[room.currentTurnIndex];
+
+  if(myIndex === -1 && room.players.length>0){
+    document.getElementById('turn-banner').textContent = '⚠️ ما قدرنا نتعرف عليك بهذي الغرفة (ربما دخلتها من قبل تحديث سابق). سوّوا غرفة جديدة من الصفحة الرئيسية.';
+    document.getElementById('btn-draw').classList.add('hidden');
+    document.getElementById('btn-done').classList.add('hidden');
+    document.getElementById('rating-panel').classList.add('hidden');
+    return;
+  }
+
+  const isMyTurn = myIndex === room.currentTurnIndex;
+  const partnerIndex = room.players.length>1 ? (room.currentTurnIndex+1) % room.players.length : -1;
+  const isRater = myIndex === partnerIndex;
+
+  // players strip
+  const strip = document.getElementById('players-strip');
+  strip.innerHTML = '';
+  room.players.forEach((p, idx)=>{
+    const chip = document.createElement('div');
+    chip.className = 'player-chip' + (idx===room.currentTurnIndex ? ' turn':'');
+    const avg = avgScore(room, p.id);
+    const scoreTxt = avg!==null ? ` · ⭐${avg.toFixed(1)}` : '';
+    chip.textContent = (idx===room.currentTurnIndex ? '🎯 ':'') + p.name + scoreTxt;
+    strip.appendChild(chip);
+  });
+
+  const card3d = document.getElementById('card3d');
+  const emptyStage = document.getElementById('empty-stage');
+  const btnDraw = document.getElementById('btn-draw');
+  const btnDone = document.getElementById('btn-done');
+  const ratingPanel = document.getElementById('rating-panel');
+
+  if(!room.currentCard){
+    // no active card
+    document.getElementById('turn-banner').textContent = room.players.length<2
+      ? 'بانتظار انضمام شريكك...'
+      : (isMyTurn ? '🎯 دورك أنت الحين' : `⏳ دور ${turnPlayer ? turnPlayer.name : '...'}`);
+    card3d.classList.add('hidden');
+    card3d.classList.remove('flipped');
+    ratingPanel.classList.add('hidden');
+    emptyStage.classList.remove('hidden');
+    emptyStage.textContent = isMyTurn ? 'دورك! اسحب بطاقة' : `بانتظار ${turnPlayer ? turnPlayer.name : 'شريكك'} يسحب بطاقة...`;
+    btnDone.classList.add('hidden');
+    btnDraw.classList.toggle('hidden', !isMyTurn || room.players.length<2);
+    return;
+  }
+
+  // card is active
+  card3d.classList.remove('hidden');
+  emptyStage.classList.add('hidden');
+  btnDraw.classList.add('hidden');
+  document.getElementById('card-type-tag').textContent = room.currentCard.type;
+  document.getElementById('card-text-el').textContent = room.currentCard.text;
+  if(lastCardTimestamp !== room.currentCard.ts){
+    card3d.classList.remove('flipped');
+    requestAnimationFrame(()=> requestAnimationFrame(()=> card3d.classList.add('flipped')));
+    lastCardTimestamp = room.currentCard.ts;
+  }
+
+  if(room.awaitingRating){
+    btnDone.classList.add('hidden');
+    if(isRater){
+      document.getElementById('turn-banner').textContent = `⭐ قيّم أداء ${turnPlayer ? turnPlayer.name : 'شريكك'}`;
+      document.getElementById('rating-prompt').textContent = `كيف كان أداء ${turnPlayer ? turnPlayer.name : 'شريكك'} بهالتحدي؟`;
+      ratingPanel.classList.remove('hidden');
+    } else {
+      document.getElementById('turn-banner').textContent = `⏳ بانتظار تقييم ${room.players[partnerIndex] ? room.players[partnerIndex].name : 'شريكك'}`;
+      ratingPanel.classList.add('hidden');
+    }
+  } else {
+    ratingPanel.classList.add('hidden');
+    document.getElementById('turn-banner').textContent = isMyTurn ? '🎯 دورك أنت الحين' : `⏳ دور ${turnPlayer ? turnPlayer.name : '...'}`;
+    btnDone.classList.toggle('hidden', !isMyTurn);
+  }
+}
+
+const starsRow = document.getElementById('stars-row');
+for(let i=1;i<=5;i++){
+  const b = document.createElement('button');
+  b.className = 'star-btn';
+  b.textContent = i;
+  b.onclick = ()=>submitRating(i);
+  starsRow.appendChild(b);
+}
+
+async function drawCard(){
+  try{
+    const room = await getRoom(currentRoomCode);
+    if(!room){ alert('تعذر قراءة الغرفة، تأكد من اتصال الإنترنت وجرب مرة ثانية.'); return; }
+    let deckObj = LIVE_DECKS[room.level];
+    if(!deckObj || Object.keys(deckObj).length === 0){
+      // fallback: read directly in case the live sync hasn't caught up yet
+      const snap = await db.ref('decks/'+room.level).once('value');
+      deckObj = snap.exists() ? snap.val() : {};
+    }
+    const entries = Object.entries(deckObj || {});
+    if(entries.length === 0){
+      alert('ما فيه تحديات مضافة لهذا المستوى بعد. روح "إدارة التحديات" من الصفحة الرئيسية وأضف تحديات أول.');
+      return;
+    }
+    if(!room.usedIds) room.usedIds = {};
+    let used = room.usedIds[room.level] || [];
+    if(used.length >= entries.length) used = [];
+    let pick;
+    do{ pick = entries[Math.floor(Math.random()*entries.length)]; } while(used.includes(pick[0]) && used.length < entries.length);
+    used.push(pick[0]);
+    room.usedIds[room.level] = used;
+    room.currentCard = {type: pick[1].type, text: pick[1].text, ts: Date.now()};
+    room.awaitingRating = false;
+    room.updatedAt = Date.now();
+    const ok = await saveRoom(currentRoomCode, room);
+    if(!ok){ alert('صار خلل بسحب البطاقة، جرب مرة ثانية.'); return; }
+    renderRoom(room);
+  }catch(e){
+    console.error('drawCard error', e);
+    alert('صار خطأ غير متوقع أثناء سحب البطاقة: ' + (e && e.message ? e.message : e));
+  }
+}
+
+async function markDone(){
+  const room = await getRoom(currentRoomCode);
+  if(!room || !room.currentCard) return;
+  room.awaitingRating = true;
+  room.updatedAt = Date.now();
+  const ok = await saveRoom(currentRoomCode, room);
+  if(!ok){ alert('صار خلل، جرب مرة ثانية.'); return; }
+  renderRoom(room);
+}
+
+async function submitRating(n){
+  const room = await getRoom(currentRoomCode);
+  if(!room || !room.currentCard) return;
+  const performer = room.players[room.currentTurnIndex];
+  if(!room.scores) room.scores = {};
+  if(!room.scores[performer.id]) room.scores[performer.id] = {sum:0, count:0};
+  room.scores[performer.id].sum += n;
+  room.scores[performer.id].count += 1;
+  room.currentTurnIndex = (room.currentTurnIndex + 1) % room.players.length;
+  room.currentCard = null;
+  room.awaitingRating = false;
+  room.updatedAt = Date.now();
+  const ok = await saveRoom(currentRoomCode, room);
+  if(!ok){ alert('صار خلل، جرب مرة ثانية.'); return; }
+  renderRoom(room);
+}
+
+/* ---------------- level modal ---------------- */
+async function pickModalLevel(id){
+  const r2 = await getRoom(currentRoomCode);
+  if(!r2) return;
+  r2.level = id;
+  r2.updatedAt = Date.now();
+  await saveRoom(currentRoomCode, r2);
+  renderLevelRow(document.getElementById('modal-level-row'), id, pickModalLevel);
+  renderRoom(r2);
+}
+async function openLevelModal(){
+  const room = await getRoom(currentRoomCode);
+  if(!room) return;
+  renderLevelRow(document.getElementById('modal-level-row'), room.level, pickModalLevel);
+  document.getElementById('level-modal-backdrop').classList.remove('hidden');
+}
+function closeLevelModal(){
+  document.getElementById('level-modal-backdrop').classList.add('hidden');
+}
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('service-worker.js').catch(e=>console.error('SW register failed', e));
+  });
+}
+</script>
+</body>
+</html>
