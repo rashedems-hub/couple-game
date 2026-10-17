@@ -1,0 +1,19 @@
+{
+  "rules": {
+    "rooms": {
+      "$code": {
+        ".read": "auth != null && (!data.exists() || data.child('hostId').val() === auth.uid || data.child('guestId').val() === auth.uid)",
+        ".write": "auth != null && ((!data.exists() && newData.child('hostId').val() === auth.uid) || data.child('hostId').val() === auth.uid || data.child('guestId').val() === auth.uid)",
+        "guestId": {
+          ".write": "auth != null && newData.val() === auth.uid && (!data.exists() || data.val() === auth.uid) && data.parent().child('hostId').exists()"
+        }
+      }
+    },
+    "userDecks": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid"
+      }
+    }
+  }
+}
