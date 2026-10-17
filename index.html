@@ -188,7 +188,7 @@ h1.title{
 .btn-sm{margin-top:0; padding:10px 12px; font-size:13px; flex:1;}
 .btn:disabled{opacity:0.4; cursor:not-allowed; transform:none;}
 
-input[type=text], textarea, select{
+input[type=text], input[type=email], input[type=password], textarea, select{
   width:100%;
   padding:15px 16px;
   border-radius:16px;
@@ -200,11 +200,12 @@ input[type=text], textarea, select{
   outline:none;
   transition:border-color .15s ease, box-shadow .15s ease;
 }
-input[type=text]{margin-top:10px; text-align:center;}
+input[type=text], input[type=email], input[type=password]{margin-top:10px; text-align:center;}
+input[type=email], input[type=password]{direction:ltr;}
 textarea{font-size:14.5px; line-height:1.7; resize:vertical; min-height:70px; margin-top:10px;}
 select{width:auto; padding:6px 12px; font-size:12.5px; border-radius:10px; color:var(--accent);}
-input[type=text]::placeholder, textarea::placeholder{color:var(--text-faint);}
-input[type=text]:focus, textarea:focus{border-color:var(--border-strong); box-shadow:0 0 0 4px var(--tag-bg);}
+input::placeholder, textarea::placeholder{color:var(--text-faint);}
+input:focus, textarea:focus{border-color:var(--border-strong); box-shadow:0 0 0 4px var(--tag-bg);}
 label.field-label{font-size:12.5px; color:var(--text-dim); align-self:flex-start; margin-top:18px; margin-right:4px; font-weight:700;}
 
 .divider-word{margin:22px 0; display:flex; align-items:center; gap:10px; width:100%; color:var(--text-dim); font-size:12.5px;}
@@ -339,6 +340,24 @@ label.field-label{font-size:12.5px; color:var(--text-dim); align-self:flex-start
 .admin-preview{margin:6px 0 0; font-size:12px; white-space:pre-line;}
 .btn-row{display:flex; gap:8px; margin-top:8px;}
 
+/* account */
+.account-bar{display:flex; justify-content:space-between; align-items:center; gap:10px; width:100%; padding:10px 14px; margin-bottom:16px;
+  border-radius:16px; background:var(--surface); border:1px solid var(--border); font-size:13px; color:var(--text-dim);}
+.account-who{display:flex; align-items:center; gap:8px; min-width:0;}
+.account-who span{overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.badge{flex:none; font-size:11px; font-weight:800; padding:3px 9px; border-radius:999px; background:var(--tag-bg); color:var(--accent);}
+.link-btn{flex:none; background:none; border:none; padding:0; color:var(--accent); font:800 13px 'Tajawal',sans-serif; cursor:pointer;}
+.btn-google{background:#fff; color:#3c4043; border:1px solid rgba(0,0,0,0.12);}
+.btn-facebook{background:#1877f2; color:#fff;}
+.btn-icon{display:inline-flex; align-items:center; justify-content:center; gap:10px;}
+.btn-icon svg{width:20px; height:20px; flex:none;}
+.notice{width:100%; padding:12px 14px; border-radius:16px; background:var(--tag-bg); color:var(--text); font-size:13px; line-height:1.8; margin-top:12px;}
+.locked-icon{font-size:40px; margin-bottom:6px;}
+.sub-row{display:flex; flex-direction:column; gap:6px; background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:12px; text-align:right;}
+.sub-row .who{font-weight:800; color:var(--text); font-size:14px; word-break:break-all;}
+.sub-row .status{font-size:12.5px; color:var(--text-dim);}
+.sub-row .status.on{color:var(--accent); font-weight:800;}
+
 /* theme picker */
 .theme-row{display:flex; justify-content:center; gap:12px; margin-top:22px;}
 .theme-dot{
@@ -357,18 +376,70 @@ label.field-label{font-size:12.5px; color:var(--text-dim); align-self:flex-start
 <body>
 <div id="debug-error-banner" style="display:none; position:fixed; top:0; left:0; right:0; background:#b8342f; color:#fff; font-size:12px; padding:calc(8px + env(safe-area-inset-top)) 12px 8px; z-index:99999; text-align:center; direction:rtl; font-family:sans-serif;"></div>
 <div class="app-root" id="app">
+  <!-- تدرّج الشعار: برّا الشاشات عشان يظهر حتى لو الشاشة اللي تعرّفه مخفية -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <linearGradient id="emblem-g" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" style="stop-color:var(--primary-1)"/>
+        <stop offset="1" style="stop-color:var(--secondary-2)"/>
+      </linearGradient>
+    </defs>
+  </svg>
   <div class="embers" id="embers"></div>
+
+  <!-- SCREEN: WELCOME (اختيار طريقة الدخول) -->
+  <div class="screen hidden" id="screen-welcome">
+    <div class="brand">
+      <svg class="brand-emblem" viewBox="0 0 64 64" aria-hidden="true">
+        <path d="M32 54C13 41 7 29 10.5 20 14 11 26 9.5 32 18.5 38 9.5 50 11 53.5 20 57 29 51 41 32 54Z" fill="url(#emblem-g)" opacity=".22"/>
+        <path d="M32 54C13 41 7 29 10.5 20 14 11 26 9.5 32 18.5 38 9.5 50 11 53.5 20 57 29 51 41 32 54Z" fill="none" stroke="url(#emblem-g)" stroke-width="2.4" stroke-linejoin="round"/>
+        <path d="M32 44C21 36.5 18 30 20 25 22 20.5 28.5 20 32 25 35.5 20 42 20.5 44 25 46 30 43 36.5 32 44Z" fill="url(#emblem-g)"/>
+      </svg>
+      <h1 class="title">أهلاً فيكم</h1>
+      <p class="subtitle">سجّل دخولك عشان تحفظ حسابك وتقدر تشترك،<br>أو جرّب اللعبة كزائر</p>
+    </div>
+    <div class="card-panel">
+      <button class="btn btn-google btn-icon" onclick="signInWith('google')">
+        <svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>
+        المتابعة بحساب Google
+      </button>
+      <button class="btn btn-facebook btn-icon hidden" id="btn-facebook" onclick="signInWith('facebook')">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#fff" d="M24 12a12 12 0 1 0-13.9 11.9v-8.4H7.1V12h3V9.4c0-3 1.8-4.7 4.5-4.7 1.3 0 2.7.2 2.7.2v3h-1.5c-1.5 0-2 .9-2 1.9V12h3.4l-.5 3.5h-2.9v8.4A12 12 0 0 0 24 12z"/></svg>
+        المتابعة بحساب Facebook
+      </button>
+      <button class="btn btn-ghost" onclick="goTo('email')">✉️ الدخول بالإيميل</button>
+      <div class="divider-word">أو</div>
+      <button class="btn btn-ghost" onclick="enterAsGuest()">👤 جرّب كزائر</button>
+      <p class="hint-text error-text hidden" id="welcome-error"></p>
+      <p class="notice hidden" id="inapp-notice">💡 أنت فاتح اللعبة من داخل تطبيق. عشان تسجّل بحساب Google، افتح الرابط في Safari أو Chrome.</p>
+    </div>
+  </div>
+
+  <!-- SCREEN: EMAIL -->
+  <div class="screen hidden" id="screen-email">
+    <div class="brand">
+      <span class="brand-icon">✉️</span>
+      <h1 class="title">الدخول بالإيميل</h1>
+      <p class="subtitle">عندك حساب؟ اضغط "دخول". جديد؟ اضغط "إنشاء حساب"</p>
+    </div>
+    <div class="card-panel">
+      <label class="field-label">الإيميل</label>
+      <input type="email" id="email-input" placeholder="name@example.com" autocomplete="email" inputmode="email">
+      <label class="field-label">كلمة المرور</label>
+      <input type="password" id="pass-input" placeholder="6 أحرف أو أكثر" autocomplete="current-password">
+      <button class="btn btn-primary" onclick="emailAuth('signin')">دخول</button>
+      <button class="btn btn-gold" onclick="emailAuth('signup')">إنشاء حساب جديد</button>
+      <button class="small-close" onclick="resetPassword()">نسيت كلمة المرور؟</button>
+      <p class="hint-text error-text hidden" id="email-error"></p>
+      <button class="btn btn-ghost" onclick="goTo('welcome')">رجوع</button>
+    </div>
+  </div>
 
   <!-- SCREEN: HOME -->
   <div class="screen" id="screen-home">
+    <div class="account-bar" id="account-bar"></div>
     <div class="brand">
       <svg class="brand-emblem" viewBox="0 0 64 64" aria-hidden="true">
-        <defs>
-          <linearGradient id="emblem-g" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" style="stop-color:var(--primary-1)"/>
-            <stop offset="1" style="stop-color:var(--secondary-2)"/>
-          </linearGradient>
-        </defs>
         <path d="M32 54C13 41 7 29 10.5 20 14 11 26 9.5 32 18.5 38 9.5 50 11 53.5 20 57 29 51 41 32 54Z" fill="url(#emblem-g)" opacity=".22"/>
         <path d="M32 54C13 41 7 29 10.5 20 14 11 26 9.5 32 18.5 38 9.5 50 11 53.5 20 57 29 51 41 32 54Z" fill="none" stroke="url(#emblem-g)" stroke-width="2.4" stroke-linejoin="round"/>
         <path d="M32 44C21 36.5 18 30 20 25 22 20.5 28.5 20 32 25 35.5 20 42 20.5 44 25 46 30 43 36.5 32 44Z" fill="url(#emblem-g)"/>
@@ -497,10 +568,18 @@ label.field-label{font-size:12.5px; color:var(--text-dim); align-self:flex-start
   <div class="screen hidden" id="screen-admin">
     <div class="brand">
       <span class="brand-icon">⚙️</span>
-      <h1 class="title">إدارة التحديات</h1>
-      <p class="subtitle">عدّل أو احذف أو أضف أسئلة وتحديات. التعديلات خاصة فيك، وتنطبق على الألعاب الجديدة اللي تبدأها أنت</p>
+      <h1 class="title" id="admin-title">إدارة التحديات</h1>
+      <p class="subtitle" id="admin-subtitle"></p>
     </div>
-    <div class="card-panel" style="text-align:center;">
+
+    <div class="card-panel hidden" id="admin-locked">
+      <div class="locked-icon">🔒</div>
+      <p class="hint-text" id="admin-locked-text"></p>
+      <button class="btn btn-primary hidden" id="admin-locked-login" onclick="goTo('welcome')">سجّل دخولك</button>
+      <button class="btn btn-ghost" onclick="goTo('home')">رجوع للرئيسية</button>
+    </div>
+
+    <div class="card-panel hidden" id="admin-editor" style="text-align:center;">
       <label class="field-label" style="align-self:center;">اختر المستوى</label>
       <div class="level-row" id="admin-level-row"></div>
 
@@ -514,6 +593,13 @@ label.field-label{font-size:12.5px; color:var(--text-dim); align-self:flex-start
       <button class="btn btn-ghost" onclick="resetMyDeck()">↩️ رجّع التحديات الأصلية</button>
 
       <button class="btn btn-ghost" onclick="goTo('home')">رجوع للرئيسية</button>
+    </div>
+
+    <div class="card-panel hidden" id="admin-subs" style="margin-top:16px;">
+      <h1 class="title" style="font-size:24px;">👥 المشتركين</h1>
+      <p class="hint-text">الحسابات المسجّلة. فعّل الاشتراك لأي حساب بعد ما يدفع.</p>
+      <input type="text" id="subs-filter" placeholder="ابحث بالإيميل أو الاسم" oninput="renderSubscribers()">
+      <div id="admin-subs-list" class="admin-list"></div>
     </div>
   </div>
 </div>
@@ -707,11 +793,60 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-// تسجيل دخول مجهول: يعطي كل جهاز هوية ثابتة تعتمد عليها قواعد الأمان في Firebase.
-// لو ما كان مفعّل في لوحة Firebase، تكمل اللعبة بمعرّف الجهاز.
-const authReady = (firebase.auth ? firebase.auth().signInAnonymously() : Promise.reject(new Error('auth sdk missing')))
-  .then(cred=>{ myId = cred.user.uid; })
-  .catch(e=>{ console.warn('anonymous auth unavailable, using device id', e); });
+/* ---------------- account & roles ---------------- */
+// صاحب اللعبة (المدير). نفس المعرّف مكتوب في قواعد الأمان
+const OWNER_UID = 'HuzxWxVWcbRIdkvXVs6bYi6C4F83';
+// فعّلها بعد ما تجهّز تطبيق فيسبوك وتربطه في Firebase
+const FACEBOOK_ENABLED = false;
+
+const auth = firebase.auth ? firebase.auth() : null;
+let currentUser = null;
+let IS_ADMIN = false;
+let SUB_UNTIL = 0;
+function isSubscriber(){ return SUB_UNTIL > Date.now(); }
+function canEditDecks(){ return IS_ADMIN || isSubscriber(); }
+function isGuest(){ return !currentUser || currentUser.isAnonymous; }
+
+async function loadRoles(){
+  IS_ADMIN = myId === OWNER_UID;
+  SUB_UNTIL = 0;
+  if(!IS_ADMIN){
+    try{ IS_ADMIN = (await db.ref('admins/' + myId).once('value')).exists(); }catch(e){}
+  }
+  try{ SUB_UNTIL = (await db.ref('subscribers/' + myId + '/until').once('value')).val() || 0; }catch(e){}
+  renderAccountBar();
+}
+
+// كل زائر يدخل تلقائياً بحساب مجهول، ولما يسجّل نربط حسابه الجديد بنفس الهوية
+const authReady = new Promise(resolve=>{
+  if(!auth){ resolve(); return; }
+  let first = true;
+  const done = ()=>{ if(first){ first = false; resolve(); } };
+  auth.onAuthStateChanged(async user=>{
+    if(!user){
+      try{ await auth.signInAnonymously(); }
+      catch(e){ console.warn('anonymous auth unavailable, using device id', e); done(); }
+      return; // بيرجع يتنادى مع المستخدم الجديد
+    }
+    currentUser = user;
+    myId = user.uid;
+    if(!user.isAnonymous) saveProfile(user);
+    await loadRoles();
+    done();
+  });
+});
+
+function saveProfile(user){
+  const ref = db.ref('users/' + user.uid);
+  const provider = (user.providerData[0] && user.providerData[0].providerId) || 'password';
+  ref.update({
+    name: (user.displayName || '').slice(0, 100),
+    email: (user.email || '').slice(0, 200),
+    provider,
+    lastSeen: Date.now()
+  }).catch(e=> console.warn('profile save failed', e));
+  ref.child('createdAt').transaction(v=> v || Date.now()).catch(()=>{});
+}
 
 function roomRef(code){ return db.ref('rooms/' + code); }
 
@@ -778,6 +913,160 @@ if(localStorage.getItem('cg_seen_day') !== statsDay()){
   track('devices');
 }
 
+/* ---------------- sign in ---------------- */
+const AUTH_ERRORS = {
+  'auth/invalid-email': 'الإيميل مكتوب غلط',
+  'auth/missing-password': 'اكتب كلمة المرور',
+  'auth/weak-password': 'كلمة المرور لازم تكون 6 أحرف أو أكثر',
+  'auth/email-already-in-use': 'هذا الإيميل مسجّل من قبل، اضغط "دخول"',
+  'auth/credential-already-in-use': 'هذا الحساب مسجّل من قبل',
+  'auth/invalid-credential': 'الإيميل أو كلمة المرور غلط',
+  'auth/invalid-login-credentials': 'الإيميل أو كلمة المرور غلط',
+  'auth/wrong-password': 'الإيميل أو كلمة المرور غلط',
+  'auth/user-not-found': 'ما فيه حساب بهذا الإيميل، اضغط "إنشاء حساب جديد"',
+  'auth/too-many-requests': 'محاولات كثيرة، انتظر شوي وجرب مرة ثانية',
+  'auth/network-request-failed': 'تأكد من اتصال الإنترنت',
+  'auth/popup-blocked': 'المتصفح منع نافذة الدخول. اسمح بالنوافذ المنبثقة وجرب مرة ثانية',
+  'auth/operation-not-allowed': 'طريقة الدخول هذي غير مفعّلة حالياً',
+  'auth/unauthorized-domain': 'طريقة الدخول هذي غير مفعّلة لهذا الموقع حالياً',
+  'auth/account-exists-with-different-credential': 'هذا الإيميل مسجّل بطريقة دخول ثانية، جرّبها',
+  'auth/web-storage-unsupported': 'افتح الرابط في Safari أو Chrome عشان تقدر تسجّل دخول',
+  'auth/operation-not-supported-in-this-environment': 'افتح الرابط في Safari أو Chrome عشان تقدر تسجّل دخول'
+};
+function showAuthError(elId, e){
+  if(e && (e.code === 'auth/popup-closed-by-user' || e.code === 'auth/cancelled-popup-request')) return;
+  console.warn('auth error', e);
+  const el = document.getElementById(elId);
+  el.textContent = (e && AUTH_ERRORS[e.code]) || ('صار خلل بالدخول، جرب مرة ثانية' + (e && e.code ? ` (${e.code})` : ''));
+  el.classList.remove('hidden');
+}
+function hideAuthError(elId){ document.getElementById(elId).classList.add('hidden'); }
+
+// بعد أي تسجيل دخول: نحدّث الهوية والصلاحيات، ولو تغيّرت الهوية نطلع من أي غرفة قديمة
+async function afterLogin(){
+  const prevId = myId;
+  currentUser = auth.currentUser;
+  myId = currentUser.uid;
+  if(prevId !== myId){
+    detachLive();
+    currentRoomCode = null;
+    lastRoom = null;
+    clearSession();
+  }
+  EDIT_DECK = null;
+  if(!currentUser.isAnonymous) saveProfile(currentUser);
+  await loadRoles();
+  localStorage.setItem('cg_entered', '1');
+  goTo('home');
+}
+
+async function signInWith(name){
+  await authReady;
+  hideAuthError('welcome-error');
+  const provider = name === 'facebook' ? new firebase.auth.FacebookAuthProvider() : new firebase.auth.GoogleAuthProvider();
+  try{
+    const u = auth.currentUser;
+    if(u && u.isAnonymous){
+      try{
+        await u.linkWithPopup(provider);
+        track('signups');
+      }catch(e){
+        // الحساب مسجّل من قبل على جهاز ثاني: ندخل عليه مباشرة
+        if(e.code === 'auth/credential-already-in-use' && e.credential) await auth.signInWithCredential(e.credential);
+        else throw e;
+      }
+    } else {
+      await auth.signInWithPopup(provider);
+    }
+    await afterLogin();
+  }catch(e){ showAuthError('welcome-error', e); }
+}
+
+async function emailAuth(mode){
+  await authReady;
+  hideAuthError('email-error');
+  const email = document.getElementById('email-input').value.trim();
+  const pass = document.getElementById('pass-input').value;
+  try{
+    if(mode === 'signup'){
+      const u = auth.currentUser;
+      if(u && u.isAnonymous) await u.linkWithCredential(firebase.auth.EmailAuthProvider.credential(email, pass));
+      else await auth.createUserWithEmailAndPassword(email, pass);
+      track('signups');
+    } else {
+      await auth.signInWithEmailAndPassword(email, pass);
+    }
+    document.getElementById('pass-input').value = '';
+    await afterLogin();
+  }catch(e){ showAuthError('email-error', e); }
+}
+
+async function resetPassword(){
+  const email = document.getElementById('email-input').value.trim();
+  const el = document.getElementById('email-error');
+  if(!email){ el.textContent = 'اكتب إيميلك فوق، وبعدين اضغط "نسيت كلمة المرور؟"'; el.classList.remove('hidden'); return; }
+  try{
+    await auth.sendPasswordResetEmail(email);
+    el.textContent = 'أرسلنا لك رابط تغيير كلمة المرور على الإيميل. شيّك الرسائل غير المرغوبة (Spam) لو ما لقيته';
+    el.classList.remove('hidden');
+  }catch(e){ showAuthError('email-error', e); }
+}
+
+function enterAsGuest(){
+  localStorage.setItem('cg_entered', '1');
+  goTo('home');
+}
+
+async function signOut(){
+  if(!confirm('متأكد تبي تسجّل خروج؟')) return;
+  if(currentRoomCode) await leaveRoom();
+  localStorage.removeItem('cg_entered');
+  EDIT_DECK = null;
+  IS_ADMIN = false;
+  SUB_UNTIL = 0;
+  await auth.signOut(); // بيدخل تلقائياً كزائر جديد
+  goTo('welcome');
+}
+
+function renderAccountBar(){
+  const bar = document.getElementById('account-bar');
+  bar.innerHTML = '';
+  const who = document.createElement('div');
+  who.className = 'account-who';
+  const label = document.createElement('span');
+  const btn = document.createElement('button');
+  btn.className = 'link-btn';
+  if(isGuest()){
+    label.textContent = '👤 أنت داخل كزائر';
+    btn.textContent = 'سجّل دخول';
+    btn.onclick = ()=> goTo('welcome');
+    who.appendChild(label);
+  } else {
+    label.textContent = '✉️ ' + (currentUser.displayName || currentUser.email || 'حسابي');
+    who.appendChild(label);
+    const badgeText = IS_ADMIN ? '👑 مدير' : (isSubscriber() ? '⭐ مشترك' : '');
+    if(badgeText){
+      const badge = document.createElement('span');
+      badge.className = 'badge';
+      badge.textContent = badgeText;
+      who.appendChild(badge);
+    }
+    btn.textContent = 'خروج';
+    btn.onclick = signOut;
+  }
+  bar.appendChild(who);
+  bar.appendChild(btn);
+}
+
+if(FACEBOOK_ENABLED) document.getElementById('btn-facebook').classList.remove('hidden');
+// متصفحات داخل التطبيقات (إنستقرام، فيسبوك، سناب...) ما تسمح بالدخول بحساب Google
+if(/FBAN|FBAV|Instagram|Snapchat|Line\/|TikTok|musical_ly|Twitter/i.test(navigator.userAgent)){
+  document.getElementById('inapp-notice').classList.remove('hidden');
+}
+// أول مرة: نعرض شاشة الترحيب
+if(!localStorage.getItem('cg_entered')) goTo('welcome');
+renderAccountBar();
+
 /* ---------------- session (يرجعك للعبة لو سكّرت التطبيق) ---------------- */
 function saveSession(code){ localStorage.setItem('cg_room', code); }
 function clearSession(){ localStorage.removeItem('cg_room'); }
@@ -797,9 +1086,10 @@ async function restoreSession(){
 }
 restoreSession();
 
-/* ---------------- my deck (خاص بكل مستخدم) ---------------- */
-let MY_DECK = null;
-function myDeckRef(){ return db.ref('userDecks/' + myId); }
+/* ---------------- decks ---------------- */
+// المدير يعدّل التحديات الرسمية اللي يلعب فيها الكل، والمشترك يعدّل نسخته الخاصة
+let EDIT_DECK = null;
+function editDeckRef(){ return IS_ADMIN ? db.ref('officialDeck') : db.ref('userDecks/' + myId); }
 
 function defaultDeck(){
   const out = {};
@@ -810,21 +1100,41 @@ function defaultDeck(){
   return out;
 }
 
-async function loadMyDeck(){
-  if(MY_DECK) return MY_DECK;
+async function loadOfficialDeck(){
   await authReady;
   try{
-    const snap = await myDeckRef().once('value');
-    MY_DECK = snap.val();
-  }catch(e){ console.error('deck read failed', e); }
-  if(!MY_DECK) MY_DECK = defaultDeck();
-  return MY_DECK;
+    const snap = await db.ref('officialDeck').once('value');
+    if(snap.exists()) return snap.val();
+  }catch(e){ console.error('official deck read failed', e); }
+  return defaultDeck();
 }
 
-async function persistMyDeck(){
-  MY_DECK._v = 1; // يخلي السجل موجود حتى لو انحذفت كل البطاقات
+// التحديات اللي تنسخ للغرفة الجديدة: المشترك ياخذ نسخته الخاصة لو عنده، والباقي الرسمية
+async function deckForNewRoom(){
+  await authReady;
+  if(isSubscriber() && !IS_ADMIN){
+    try{
+      const snap = await db.ref('userDecks/' + myId).once('value');
+      if(snap.exists()) return snap.val();
+    }catch(e){ console.error('deck read failed', e); }
+  }
+  return loadOfficialDeck();
+}
+
+async function loadEditDeck(){
+  if(EDIT_DECK) return EDIT_DECK;
   try{
-    await myDeckRef().set(MY_DECK);
+    const snap = await editDeckRef().once('value');
+    EDIT_DECK = snap.val();
+  }catch(e){ console.error('deck read failed', e); }
+  if(!EDIT_DECK) EDIT_DECK = await loadOfficialDeck();
+  return EDIT_DECK;
+}
+
+async function persistEditDeck(){
+  EDIT_DECK._v = 1; // يخلي السجل موجود حتى لو انحذفت كل البطاقات
+  try{
+    await editDeckRef().set(EDIT_DECK);
     return true;
   }catch(e){
     console.error('deck save failed', e);
@@ -840,12 +1150,132 @@ let newCardType = 'تحدي';
 
 async function openAdmin(){
   goTo('admin');
+  const editor = document.getElementById('admin-editor');
+  const locked = document.getElementById('admin-locked');
+  const subs = document.getElementById('admin-subs');
+  [editor, locked, subs].forEach(el=> el.classList.add('hidden'));
+  await authReady;
+  await loadRoles();
+
+  const title = document.getElementById('admin-title');
+  const subtitle = document.getElementById('admin-subtitle');
+  if(!canEditDecks()){
+    title.textContent = 'إدارة التحديات';
+    subtitle.textContent = '';
+    const lockedText = document.getElementById('admin-locked-text');
+    const loginBtn = document.getElementById('admin-locked-login');
+    if(isGuest()){
+      lockedText.textContent = 'تعديل التحديات وإضافة تحدياتك الخاصة ميزة للمشتركين. سجّل دخولك أول، وبعدها تقدر تشترك.';
+      loginBtn.classList.remove('hidden');
+    } else {
+      lockedText.textContent = `تعديل التحديات وإضافة تحدياتك الخاصة ميزة للمشتركين. لتفعيل الاشتراك تواصل مع الإدارة وأرسل لهم إيميلك: ${currentUser.email || ''}`;
+      loginBtn.classList.add('hidden');
+    }
+    locked.classList.remove('hidden');
+    return;
+  }
+
+  if(IS_ADMIN){
+    title.textContent = 'التحديات الرسمية';
+    subtitle.textContent = 'أنت المدير 👑 أي تعديل هنا يظهر لكل اللاعبين في الألعاب الجديدة';
+  } else {
+    title.textContent = 'تحدياتي الخاصة';
+    const until = new Date(SUB_UNTIL).toLocaleDateString('ar-SA-u-ca-gregory', {year:'numeric', month:'long', day:'numeric'});
+    subtitle.textContent = `أضف وعدّل تحدياتك، وتنطبق على الألعاب اللي تبدأها أنت. اشتراكك فعّال لين ${until}`;
+  }
+  editor.classList.remove('hidden');
   renderAdminLevelRow();
   renderNewTypeRow();
   const list = document.getElementById('admin-cards-list');
   list.innerHTML = '<p class="hint-text">جاري التحميل...</p>';
-  await loadMyDeck();
+  await loadEditDeck();
   renderAdminCards();
+  if(IS_ADMIN){
+    subs.classList.remove('hidden');
+    loadSubscribers();
+  }
+}
+
+/* ---------------- subscribers (للمدير) ---------------- */
+let SUBS_USERS = {};
+let SUBS = {};
+async function loadSubscribers(){
+  const list = document.getElementById('admin-subs-list');
+  list.innerHTML = '<p class="hint-text">جاري التحميل...</p>';
+  try{
+    const [u, s] = await Promise.all([db.ref('users').once('value'), db.ref('subscribers').once('value')]);
+    SUBS_USERS = u.val() || {};
+    SUBS = s.val() || {};
+  }catch(e){
+    console.error('subscribers load failed', e);
+    list.innerHTML = '<p class="hint-text error-text">ما قدرنا نحمّل الحسابات. تأكد إن قواعد الأمان محدّثة.</p>';
+    return;
+  }
+  renderSubscribers();
+}
+function renderSubscribers(){
+  const list = document.getElementById('admin-subs-list');
+  list.innerHTML = '';
+  const q = document.getElementById('subs-filter').value.trim().toLowerCase();
+  const fmt = ms=> new Date(ms).toLocaleDateString('ar-SA-u-ca-gregory', {year:'numeric', month:'short', day:'numeric'});
+  const rows = Object.entries(SUBS_USERS)
+    .filter(([, u])=> !q || (u.email || '').toLowerCase().includes(q) || (u.name || '').toLowerCase().includes(q))
+    .sort((a, b)=> (b[1].createdAt || 0) - (a[1].createdAt || 0))
+    .slice(0, 50);
+  if(rows.length === 0){
+    list.innerHTML = '<p class="hint-text">ما فيه حسابات مسجّلة للحين.</p>';
+    return;
+  }
+  rows.forEach(([uid, u])=>{
+    const row = document.createElement('div');
+    row.className = 'sub-row';
+    const who = document.createElement('div');
+    who.className = 'who';
+    who.textContent = u.email || u.name || uid;
+    const status = document.createElement('div');
+    const until = (SUBS[uid] && SUBS[uid].until) || 0;
+    const active = until > Date.now();
+    status.className = 'status' + (active ? ' on' : '');
+    status.textContent = (u.name ? u.name + ' · ' : '') + (active ? `⭐ مشترك لين ${fmt(until)}` : 'غير مشترك') + (u.createdAt ? ` · سجّل ${fmt(u.createdAt)}` : '');
+    const btns = document.createElement('div');
+    btns.className = 'btn-row';
+    [['+ شهر', 30], ['+ سنة', 365]].forEach(([label, days])=>{
+      const b = document.createElement('button');
+      b.className = 'btn btn-gold btn-sm';
+      b.textContent = label;
+      b.onclick = ()=> grantSubscription(uid, days);
+      btns.appendChild(b);
+    });
+    if(active){
+      const b = document.createElement('button');
+      b.className = 'btn btn-danger btn-sm';
+      b.textContent = 'إلغاء';
+      b.onclick = ()=> revokeSubscription(uid);
+      btns.appendChild(b);
+    }
+    row.appendChild(who);
+    row.appendChild(status);
+    row.appendChild(btns);
+    list.appendChild(row);
+  });
+}
+async function grantSubscription(uid, days){
+  try{
+    const res = await db.ref('subscribers/' + uid).transaction(cur=>{
+      const base = Math.max(Date.now(), (cur && cur.until) || 0);
+      return {until: base + days * 86400000, updatedAt: Date.now()};
+    });
+    SUBS[uid] = res.snapshot.val();
+    renderSubscribers();
+  }catch(e){ console.error(e); alert('صار خلل بتفعيل الاشتراك، جرب مرة ثانية'); }
+}
+async function revokeSubscription(uid){
+  if(!confirm('متأكد تبي تلغي اشتراك هذا الحساب؟')) return;
+  try{
+    await db.ref('subscribers/' + uid).remove();
+    delete SUBS[uid];
+    renderSubscribers();
+  }catch(e){ console.error(e); alert('صار خلل بالإلغاء، جرب مرة ثانية'); }
 }
 function renderAdminLevelRow(){
   renderLevelRow(document.getElementById('admin-level-row'), adminLevel, (id)=>{
@@ -868,8 +1298,8 @@ function renderNewTypeRow(){
 function renderAdminCards(){
   const list = document.getElementById('admin-cards-list');
   list.innerHTML = '';
-  if(!MY_DECK) return;
-  const entries = Object.entries(MY_DECK[adminLevel] || {});
+  if(!EDIT_DECK) return;
+  const entries = Object.entries(EDIT_DECK[adminLevel] || {});
   if(entries.length === 0){
     const p = document.createElement('p');
     p.className = 'hint-text';
@@ -931,30 +1361,31 @@ function renderAdminCards(){
 async function saveCardEdit(level, key, type, text){
   text = text.trim();
   if(!text){ alert('لا تسيب النص فاضي'); return false; }
-  MY_DECK[level] = MY_DECK[level] || {};
-  MY_DECK[level][key] = {type, text};
-  return persistMyDeck();
+  EDIT_DECK[level] = EDIT_DECK[level] || {};
+  EDIT_DECK[level][key] = {type, text};
+  return persistEditDeck();
 }
 async function deleteCard(level, key){
   if(!confirm('متأكد تبي تحذف هذا التحدي؟')) return;
-  delete MY_DECK[level][key];
-  await persistMyDeck();
+  delete EDIT_DECK[level][key];
+  await persistEditDeck();
   renderAdminCards();
 }
 async function addNewCard(){
   const textEl = document.getElementById('admin-new-text');
   const text = textEl.value.trim();
   if(!text){ alert('اكتب نص التحدي أولاً'); return; }
-  await loadMyDeck();
-  MY_DECK[adminLevel] = MY_DECK[adminLevel] || {};
-  MY_DECK[adminLevel][myDeckRef().push().key] = {type:newCardType, text};
-  if(await persistMyDeck()) textEl.value = '';
+  await loadEditDeck();
+  EDIT_DECK[adminLevel] = EDIT_DECK[adminLevel] || {};
+  EDIT_DECK[adminLevel][db.ref().push().key] = {type:newCardType, text};
+  if(await persistEditDeck()) textEl.value = '';
   renderAdminCards();
 }
 async function resetMyDeck(){
   if(!confirm('بترجع التحديات الأصلية وتنحذف كل تعديلاتك. متأكد؟')) return;
-  MY_DECK = defaultDeck();
-  await persistMyDeck();
+  // المدير يرجع للتحديات الأصلية في اللعبة، والمشترك يرجع لنسخة التحديات الرسمية
+  EDIT_DECK = IS_ADMIN ? defaultDeck() : await loadOfficialDeck();
+  await persistEditDeck();
   renderAdminCards();
 }
 
@@ -962,7 +1393,7 @@ async function resetMyDeck(){
 async function createRoom(){
   await authReady;
   const name = document.getElementById('create-name').value.trim() || 'أنا';
-  const myDeck = await loadMyDeck();
+  const myDeck = await deckForNewRoom();
   const deck = {};
   LEVELS.forEach(lv=>{ deck[lv.id] = myDeck[lv.id] || {}; });
 

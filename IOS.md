@@ -85,3 +85,20 @@ npm run ios:open    # يفتح المشروع في Xcode
 تشوفها من صفحة `stats.html`، مثلاً `https://rashedems-hub.github.io/couple-game/stats.html`.
 بعد ما تطبّق قواعد الأمان تصير الصفحة لك بس: افتحها من جوالك، وانسخ المعرّف اللي يطلع لك،
 وأضفه في Realtime Database تحت `admins/<المعرّف>` بقيمة `true`.
+
+## الحسابات والاشتراكات
+
+- **زائر:** يلعب بالتحديات الرسمية بدون تسجيل.
+- **حساب مجاني** (إيميل أو Google أو Facebook): نفس الزائر، لكن حسابه محفوظ ويقدر يشترك.
+- **مشترك:** يقدر يعدّل نسخته الخاصة من التحديات، وتنطبق على الألعاب اللي يبدأها.
+- **المدير:** يعدّل التحديات الرسمية اللي يلعب فيها الكل، ويفعّل الاشتراكات من شاشة "إدارة التحديات".
+
+المدير هو صاحب المعرّف `OWNER_UID` في `index.html` (نفسه في `database.rules.json`)، أو أي معرّف تضيفه تحت `admins/` في الـ Database.
+
+### إعدادات Firebase المطلوبة
+1. **Authentication ← Sign-in method:** فعّل **Email/Password** و **Google**.
+2. **Authentication ← Settings ← Authorized domains:** أضف `rashedems-hub.github.io` (وأي دومين خاص تربطه بعدين).
+3. **Realtime Database ← Rules:** الصق محتوى `database.rules.json` واضغط Publish.
+4. **Facebook (اختياري):** يحتاج تطبيق في [Meta for Developers](https://developers.facebook.com)، وتحط الـ App ID والـ App Secret في Firebase، وبعدها غيّر `FACEBOOK_ENABLED` إلى `true` في `index.html`.
+
+> المدير لازم يسجّل دخوله بحساب Google (أو إيميل) من **نفس المتصفح** اللي فيه معرّفه الحالي، عشان ينربط حسابه بنفس الهوية ويقدر يدخل كمدير من أي جهاز بعدها.
