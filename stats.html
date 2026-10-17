@@ -24,6 +24,7 @@ h1{font-size:24px; color:var(--gold-light); margin:0 0 4px;}
 .tab{flex:1; padding:10px; border-radius:12px; border:1px solid rgba(201,161,90,0.4); background:transparent; color:var(--cream-dim); font:700 14px 'Tajawal',sans-serif; cursor:pointer;}
 .tab.active{background:rgba(201,161,90,0.2); color:var(--gold-light); border-color:var(--gold-light);}
 .tiles{display:grid; grid-template-columns:repeat(2, 1fr); gap:10px;}
+.tile:last-child:nth-child(odd){grid-column:1 / -1;}
 .tile{background:rgba(247,234,217,0.05); border:1px solid rgba(201,161,90,0.3); border-radius:14px; padding:14px;}
 .tile .n{font-size:28px; font-weight:900; color:var(--gold-light); font-variant-numeric:tabular-nums;}
 .tile .l{font-size:12.5px; color:var(--cream-dim); margin-top:2px;}
@@ -108,7 +109,8 @@ function render(){
     [sum(days, 'devices'), 'زيارات أجهزة', 'كل جهاز ينحسب مرة في اليوم'],
     [created, 'غرف انفتحت', joined ? `${joined} منها دخلها الشريك` : 'ما دخل شريك أي غرفة'],
     [engaged, 'ألعاب جدّية', created ? `كمّلوا 3 تحديات أو أكثر (${Math.round(engaged / created * 100)}% من الغرف)` : 'كمّلوا 3 تحديات أو أكثر'],
-    [sum(days, 'cardsDone'), 'تحديات مكتملة', `${sum(days, 'skips')} تخطي`]
+    [sum(days, 'cardsDone'), 'تحديات مكتملة', `${sum(days, 'skips')} تخطي`],
+    [sum(days, 'signups'), 'حسابات جديدة', 'سجّلوا بإيميل أو Google أو Facebook']
   ].forEach(([n, l, h])=>{
     const t = el('div', {className:'tile'});
     t.appendChild(el('div', {className:'n'}, n.toLocaleString('en')));
@@ -171,9 +173,13 @@ function showLocked(uid){
   document.getElementById('my-id').textContent = '';
 }
 
-firebase.auth().signInAnonymously()
-  .then(cred=> cred.user.uid)
-  .catch(e=>{ console.warn('auth failed', e); return null; })
+// نستخدم الحساب المسجّل لو موجود، وإلا ندخل كزائر
+new Promise(resolve=>{
+  const unsub = firebase.auth().onAuthStateChanged(user=>{
+    if(user){ unsub(); resolve(user.uid); return; }
+    firebase.auth().signInAnonymously().catch(e=>{ console.warn('auth failed', e); unsub(); resolve(null); });
+  });
+})
   .then(async uid=>{
     if(uid) document.getElementById('my-id').textContent = 'معرّف هذا الجهاز: ' + uid;
     try{

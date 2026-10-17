@@ -10,18 +10,48 @@
       }
     },
     "stats": {
-      ".read": "auth != null && root.child('admins').child(auth.uid).exists()",
+      ".read": "auth != null && (auth.uid === 'HuzxWxVWcbRIdkvXVs6bYi6C4F83' || root.child('admins').child(auth.uid).exists())",
       "$day": {
         "$metric": {
-          ".write": "auth != null && $day.matches(/^\\d{4}-\\d{2}-\\d{2}$/) && $metric.matches(/^(devices|roomsCreated|roomsJoined|cardsDrawn|cardsDone|skips|engagedGames|drawn_(light|warm|hot))$/)",
+          ".write": "auth != null && $day.matches(/^\\d{4}-\\d{2}-\\d{2}$/) && $metric.matches(/^(devices|signups|roomsCreated|roomsJoined|cardsDrawn|cardsDone|skips|engagedGames|drawn_(light|warm|hot))$/)",
           ".validate": "newData.isNumber() && newData.val() === (data.exists() ? data.val() + 1 : 1)"
         }
       }
     },
+    "admins": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid"
+      }
+    },
+    "users": {
+      ".read": "auth != null && (auth.uid === 'HuzxWxVWcbRIdkvXVs6bYi6C4F83' || root.child('admins').child(auth.uid).exists())",
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid",
+        "name": {".validate": "newData.isString() && newData.val().length <= 100"},
+        "email": {".validate": "newData.isString() && newData.val().length <= 200"},
+        "provider": {".validate": "newData.isString() && newData.val().length <= 50"},
+        "createdAt": {".validate": "newData.isNumber()"},
+        "lastSeen": {".validate": "newData.isNumber()"},
+        "$other": {".validate": false}
+      }
+    },
+    "subscribers": {
+      ".read": "auth != null && (auth.uid === 'HuzxWxVWcbRIdkvXVs6bYi6C4F83' || root.child('admins').child(auth.uid).exists())",
+      ".write": "auth != null && (auth.uid === 'HuzxWxVWcbRIdkvXVs6bYi6C4F83' || root.child('admins').child(auth.uid).exists())",
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".validate": "newData.child('until').isNumber()"
+      }
+    },
+    "officialDeck": {
+      ".read": "auth != null",
+      ".write": "auth != null && (auth.uid === 'HuzxWxVWcbRIdkvXVs6bYi6C4F83' || root.child('admins').child(auth.uid).exists())"
+    },
     "userDecks": {
       "$uid": {
         ".read": "auth != null && auth.uid === $uid",
-        ".write": "auth != null && auth.uid === $uid"
+        ".write": "auth != null && auth.uid === $uid && (auth.uid === 'HuzxWxVWcbRIdkvXVs6bYi6C4F83' || root.child('admins').child(auth.uid).exists() || root.child('subscribers').child($uid).child('until').val() > now)"
       }
     }
   }
