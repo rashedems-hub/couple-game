@@ -11,7 +11,10 @@
 <meta name="apple-mobile-web-app-title" content="لعبة الأزواج">
 <link rel="apple-touch-icon" href="icon-192.png">
 <script>
+// شريط الأخطاء يظهر بس وقت التطوير: افتح الصفحة مع ?debug
+var CG_DEBUG = /[?&]debug\b/.test(location.search);
 window.onerror = function(msg, src, line, col, err){
+  if(!CG_DEBUG) return;
   var el = document.getElementById('debug-error-banner');
   if(el){
     el.style.display='block';
@@ -20,6 +23,7 @@ window.onerror = function(msg, src, line, col, err){
   }
 };
 window.addEventListener('unhandledrejection', function(ev){
+  if(!CG_DEBUG) return;
   var el = document.getElementById('debug-error-banner');
   var reason = ev.reason && ev.reason.message ? ev.reason.message : ev.reason;
   if(el){ el.style.display='block'; el.textContent = 'خطأ Promise: ' + reason; }
@@ -154,7 +158,7 @@ label.field-label{font-size:12px; color:var(--cream-dim); align-self:flex-start;
 
 .room-code-display{
   font-family:'Tajawal',sans-serif;
-  font-size:42px; font-weight:900; letter-spacing:10px; color:var(--gold-light);
+  font-size:40px; font-weight:900; letter-spacing:6px; direction:ltr; color:var(--gold-light);
   margin:14px 0 4px;
 }
 .hint-text{font-size:12.5px; color:var(--cream-dim); line-height:1.8; margin-top:4px;}
@@ -251,6 +255,7 @@ label.field-label{font-size:12px; color:var(--cream-dim); align-self:flex-start;
 </style>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js" crossorigin="anonymous"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js" crossorigin="anonymous"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js" crossorigin="anonymous"></script>
 </head>
 <body>
 <div id="debug-error-banner" style="display:none; position:fixed; top:0; left:0; right:0; background:#b8342f; color:#fff; font-size:12px; padding:calc(8px + env(safe-area-inset-top)) 12px 8px; z-index:99999; text-align:center; direction:rtl; font-family:sans-serif;"></div>
@@ -281,6 +286,9 @@ label.field-label{font-size:12px; color:var(--cream-dim); align-self:flex-start;
     <div class="card-panel">
       <label class="field-label">اسمك</label>
       <input type="text" id="create-name" placeholder="مثلاً: سارة" maxlength="16">
+
+      <label class="field-label">أنا</label>
+      <div class="level-row" id="create-gender-row"></div>
 
       <label class="field-label">مستوى اللعبة</label>
       <div class="level-row" id="create-level-row"></div>
@@ -314,8 +322,10 @@ label.field-label{font-size:12px; color:var(--cream-dim); align-self:flex-start;
     <div class="card-panel">
       <label class="field-label">اسمك</label>
       <input type="text" id="join-name" placeholder="مثلاً: محمد" maxlength="16">
+      <label class="field-label">أنا</label>
+      <div class="level-row" id="join-gender-row"></div>
       <label class="field-label">كود الغرفة</label>
-      <input type="text" id="join-code" placeholder="0000" maxlength="4" inputmode="numeric">
+      <input type="text" id="join-code" placeholder="000000" maxlength="6" inputmode="numeric" autocomplete="off">
       <button class="btn btn-primary" onclick="joinRoom()">انضم الآن</button>
       <button class="btn btn-ghost" onclick="goTo('home')">رجوع</button>
       <p class="hint-text hidden" id="join-error" style="color:var(--ember-light);"></p>
@@ -325,11 +335,12 @@ label.field-label{font-size:12px; color:var(--cream-dim); align-self:flex-start;
   <!-- SCREEN: GAME -->
   <div class="screen hidden" id="screen-game">
     <div class="top-actions">
-      <button class="icon-btn" onclick="leaveRoom()">🚪 خروج</button>
+      <button class="icon-btn" onclick="confirmLeave()">🚪 خروج</button>
       <span class="icon-btn" id="game-code-tag">كود: ----</span>
     </div>
 
     <div class="turn-banner" id="turn-banner">دور فلان</div>
+    <p class="hint-text hidden" id="reaction-note" style="margin:-8px 0 14px;"></p>
 
     <div class="level-badge" onclick="openLevelModal()" id="level-badge">🔥 المستوى: خفيف</div>
 
@@ -349,12 +360,14 @@ label.field-label{font-size:12px; color:var(--cream-dim); align-self:flex-start;
     <div id="empty-stage" class="empty-stage">بانتظار سحب البطاقة...</div>
 
     <div class="rating-panel hidden" id="rating-panel">
-      <p class="hint-text" id="rating-prompt">قيّم أداء شريكك بهالتحدي</p>
+      <p class="hint-text" id="rating-prompt">وش رأيك بهالتحدي؟</p>
       <div class="stars-row" id="stars-row"></div>
     </div>
 
     <button class="btn btn-primary hidden" id="btn-draw" onclick="drawCard()">🎴 اسحب بطاقة</button>
     <button class="btn btn-gold hidden" id="btn-done" onclick="markDone()">✅ خلصت التحدي</button>
+    <button class="btn btn-ghost hidden" id="btn-skip" onclick="skipCard()">⏭️ تخطّي، عطونا بطاقة ثانية</button>
+    <button class="btn btn-primary hidden" id="btn-home" onclick="leaveRoom()">🏠 رجوع للرئيسية</button>
 
     <div class="players-strip" id="players-strip"></div>
   </div>
@@ -373,7 +386,7 @@ label.field-label{font-size:12px; color:var(--cream-dim); align-self:flex-start;
     <div class="brand">
       <span class="brand-icon">⚙️</span>
       <h1 class="title">إدارة التحديات</h1>
-      <p class="subtitle">عدّل أو احذف أو أضف أسئلة وتحديات، والتعديلات تنعكس على الجهازين فورًا</p>
+      <p class="subtitle">عدّل أو احذف أو أضف أسئلة وتحديات. التعديلات خاصة فيك، وتنطبق على الألعاب الجديدة اللي تبدأها أنت</p>
     </div>
     <div class="card-panel" style="text-align:center;">
       <label class="field-label" style="align-self:center;">اختر المستوى</label>
@@ -384,7 +397,9 @@ label.field-label{font-size:12px; color:var(--cream-dim); align-self:flex-start;
       <div class="divider-word">إضافة جديد</div>
       <div class="level-row" id="admin-new-type-row"></div>
       <textarea id="admin-new-text" placeholder="اكتب نص التحدي أو السؤال هنا..." style="width:100%; min-height:70px; margin-top:10px; padding:12px; border-radius:12px; border:1px solid rgba(201,161,90,0.4); background:rgba(247,234,217,0.06); color:var(--cream); font-family:'Tajawal',sans-serif; font-size:14px; resize:vertical;"></textarea>
+      <p class="hint-text" style="text-align:right;">💡 تقدر تكتب {زوجتك|زوجك} أو قبّل{|ي} والكلمة تتغير حسب اللي عليه الدور: الأول للزوج والثاني للزوجة</p>
       <button class="btn btn-gold" onclick="addNewCard()">➕ إضافة</button>
+      <button class="btn btn-ghost" onclick="resetMyDeck()">↩️ رجّع التحديات الأصلية</button>
 
       <button class="btn btn-ghost" onclick="goTo('home')">رجوع للرئيسية</button>
     </div>
@@ -399,44 +414,84 @@ const LEVELS = [
   {id:'hot', name:'حماسي', flames:'🔥🔥🔥'}
 ];
 
+const GENDERS = [
+  {id:'m', name:'زوج', icon:'🤵'},
+  {id:'f', name:'زوجة', icon:'👰'}
+];
+
+// {أ|ب} تتغير حسب اللي عليه الدور: أ للزوج، ب للزوجة
 const DEFAULT_DECKS = {
   light: [
-    {type:'سؤال', text:'قول لشريكك 3 أشياء تحبها فيه ما قلتها من قبل'},
-    {type:'تحدي', text:'امسكوا أيديكم وانظروا بعيون بعض لمدة 30 ثانية بدون كلام'},
-    {type:'تحدي', text:'اكتب رسالة حب قصيرة لشريكك الحين واقرأها له'},
-    {type:'سؤال', text:'وش أول شي أعجبك في شريكك أول ما تعرفتوا؟'},
-    {type:'تحدي', text:'غنّ جزء من أغنية تذكرك بشريكك'},
-    {type:'سؤال', text:'اذكر أحلى لحظة ضحكتوا فيها مع بعض'},
-    {type:'تحدي', text:'عانق شريكك لمدة دقيقة كاملة بدون ما تفلته'},
-    {type:'سؤال', text:'وش أكثر شي يعجبك في شكل شريكك؟ قوله الحين'},
-    {type:'تحدي', text:'داعب يد شريكك وأنتوا تسولفون عن يوم حلو بينكم'},
-    {type:'سؤال', text:'لو تختصر علاقتكم بكلمة وحدة، وش تكون؟'}
+    {type:'سؤال', text:'قول{|ي} {لزوجتك|لزوجك} 3 أشياء تحب{|ين}ها في{ها|ه} وما قلت{ها|يها} من قبل'},
+    {type:'تحدي', text:'امسكوا أيدي بعض وطالعوا في عيون بعض 30 ثانية بدون كلام'},
+    {type:'تحدي', text:'اكتب{|ي} رسالة حب قصيرة {لزوجتك|لزوجك} الحين واقرأ{ها|يها} {عليها|عليه}'},
+    {type:'سؤال', text:'وش أول شي لفت انتباهك في {زوجتك|زوجك} أول ما شفت{ها|يه}؟'},
+    {type:'تحدي', text:'غنّ{|ي} مقطع من أغنية تذكّرك {بزوجتك|بزوجك}'},
+    {type:'سؤال', text:'اذكروا أحلى موقف ضحكتوا فيه مع بعض'},
+    {type:'تحدي', text:'احضن{|ي} {زوجتك|زوجك} دقيقة كاملة بدون ما تفك{|ين}'},
+    {type:'سؤال', text:'وش أكثر شي يعجبك في شكل {زوجتك|زوجك}؟ قول{ه|يه} الحين'},
+    {type:'تحدي', text:'امسك{|ي} يد {زوجتك|زوجك} وأنتم تسولفون عن يوم حلو عشتوه مع بعض'},
+    {type:'سؤال', text:'لو تختصر{|ين} علاقتكم بكلمة وحدة، وش تكون؟'},
+    {type:'سؤال', text:'وش الشي الصغير اللي {تسويه زوجتك|يسويه زوجك} ويفرّحك؟'},
+    {type:'تحدي', text:'قلّد{|ي} طريقة {زوجتك|زوجك} لما {تزعل|يزعل}، بس بلطف 😄'},
+    {type:'سؤال', text:'وش أحلى ذكرى من أيام الملكة أو الزواج تحب{|ين} ترجع لها؟'},
+    {type:'تحدي', text:'سوّ{|ي} {لزوجتك|لزوجك} مساج خفيف لليدين دقيقة'},
+    {type:'سؤال', text:'وش الشي اللي تتمن{ى|ين} تسوونه مع بعض هالسنة؟'},
+    {type:'تحدي', text:'أرسل{|ي} {لزوجتك|لزوجك} رسالة غزل على الجوال و{هي|هو} جنبك'},
+    {type:'سؤال', text:'متى آخر مرة حسيت{|ي} إن {زوجتك|زوجك} {فخورة|فخور} فيك؟'},
+    {type:'تحدي', text:'اختار{|ي} أغنية تهديها {لزوجتك|لزوجك} وقول{|ي} ليش اخترت{ها|يها}'},
+    {type:'سؤال', text:'وش الصفة اللي أخذت{ها|يها} من {زوجتك|زوجك} بعد الزواج؟'},
+    {type:'تحدي', text:'بوس{|ي} يد {زوجتك|زوجك} وقول{|ي} {لها|له} شكراً على شي {سوّته|سوّاه} لك هالأسبوع'}
   ],
   warm: [
-    {type:'تحدي', text:'قبّل جبين شريكك وقول له كلمة حلوة بأذنه'},
-    {type:'تحدي', text:'دلّك كتف شريكك لمدة دقيقتين بهدوء'},
-    {type:'سؤال', text:'وش أكثر لمسة تحس إنها تقربكم من بعض؟'},
-    {type:'تحدي', text:'اهمس بأذن شريكك بشي يعجبك فيه بصوت خافت'},
-    {type:'تحدي', text:'قبّل يد شريكك واحكي له موقف رومانسي بينكم'},
-    {type:'تحدي', text:'العب بشعر شريكك وأنتوا تتكلمون عن حلمكم المشترك'},
-    {type:'تحدي', text:'قبّل خد شريكك وقول له "مشتاق لك"'},
-    {type:'تحدي', text:'امسك وجه شريكك بهدوء وانظر له قبل ما تقبله'},
-    {type:'تحدي', text:'احضن شريكك من الخلف واهمس له بأذنه'},
-    {type:'سؤال', text:'وش أكثر شي يخليك تحس بالأمان جنب شريكك؟'}
+    {type:'تحدي', text:'قبّل{|ي} جبين {زوجتك|زوجك} وقول{|ي} {لها|له} كلمة حلوة بأذن{ها|ه}'},
+    {type:'تحدي', text:'دلّك{|ي} كتوف {زوجتك|زوجك} دقيقتين بهدوء'},
+    {type:'سؤال', text:'وش أكثر لمسة تحس{|ين} إنها تقرّبكم من بعض؟'},
+    {type:'تحدي', text:'اهمس{|ي} بأذن {زوجتك|زوجك} بشي يعجبك في{ها|ه}'},
+    {type:'تحدي', text:'قبّل{|ي} يد {زوجتك|زوجك} وقول{|ي} {لها|له} عن موقف رومانسي بينكم'},
+    {type:'تحدي', text:'العب{|ي} بشعر {زوجتك|زوجك} وأنتم تتكلمون عن حلمكم المشترك'},
+    {type:'تحدي', text:'قبّل{|ي} خد {زوجتك|زوجك} وقول{|ي} {لها|له} "{مشتاق|مشتاقة} لك"'},
+    {type:'تحدي', text:'امسك{|ي} وجه {زوجتك|زوجك} بهدوء وطالع{|ي} في{ها|ه} قبل ما تبوس{|ين}{ها|ه}'},
+    {type:'تحدي', text:'احضن{|ي} {زوجتك|زوجك} من الخلف واهمس{|ي} {لها|له} بكلمة حب'},
+    {type:'سؤال', text:'وش أكثر شي يخليك تحس{|ين} بالأمان جنب {زوجتك|زوجك}؟'},
+    {type:'تحدي', text:'حط{|ي} راسك على صدر {زوجتك|زوجك} دقيقة وأنتم ساكتين'},
+    {type:'سؤال', text:'وش اللبس اللي تحب{|ين} {زوجتك|زوجك} {تلبسه|يلبسه} لك؟'},
+    {type:'تحدي', text:'بوس{|ي} أصابع {زوجتك|زوجك} وحدة وحدة'},
+    {type:'سؤال', text:'وش أكثر كلمة غزل تحب{|ين} تسمعها من {زوجتك|زوجك}؟'},
+    {type:'تحدي', text:'غمّض{|ي} عيونك وخل{|ي} {زوجتك|زوجك} {تبوسك|يبوسك} في المكان اللي {تختاره|يختاره}'},
+    {type:'تحدي', text:'ارقصوا مع بعض رقصة هادية على أغنية تحبونها'},
+    {type:'سؤال', text:'وش الشي اللي {تسويه زوجتك|يسويه زوجك} ويذوّبك؟'},
+    {type:'تحدي', text:'دلّك{|ي} رجول {زوجتك|زوجك} دقيقتين'},
+    {type:'تحدي', text:'اكتب{|ي} بإصبعك على ظهر {زوجتك|زوجك} كلمة و{هي تخمّنها|هو يخمّنها}'},
+    {type:'سؤال', text:'وش أحلى بوسة صارت بينكم وتتذكر{|ين}ها؟'}
   ],
   hot: [
-    {type:'تحدي', text:'قبّل رقبة شريكك بهدوء لمدة نص دقيقة'},
-    {type:'تحدي', text:'اطفوا الأنوار وقربوا من بعض بدون كلام لدقيقة'},
-    {type:'تحدي', text:'اهمس لشريكك بشي يخليه يحمر خجل'},
-    {type:'تحدي', text:'قبّل شريكك قبلة طويلة وخلك بس بهاللحظة'},
-    {type:'تحدي', text:'خلّ شريكك يحس إنك مشتاق له بدون كلام، بس بلمسة'},
-    {type:'سؤال', text:'وش تتمنى يصير بينكم الليلة؟ قوله بصراحة'},
-    {type:'تحدي', text:'اقترب من شريكك وقول له أكثر شي يثير إعجابك فيه الليلة'},
-    {type:'تحدي', text:'امسك شريكك بقوة وقرّبه لك وقبّله'},
-    {type:'سؤال', text:'وش أكثر ذكرى حميمية بينكم تحب تتكرر؟'},
-    {type:'تحدي', text:'خذوا نفس عميق مع بعض واحضنوا بعض بدون ما تفكوا لدقيقتين'}
+    {type:'تحدي', text:'قبّل{|ي} رقبة {زوجتك|زوجك} بهدوء نص دقيقة'},
+    {type:'تحدي', text:'طفّوا الأنوار وقرّبوا من بعض بدون كلام دقيقة'},
+    {type:'تحدي', text:'اهمس{|ي} {لزوجتك|لزوجك} بشي {يخليها تستحي|يخليه يستحي}'},
+    {type:'تحدي', text:'بوس{|ي} {زوجتك|زوجك} بوسة طويلة وخل{|ي}ك بس في هاللحظة'},
+    {type:'تحدي', text:'خل{|ي} {زوجتك|زوجك} {تحس|يحس} إنك {مشتاق|مشتاقة} {لها|له} بدون كلام، بس بلمسة'},
+    {type:'سؤال', text:'وش تتمن{ى|ين} يصير بينكم الليلة؟ قول{ه|يه} بصراحة'},
+    {type:'تحدي', text:'قرّب{|ي} من {زوجتك|زوجك} وقول{|ي} {لها|له} أكثر شي يجذبك في{ها|ه} الليلة'},
+    {type:'تحدي', text:'ضم{|ي} {زوجتك|زوجك} بقوة وقرّب{ها|يه} منك وبوس{ها|يه}'},
+    {type:'سؤال', text:'وش أكثر ذكرى حميمية بينكم تحب{|ين} إنها تتكرر؟'},
+    {type:'تحدي', text:'خذوا نفس عميق مع بعض واحضنوا بعض دقيقتين بدون ما تفكون'},
+    {type:'تحدي', text:'بوس{|ي} {زوجتك|زوجك} من رقبت{ها|ه} لين أذن{ها|ه} بهدوء'},
+    {type:'سؤال', text:'وش الشي اللي ودك تجربونه مع بعض وما قلت{ه|يه} من قبل؟'},
+    {type:'تحدي', text:'غمّض{|ي} عيون {زوجتك|زوجك} وفاجئ{ها|يه} بثلاث بوسات في أماكن مختلفة'},
+    {type:'تحدي', text:'فك{|ي} أول زرار في قميص {زوجتك|زوجك} بهدوء وأنت{|ي} تطالع{|ين} في عيون{ها|ه}'},
+    {type:'سؤال', text:'وش أكثر شي {تسويه زوجتك|يسويه زوجك} ويحمّسك؟'},
+    {type:'تحدي', text:'مرّر{|ي} أصابعك على ظهر {زوجتك|زوجك} ببطء دقيقة كاملة'},
+    {type:'تحدي', text:'اختار{|ي} عطر وحط{|ي}ه على رقبة {زوجتك|زوجك} وبعدين شمّ{|ي}ه'},
+    {type:'سؤال', text:'متى آخر مرة ما قدرت{|ي} تقاوم{|ين} {زوجتك|زوجك}؟'},
+    {type:'تحدي', text:'قول{|ي} {لزوجتك|لزوجك} بصوت هادي وش تبي{|ن} تسوي{|ن} {لها|له} الليلة'},
+    {type:'تحدي', text:'احضنوا بعض والأنوار مطفية، وخلوا القلب يتكلم بدل الكلام'}
   ]
 };
+
+function personalize(text, gender){
+  return String(text || '').replace(/\{([^{}|]*)\|([^{}]*)\}/g, (_, m, f)=> gender==='f' ? f : m);
+}
 
 /* ---------------- state ---------------- */
 function getOrCreateDeviceId(){
@@ -448,7 +503,9 @@ function getOrCreateDeviceId(){
   return id;
 }
 let myId = getOrCreateDeviceId();
+let myGender = localStorage.getItem('cg_gender') === 'f' ? 'f' : 'm';
 let currentRoomCode = null;
+let lastRoom = null;
 let lastCardTimestamp = null;
 let selectedCreateLevel = 'light';
 
@@ -472,6 +529,9 @@ function goTo(name){
   document.querySelectorAll('.screen').forEach(s=>s.classList.add('hidden'));
   document.getElementById('screen-'+name).classList.remove('hidden');
 }
+function isVisible(screen){
+  return !document.getElementById('screen-'+screen).classList.contains('hidden');
+}
 
 function renderLevelRow(container, selectedId, onPick){
   container.innerHTML = '';
@@ -489,6 +549,25 @@ function pickCreateLevel(id){
 }
 renderLevelRow(document.getElementById('create-level-row'), selectedCreateLevel, pickCreateLevel);
 
+function renderGenderRows(){
+  ['create-gender-row','join-gender-row'].forEach(rowId=>{
+    const row = document.getElementById(rowId);
+    row.innerHTML = '';
+    GENDERS.forEach(g=>{
+      const el = document.createElement('div');
+      el.className = 'level-opt' + (g.id===myGender ? ' active':'');
+      el.innerHTML = `<div class="level-flames">${g.icon}</div><div class="level-name">${g.name}</div>`;
+      el.onclick = ()=>{
+        myGender = g.id;
+        localStorage.setItem('cg_gender', g.id);
+        renderGenderRows();
+      };
+      row.appendChild(el);
+    });
+  });
+}
+renderGenderRows();
+
 /* ---------------- firebase ---------------- */
 const firebaseConfig = {
   apiKey: "AIzaSyAOCe2csk6z1MN7H0XPPo_GOKA-ed2l0uY",
@@ -501,7 +580,20 @@ const firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
+
+// تسجيل دخول مجهول: يعطي كل جهاز هوية ثابتة تعتمد عليها قواعد الأمان في Firebase.
+// لو ما كان مفعّل في لوحة Firebase، تكمل اللعبة بمعرّف الجهاز.
+const authReady = (firebase.auth ? firebase.auth().signInAnonymously() : Promise.reject(new Error('auth sdk missing')))
+  .then(cred=>{ myId = cred.user.uid; })
+  .catch(e=>{ console.warn('anonymous auth unavailable, using device id', e); });
+
 function roomRef(code){ return db.ref('rooms/' + code); }
+
+function playerIds(room){ return [room.hostId, room.guestId].filter(Boolean); }
+function otherId(room, id){ return playerIds(room).find(p=>p!==id) || null; }
+function playerName(room, id){ return (room.players && room.players[id] && room.players[id].name) || 'شريكك'; }
+function playerGender(room, id){ return (room.players && room.players[id] && room.players[id].g) || 'm'; }
+function turnOf(room){ return room.turn || room.hostId; }
 
 let liveRef = null;
 function detachLive(){
@@ -511,11 +603,9 @@ function attachLive(code, onChange){
   detachLive();
   liveRef = roomRef(code);
   liveRef.on('value', (snap)=>{
-    const room = snap.exists() ? snap.val() : null;
-    if(room){
-      if(!room.players) room.players = [];
-      onChange(room);
-    }
+    const room = snap.val();
+    if(room){ onChange(room); }
+    else if(currentRoomCode === code){ roomGone(); }
   }, (err)=>{
     console.error('firebase listen error', err);
   });
@@ -524,62 +614,98 @@ function attachLive(code, onChange){
 async function getRoom(code){
   try{
     const snap = await roomRef(code).once('value');
-    const room = snap.exists() ? snap.val() : null;
-    if(room && !room.players) room.players = [];
-    return room;
+    return snap.val();
   }catch(e){ console.error('read failed', e); return null; }
 }
-async function saveRoom(code, data){
+
+// يعدّل الغرفة بعملية واحدة (transaction) عشان لو ضغط الاثنين بنفس اللحظة ما يمسح أحد تعديل الثاني.
+// fn تعدّل الغرفة مباشرة، أو ترجع false لإلغاء التعديل.
+async function updateRoom(fn){
+  if(!currentRoomCode) return null;
   try{
-    await roomRef(code).set(data);
-    return true;
+    const res = await roomRef(currentRoomCode).transaction(room=>{
+      if(!room) return room;
+      return fn(room) === false ? undefined : room;
+    });
+    return res.committed ? res.snapshot.val() : null;
   }catch(e){
-    console.error('save failed', e);
-    return false;
+    console.error('update failed', e);
+    alert('صار خلل في الاتصال، جرب مرة ثانية.');
+    return null;
   }
 }
 
 function genCode(){
-  return String(Math.floor(1000 + Math.random()*9000));
+  return String(Math.floor(100000 + Math.random()*900000));
 }
 
-/* ---------------- editable decks (synced via firebase) ---------------- */
-let LIVE_DECKS = {};
-const CARD_TYPES = ['سؤال','تحدي'];
+/* ---------------- session (يرجعك للعبة لو سكّرت التطبيق) ---------------- */
+function saveSession(code){ localStorage.setItem('cg_room', code); }
+function clearSession(){ localStorage.removeItem('cg_room'); }
 
-async function ensureDecksSeeded(){
-  try{
-    const snap = await db.ref('decks').once('value');
-    if(!snap.exists()){
-      const seed = {};
-      Object.keys(DEFAULT_DECKS).forEach(level=>{
-        seed[level] = {};
-        DEFAULT_DECKS[level].forEach(card=>{
-          const key = db.ref('decks/'+level).push().key;
-          seed[level][key] = card;
-        });
-      });
-      await db.ref('decks').set(seed);
-    }
-  }catch(e){ console.error('seed failed', e); }
+async function restoreSession(){
+  await authReady;
+  const code = localStorage.getItem('cg_room');
+  if(!code) return;
+  const room = await getRoom(code);
+  if(!room || !playerIds(room).includes(myId) || room.leftBy === myId){
+    clearSession();
+    return;
+  }
+  if(!isVisible('home')) return; // المستخدم بدأ يسوي شي ثاني
+  if(room.guestId) enterGame(room);
+  else showWaiting(code);
 }
+restoreSession();
 
-function initDecksSync(){
-  db.ref('decks').on('value', (snap)=>{
-    LIVE_DECKS = snap.val() || {};
-    if(!document.getElementById('screen-admin').classList.contains('hidden')){
-      renderAdminCards();
-    }
+/* ---------------- my deck (خاص بكل مستخدم) ---------------- */
+let MY_DECK = null;
+function myDeckRef(){ return db.ref('userDecks/' + myId); }
+
+function defaultDeck(){
+  const out = {};
+  LEVELS.forEach(lv=>{
+    out[lv.id] = {};
+    DEFAULT_DECKS[lv.id].forEach((card, i)=>{ out[lv.id]['d'+i] = {...card}; });
   });
+  return out;
 }
 
+async function loadMyDeck(){
+  if(MY_DECK) return MY_DECK;
+  await authReady;
+  try{
+    const snap = await myDeckRef().once('value');
+    MY_DECK = snap.val();
+  }catch(e){ console.error('deck read failed', e); }
+  if(!MY_DECK) MY_DECK = defaultDeck();
+  return MY_DECK;
+}
+
+async function persistMyDeck(){
+  MY_DECK._v = 1; // يخلي السجل موجود حتى لو انحذفت كل البطاقات
+  try{
+    await myDeckRef().set(MY_DECK);
+    return true;
+  }catch(e){
+    console.error('deck save failed', e);
+    alert('صار خلل بالحفظ، جرب مرة ثانية');
+    return false;
+  }
+}
+
+/* ---------------- admin ---------------- */
+const CARD_TYPES = ['سؤال','تحدي'];
 let adminLevel = 'light';
 let newCardType = 'تحدي';
 
-function openAdmin(){
+async function openAdmin(){
   goTo('admin');
   renderAdminLevelRow();
   renderNewTypeRow();
+  const list = document.getElementById('admin-cards-list');
+  list.innerHTML = '<p class="hint-text">جاري التحميل...</p>';
+  await loadMyDeck();
   renderAdminCards();
 }
 function renderAdminLevelRow(){
@@ -603,8 +729,8 @@ function renderNewTypeRow(){
 function renderAdminCards(){
   const list = document.getElementById('admin-cards-list');
   list.innerHTML = '';
-  const deckObj = LIVE_DECKS[adminLevel] || {};
-  const entries = Object.entries(deckObj);
+  if(!MY_DECK) return;
+  const entries = Object.entries(MY_DECK[adminLevel] || {});
   if(entries.length === 0){
     const p = document.createElement('p');
     p.className = 'hint-text';
@@ -629,6 +755,17 @@ function renderAdminCards(){
     textarea.value = card.text || '';
     textarea.style.cssText = 'width:100%; min-height:60px; margin-top:8px; padding:10px; border-radius:10px; border:1px solid rgba(201,161,90,0.3); background:rgba(247,234,217,0.05); color:var(--cream); font-family:Tajawal,sans-serif; font-size:13.5px; resize:vertical;';
 
+    const preview = document.createElement('p');
+    preview.className = 'hint-text';
+    preview.style.cssText = 'margin:6px 0 0; font-size:12px;';
+    const updatePreview = ()=>{
+      const t = textarea.value;
+      preview.textContent = t.includes('{') ? `🤵 ${personalize(t,'m')}\n👰 ${personalize(t,'f')}` : '';
+      preview.style.whiteSpace = 'pre-line';
+    };
+    textarea.oninput = updatePreview;
+    updatePreview();
+
     const btnRow = document.createElement('div');
     btnRow.style.cssText = 'display:flex; gap:8px; margin-top:8px;';
 
@@ -636,7 +773,12 @@ function renderAdminCards(){
     saveBtn.textContent = '💾 حفظ';
     saveBtn.className = 'btn btn-gold';
     saveBtn.style.cssText = 'margin-top:0; padding:9px 10px; font-size:12.5px; flex:1;';
-    saveBtn.onclick = ()=>saveCardEdit(adminLevel, key, typeSelect.value, textarea.value);
+    saveBtn.onclick = async ()=>{
+      if(await saveCardEdit(adminLevel, key, typeSelect.value, textarea.value)){
+        saveBtn.textContent = '✓ انحفظ';
+        setTimeout(()=>{ saveBtn.textContent = '💾 حفظ'; }, 1500);
+      }
+    };
 
     const delBtn = document.createElement('button');
     delBtn.textContent = '🗑️ حذف';
@@ -648,109 +790,178 @@ function renderAdminCards(){
     btnRow.appendChild(delBtn);
     row.appendChild(typeSelect);
     row.appendChild(textarea);
+    row.appendChild(preview);
     row.appendChild(btnRow);
     list.appendChild(row);
   });
 }
 async function saveCardEdit(level, key, type, text){
   text = text.trim();
-  if(!text){ alert('لا تسيب النص فاضي'); return; }
-  try{
-    await db.ref('decks/'+level+'/'+key).set({type, text});
-  }catch(e){ alert('صار خلل بالحفظ، جرب مرة ثانية'); }
+  if(!text){ alert('لا تسيب النص فاضي'); return false; }
+  MY_DECK[level] = MY_DECK[level] || {};
+  MY_DECK[level][key] = {type, text};
+  return persistMyDeck();
 }
 async function deleteCard(level, key){
   if(!confirm('متأكد تبي تحذف هذا التحدي؟')) return;
-  try{
-    await db.ref('decks/'+level+'/'+key).remove();
-  }catch(e){ alert('صار خلل بالحذف، جرب مرة ثانية'); }
+  delete MY_DECK[level][key];
+  await persistMyDeck();
+  renderAdminCards();
 }
 async function addNewCard(){
   const textEl = document.getElementById('admin-new-text');
   const text = textEl.value.trim();
   if(!text){ alert('اكتب نص التحدي أولاً'); return; }
-  try{
-    await db.ref('decks/'+adminLevel).push({type:newCardType, text});
-    textEl.value = '';
-  }catch(e){ alert('صار خلل بالإضافة، جرب مرة ثانية'); }
+  await loadMyDeck();
+  MY_DECK[adminLevel] = MY_DECK[adminLevel] || {};
+  MY_DECK[adminLevel][myDeckRef().push().key] = {type:newCardType, text};
+  if(await persistMyDeck()) textEl.value = '';
+  renderAdminCards();
 }
-
-ensureDecksSeeded().then(initDecksSync);
+async function resetMyDeck(){
+  if(!confirm('بترجع التحديات الأصلية وتنحذف كل تعديلاتك. متأكد؟')) return;
+  MY_DECK = defaultDeck();
+  await persistMyDeck();
+  renderAdminCards();
+}
 
 /* ---------------- create / join ---------------- */
 async function createRoom(){
+  await authReady;
   const name = document.getElementById('create-name').value.trim() || 'أنا';
-  const code = genCode();
-  const room = {
-    code,
-    level: selectedCreateLevel,
-    players: [{id: myId, name}],
-    currentTurnIndex: 0,
-    currentCard: null,
-    usedIds: {light:[], warm:[], hot:[]},
-    updatedAt: Date.now()
-  };
-  const ok = await saveRoom(code, room);
-  if(!ok){
-    alert('صار خلل بحفظ الغرفة، جرب مرة ثانية. لو تكرر الخطأ، تأكد إن الاتصال شغال.');
-    return;
+  const myDeck = await loadMyDeck();
+  const deck = {};
+  LEVELS.forEach(lv=>{ deck[lv.id] = myDeck[lv.id] || {}; });
+
+  // نجرب أكثر من كود لو طلع الكود مستخدم، وما نكتب فوق غرفة موجودة أبداً
+  for(let attempt=0; attempt<5; attempt++){
+    const code = genCode();
+    const room = {
+      code,
+      hostId: myId,
+      players: {[myId]: {name, g: myGender}},
+      level: selectedCreateLevel,
+      turn: myId,
+      deck,
+      updatedAt: Date.now()
+    };
+    try{
+      const res = await roomRef(code).transaction(cur=> cur ? undefined : room);
+      if(res.committed){
+        showWaiting(code);
+        return;
+      }
+    }catch(e){
+      console.warn('code taken or write failed', code, e);
+    }
   }
+  alert('صار خلل بإنشاء الغرفة، تأكد إن الاتصال شغال وجرب مرة ثانية.');
+}
+
+function showWaiting(code){
   currentRoomCode = code;
+  saveSession(code);
   document.getElementById('waiting-code').textContent = code;
   goTo('waiting');
   attachLive(code, (room)=>{
-    if(room.players && room.players.length>=2 && document.getElementById('screen-waiting').classList.contains('hidden')===false){
+    if(room.guestId && room.players && room.players[room.guestId] && isVisible('waiting')){
       enterGame(room);
     }
   });
 }
 
 async function joinRoom(){
+  await authReady;
   const name = document.getElementById('join-name').value.trim() || 'أنا';
   const code = document.getElementById('join-code').value.trim();
   const errEl = document.getElementById('join-error');
+  const showErr = (msg)=>{ errEl.textContent = msg; errEl.classList.remove('hidden'); };
   errEl.classList.add('hidden');
 
-  if(!code || code.length<4){
-    errEl.textContent = 'أدخل كود صحيح مكوّن من 4 أرقام';
-    errEl.classList.remove('hidden');
+  if(!/^\d{6}$/.test(code)){
+    showErr('أدخل كود صحيح مكوّن من 6 أرقام');
     return;
   }
-  errEl.textContent = 'جاري البحث عن الغرفة...';
-  errEl.classList.remove('hidden');
-  const room = await getRoom(code);
+  showErr('جاري البحث عن الغرفة...');
+  const me = {name, g: myGender};
+
+  let room = null;
+  try{
+    const res = await roomRef(code).transaction(r=>{
+      if(!r) return r;
+      if(r.hostId !== myId && r.guestId && r.guestId !== myId) return; // مكتملة
+      if(r.hostId !== myId) r.guestId = myId;
+      r.players = r.players || {};
+      r.players[myId] = me;
+      if(r.leftBy === myId) delete r.leftBy;
+      r.updatedAt = Date.now();
+      return r;
+    });
+    if(!res.committed){ showErr('هذي الغرفة مكتملة'); return; }
+    room = res.snapshot.val();
+  }catch(e){
+    // مع قواعد الأمان: ما تقدر تقرأ الغرفة قبل ما تنضم، فنحجز مكانك أول ثم نكمل
+    try{
+      await roomRef(code).child('guestId').set(myId);
+      await roomRef(code).child('players/' + myId).set(me);
+      await roomRef(code).child('updatedAt').set(Date.now());
+      room = await getRoom(code);
+    }catch(e2){
+      console.warn('join refused', e2);
+      showErr('ما قدرنا ندخل الغرفة. تأكد من الكود، أو يمكن الغرفة مكتملة');
+      return;
+    }
+  }
   if(!room){
-    errEl.textContent = 'ما لقينا غرفة بهذا الكود. تأكد إن شريكك ضاغط على نفس رابط المشاركة، وإن الكود مكتوب صح (4 أرقام)';
-    errEl.classList.remove('hidden');
+    showErr('ما لقينا غرفة بهذا الكود. تأكد إن الكود مكتوب صح (6 أرقام)');
     return;
   }
-  if(room.players.find(p=>p.id===myId)){
-    currentRoomCode = code;
-    enterGame(room);
-    return;
-  }
-  if(room.players.length>=2){
-    errEl.textContent = 'هذي الغرفة مكتملة';
-    errEl.classList.remove('hidden');
-    return;
-  }
-  room.players.push({id: myId, name});
-  room.updatedAt = Date.now();
-  await saveRoom(code, room);
-  currentRoomCode = code;
+  errEl.classList.add('hidden');
+  saveSession(code);
   enterGame(room);
 }
 
-function leaveRoom(){
+function confirmLeave(){
+  if(confirm('متأكد تبي تطلع من اللعبة؟ بيوصل لشريكك إنك طلعت')) leaveRoom();
+}
+
+async function leaveRoom(){
+  const code = currentRoomCode;
   detachLive();
   currentRoomCode = null;
+  lastRoom = null;
+  clearSession();
   document.getElementById('level-modal-backdrop').classList.add('hidden');
   goTo('home');
+  if(!code) return;
+  try{
+    await roomRef(code).transaction(r=>{
+      if(!r) return r;
+      // لو ما انضم أحد، أو شريكك طالع قبلك: نحذف الغرفة
+      if(!r.guestId || (r.leftBy && r.leftBy !== myId)) return null;
+      r.leftBy = myId;
+      r.updatedAt = Date.now();
+      return r;
+    });
+  }catch(e){ console.warn('leave failed', e); }
+}
+
+function roomGone(){
+  detachLive();
+  currentRoomCode = null;
+  lastRoom = null;
+  clearSession();
+  document.getElementById('level-modal-backdrop').classList.add('hidden');
+  if(!isVisible('home')){
+    goTo('home');
+    alert('انتهت اللعبة');
+  }
 }
 
 /* ---------------- game ---------------- */
 function enterGame(room){
   currentRoomCode = room.code;
+  saveSession(room.code);
   goTo('game');
   document.getElementById('game-code-tag').textContent = 'كود: ' + room.code;
   renderRoom(room);
@@ -759,70 +970,78 @@ function enterGame(room){
 
 function levelInfo(id){ return LEVELS.find(l=>l.id===id) || LEVELS[0]; }
 
-function avgScore(room, playerId){
-  const s = room.scores && room.scores[playerId];
-  if(!s || !s.count) return null;
-  return s.sum / s.count;
-}
-
 function renderRoom(room){
+  lastRoom = room;
   const lv = levelInfo(room.level);
   document.getElementById('level-badge').textContent = `${lv.flames} المستوى: ${lv.name}`;
 
-  const myIndex = room.players.findIndex(p=>p.id===myId);
-  const turnPlayer = room.players[room.currentTurnIndex];
-
-  if(myIndex === -1 && room.players.length>0){
-    document.getElementById('turn-banner').textContent = '⚠️ ما قدرنا نتعرف عليك بهذي الغرفة (ربما دخلتها من قبل تحديث سابق). سوّوا غرفة جديدة من الصفحة الرئيسية.';
-    document.getElementById('btn-draw').classList.add('hidden');
-    document.getElementById('btn-done').classList.add('hidden');
-    document.getElementById('rating-panel').classList.add('hidden');
-    return;
-  }
-
-  const isMyTurn = myIndex === room.currentTurnIndex;
-  const partnerIndex = room.players.length>1 ? (room.currentTurnIndex+1) % room.players.length : -1;
-  const isRater = myIndex === partnerIndex;
-
-  // players strip
-  const strip = document.getElementById('players-strip');
-  strip.innerHTML = '';
-  room.players.forEach((p, idx)=>{
-    const chip = document.createElement('div');
-    chip.className = 'player-chip' + (idx===room.currentTurnIndex ? ' turn':'');
-    const avg = avgScore(room, p.id);
-    const scoreTxt = avg!==null ? ` · ⭐${avg.toFixed(1)}` : '';
-    chip.textContent = (idx===room.currentTurnIndex ? '🎯 ':'') + p.name + scoreTxt;
-    strip.appendChild(chip);
-  });
-
+  const banner = document.getElementById('turn-banner');
+  const reactionNote = document.getElementById('reaction-note');
   const card3d = document.getElementById('card3d');
   const emptyStage = document.getElementById('empty-stage');
   const btnDraw = document.getElementById('btn-draw');
   const btnDone = document.getElementById('btn-done');
+  const btnSkip = document.getElementById('btn-skip');
+  const btnHome = document.getElementById('btn-home');
   const ratingPanel = document.getElementById('rating-panel');
+  [btnDraw, btnDone, btnSkip, btnHome, ratingPanel, reactionNote].forEach(el=>el.classList.add('hidden'));
+
+  const ids = playerIds(room);
+  if(!ids.includes(myId)){
+    banner.textContent = '⚠️ ما قدرنا نتعرف عليك بهذي الغرفة. سوّوا غرفة جديدة من الصفحة الرئيسية.';
+    btnHome.classList.remove('hidden');
+    return;
+  }
+
+  const partnerId = otherId(room, myId);
+  const turnId = turnOf(room);
+  const isMyTurn = turnId === myId;
+  const turnName = playerName(room, turnId);
+
+  // players strip
+  const strip = document.getElementById('players-strip');
+  strip.innerHTML = '';
+  ids.forEach(id=>{
+    const chip = document.createElement('div');
+    chip.className = 'player-chip' + (id===turnId ? ' turn':'');
+    const done = room.done && room.done[id];
+    chip.textContent = (id===turnId ? '🎯 ':'') + playerName(room, id) + (done ? ` · ✅${done}` : '');
+    strip.appendChild(chip);
+  });
+
+  if(room.leftBy && room.leftBy !== myId){
+    banner.textContent = personalize(`👋 ${playerName(room, room.leftBy)} طلع{|ت} من اللعبة`, playerGender(room, room.leftBy));
+    card3d.classList.add('hidden');
+    emptyStage.classList.remove('hidden');
+    emptyStage.textContent = 'تقدر ترجع للرئيسية وتبدأ لعبة جديدة';
+    btnHome.classList.remove('hidden');
+    return;
+  }
 
   if(!room.currentCard){
-    // no active card
-    document.getElementById('turn-banner').textContent = room.players.length<2
+    banner.textContent = !partnerId
       ? 'بانتظار انضمام شريكك...'
-      : (isMyTurn ? '🎯 دورك أنت الحين' : `⏳ دور ${turnPlayer ? turnPlayer.name : '...'}`);
+      : (isMyTurn ? '🎯 دورك أنت الحين' : `⏳ دور ${turnName}`);
+    if(room.lastReaction){
+      const r = room.lastReaction;
+      reactionNote.textContent = r.to === myId
+        ? personalize(`${playerName(room, r.from)} تفاعل{|ت} مع تحديك: ${r.emoji}`, playerGender(room, r.from))
+        : personalize(`تفاعلت{|ي} مع تحدي ${playerName(room, r.to)}: ${r.emoji}`, myGender);
+      reactionNote.classList.remove('hidden');
+    }
     card3d.classList.add('hidden');
     card3d.classList.remove('flipped');
-    ratingPanel.classList.add('hidden');
     emptyStage.classList.remove('hidden');
-    emptyStage.textContent = isMyTurn ? 'دورك! اسحب بطاقة' : `بانتظار ${turnPlayer ? turnPlayer.name : 'شريكك'} يسحب بطاقة...`;
-    btnDone.classList.add('hidden');
-    btnDraw.classList.toggle('hidden', !isMyTurn || room.players.length<2);
+    emptyStage.textContent = isMyTurn ? 'دورك! اسحب بطاقة' : personalize(`بانتظار ${turnName} {يسحب|تسحب} بطاقة...`, playerGender(room, turnId));
+    btnDraw.classList.toggle('hidden', !isMyTurn || !partnerId);
     return;
   }
 
   // card is active
   card3d.classList.remove('hidden');
   emptyStage.classList.add('hidden');
-  btnDraw.classList.add('hidden');
-  document.getElementById('card-type-tag').textContent = room.currentCard.type;
-  document.getElementById('card-text-el').textContent = room.currentCard.text;
+  document.getElementById('card-type-tag').textContent = `${room.currentCard.type} · لـ ${turnName}`;
+  document.getElementById('card-text-el').textContent = personalize(room.currentCard.text, playerGender(room, turnId));
   if(lastCardTimestamp !== room.currentCard.ts){
     card3d.classList.remove('flipped');
     requestAnimationFrame(()=> requestAnimationFrame(()=> card3d.classList.add('flipped')));
@@ -830,106 +1049,106 @@ function renderRoom(room){
   }
 
   if(room.awaitingRating){
-    btnDone.classList.add('hidden');
-    if(isRater){
-      document.getElementById('turn-banner').textContent = `⭐ قيّم أداء ${turnPlayer ? turnPlayer.name : 'شريكك'}`;
-      document.getElementById('rating-prompt').textContent = `كيف كان أداء ${turnPlayer ? turnPlayer.name : 'شريكك'} بهالتحدي؟`;
+    if(!isMyTurn){
+      banner.textContent = `💬 وش رأيك بتحدي ${turnName}؟`;
+      document.getElementById('rating-prompt').textContent = personalize(`تفاعل{|ي} مع `, myGender) + personalize(`اللي {سواه|سوّته} ${turnName}`, playerGender(room, turnId));
       ratingPanel.classList.remove('hidden');
     } else {
-      document.getElementById('turn-banner').textContent = `⏳ بانتظار تقييم ${room.players[partnerIndex] ? room.players[partnerIndex].name : 'شريكك'}`;
-      ratingPanel.classList.add('hidden');
+      banner.textContent = `⏳ بانتظار تفاعل ${playerName(room, partnerId)}`;
     }
   } else {
-    ratingPanel.classList.add('hidden');
-    document.getElementById('turn-banner').textContent = isMyTurn ? '🎯 دورك أنت الحين' : `⏳ دور ${turnPlayer ? turnPlayer.name : '...'}`;
+    banner.textContent = isMyTurn ? '🎯 دورك أنت الحين' : `⏳ دور ${turnName}`;
     btnDone.classList.toggle('hidden', !isMyTurn);
+    btnSkip.classList.remove('hidden'); // أي واحد منكم يقدر يتخطى بدون إحراج
   }
 }
 
+const REACTIONS = ['😊','❤️','😍','🔥'];
 const starsRow = document.getElementById('stars-row');
-for(let i=1;i<=5;i++){
+REACTIONS.forEach(emoji=>{
   const b = document.createElement('button');
   b.className = 'star-btn';
-  b.textContent = i;
-  b.onclick = ()=>submitRating(i);
+  b.textContent = emoji;
+  b.onclick = ()=>submitReaction(emoji);
   starsRow.appendChild(b);
+});
+
+// يختار بطاقة ما انسحبت قبل من المستوى الحالي، ولو خلصت البطاقات يبدأ من جديد
+function pickCard(room){
+  const deck = (room.deck && room.deck[room.level]) || {};
+  const keys = Object.keys(deck);
+  if(keys.length === 0) return false;
+  room.usedIds = room.usedIds || {};
+  let used = (room.usedIds[room.level] || []).filter(k=>deck[k]);
+  let available = keys.filter(k=>!used.includes(k));
+  if(available.length === 0){ used = []; available = keys; }
+  const key = available[Math.floor(Math.random()*available.length)];
+  used.push(key);
+  room.usedIds[room.level] = used;
+  room.currentCard = {key, type: deck[key].type, text: deck[key].text, ts: Date.now()};
+  room.awaitingRating = false;
+  room.updatedAt = Date.now();
+  return true;
+}
+
+function levelIsEmpty(){
+  const r = lastRoom;
+  if(r && !(r.deck && r.deck[r.level] && Object.keys(r.deck[r.level]).length)){
+    alert('ما فيه تحديات بهذا المستوى. غيّروا المستوى، أو أضيفوا تحديات من "إدارة التحديات" وابدأوا لعبة جديدة.');
+    return true;
+  }
+  return false;
 }
 
 async function drawCard(){
-  try{
-    const room = await getRoom(currentRoomCode);
-    if(!room){ alert('تعذر قراءة الغرفة، تأكد من اتصال الإنترنت وجرب مرة ثانية.'); return; }
-    let deckObj = LIVE_DECKS[room.level];
-    if(!deckObj || Object.keys(deckObj).length === 0){
-      // fallback: read directly in case the live sync hasn't caught up yet
-      const snap = await db.ref('decks/'+room.level).once('value');
-      deckObj = snap.exists() ? snap.val() : {};
-    }
-    const entries = Object.entries(deckObj || {});
-    if(entries.length === 0){
-      alert('ما فيه تحديات مضافة لهذا المستوى بعد. روح "إدارة التحديات" من الصفحة الرئيسية وأضف تحديات أول.');
-      return;
-    }
-    if(!room.usedIds) room.usedIds = {};
-    let used = room.usedIds[room.level] || [];
-    if(used.length >= entries.length) used = [];
-    let pick;
-    do{ pick = entries[Math.floor(Math.random()*entries.length)]; } while(used.includes(pick[0]) && used.length < entries.length);
-    used.push(pick[0]);
-    room.usedIds[room.level] = used;
-    room.currentCard = {type: pick[1].type, text: pick[1].text, ts: Date.now()};
-    room.awaitingRating = false;
-    room.updatedAt = Date.now();
-    const ok = await saveRoom(currentRoomCode, room);
-    if(!ok){ alert('صار خلل بسحب البطاقة، جرب مرة ثانية.'); return; }
-    renderRoom(room);
-  }catch(e){
-    console.error('drawCard error', e);
-    alert('صار خطأ غير متوقع أثناء سحب البطاقة: ' + (e && e.message ? e.message : e));
-  }
+  if(levelIsEmpty()) return;
+  await updateRoom(r=>{
+    if(r.currentCard || turnOf(r) !== myId || !r.guestId) return false;
+    return pickCard(r);
+  });
+}
+
+async function skipCard(){
+  if(levelIsEmpty()) return;
+  await updateRoom(r=>{
+    if(!r.currentCard || r.awaitingRating) return false;
+    return pickCard(r);
+  });
 }
 
 async function markDone(){
-  const room = await getRoom(currentRoomCode);
-  if(!room || !room.currentCard) return;
-  room.awaitingRating = true;
-  room.updatedAt = Date.now();
-  const ok = await saveRoom(currentRoomCode, room);
-  if(!ok){ alert('صار خلل، جرب مرة ثانية.'); return; }
-  renderRoom(room);
+  await updateRoom(r=>{
+    if(!r.currentCard || r.awaitingRating || turnOf(r) !== myId) return false;
+    r.awaitingRating = true;
+    r.updatedAt = Date.now();
+  });
 }
 
-async function submitRating(n){
-  const room = await getRoom(currentRoomCode);
-  if(!room || !room.currentCard) return;
-  const performer = room.players[room.currentTurnIndex];
-  if(!room.scores) room.scores = {};
-  if(!room.scores[performer.id]) room.scores[performer.id] = {sum:0, count:0};
-  room.scores[performer.id].sum += n;
-  room.scores[performer.id].count += 1;
-  room.currentTurnIndex = (room.currentTurnIndex + 1) % room.players.length;
-  room.currentCard = null;
-  room.awaitingRating = false;
-  room.updatedAt = Date.now();
-  const ok = await saveRoom(currentRoomCode, room);
-  if(!ok){ alert('صار خلل، جرب مرة ثانية.'); return; }
-  renderRoom(room);
+async function submitReaction(emoji){
+  await updateRoom(r=>{
+    const performer = turnOf(r);
+    if(!r.awaitingRating || performer === myId) return false;
+    r.done = r.done || {};
+    r.done[performer] = (r.done[performer] || 0) + 1;
+    r.lastReaction = {from: myId, to: performer, emoji, ts: Date.now()};
+    r.turn = myId;
+    r.currentCard = null;
+    r.awaitingRating = false;
+    r.updatedAt = Date.now();
+  });
 }
 
 /* ---------------- level modal ---------------- */
 async function pickModalLevel(id){
-  const r2 = await getRoom(currentRoomCode);
-  if(!r2) return;
-  r2.level = id;
-  r2.updatedAt = Date.now();
-  await saveRoom(currentRoomCode, r2);
   renderLevelRow(document.getElementById('modal-level-row'), id, pickModalLevel);
-  renderRoom(r2);
+  await updateRoom(r=>{
+    r.level = id;
+    r.updatedAt = Date.now();
+  });
 }
-async function openLevelModal(){
-  const room = await getRoom(currentRoomCode);
-  if(!room) return;
-  renderLevelRow(document.getElementById('modal-level-row'), room.level, pickModalLevel);
+function openLevelModal(){
+  if(!lastRoom) return;
+  renderLevelRow(document.getElementById('modal-level-row'), lastRoom.level, pickModalLevel);
   document.getElementById('level-modal-backdrop').classList.remove('hidden');
 }
 function closeLevelModal(){
