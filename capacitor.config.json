@@ -2,10 +2,10 @@
   "appId": "com.rashed.couplegame",
   "appName": "لعبة الأزواج",
   "webDir": "www",
-  "backgroundColor": "#3a0f21",
+  "backgroundColor": "#170c1c",
   "ios": {
     "contentInset": "never",
-    "backgroundColor": "#3a0f21"
+    "backgroundColor": "#170c1c"
   },
   "plugins": {
     "StatusBar": {
