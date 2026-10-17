@@ -794,8 +794,6 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
 /* ---------------- account & roles ---------------- */
-// صاحب اللعبة (المدير). نفس المعرّف مكتوب في قواعد الأمان
-const OWNER_UID = 'HuzxWxVWcbRIdkvXVs6bYi6C4F83';
 // فعّلها بعد ما تجهّز تطبيق فيسبوك وتربطه في Firebase
 const FACEBOOK_ENABLED = false;
 
@@ -808,11 +806,12 @@ function canEditDecks(){ return IS_ADMIN || isSubscriber(); }
 function isGuest(){ return !currentUser || currentUser.isAnonymous; }
 
 async function loadRoles(){
-  IS_ADMIN = myId === OWNER_UID;
+  // المدير يتحدد في قواعد الأمان بس: قائمة المشتركين ما يقدر يقرأها غيره
+  try{
+    await db.ref('subscribers').limitToFirst(1).once('value');
+    IS_ADMIN = true;
+  }catch(e){ IS_ADMIN = false; }
   SUB_UNTIL = 0;
-  if(!IS_ADMIN){
-    try{ IS_ADMIN = (await db.ref('admins/' + myId).once('value')).exists(); }catch(e){}
-  }
   try{ SUB_UNTIL = (await db.ref('subscribers/' + myId + '/until').once('value')).val() || 0; }catch(e){}
   renderAccountBar();
 }
