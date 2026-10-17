@@ -639,6 +639,19 @@ function genCode(){
   return String(Math.floor(100000 + Math.random()*900000));
 }
 
+/* ---------------- stats (عدّاد مجهول: أرقام بس، بدون أسماء أو محتوى) ---------------- */
+function statsDay(){ return new Date().toLocaleDateString('en-CA', {timeZone:'Asia/Riyadh'}); }
+function track(metric){
+  authReady
+    .then(()=> db.ref(`stats/${statsDay()}/${metric}`).set(firebase.database.ServerValue.increment(1)))
+    .catch(e=> console.warn('stat failed', metric, e));
+}
+// كل جهاز ينحسب مرة وحدة في اليوم
+if(localStorage.getItem('cg_seen_day') !== statsDay()){
+  localStorage.setItem('cg_seen_day', statsDay());
+  track('devices');
+}
+
 /* ---------------- session (يرجعك للعبة لو سكّرت التطبيق) ---------------- */
 function saveSession(code){ localStorage.setItem('cg_room', code); }
 function clearSession(){ localStorage.removeItem('cg_room'); }
@@ -848,6 +861,7 @@ async function createRoom(){
     try{
       const res = await roomRef(code).transaction(cur=> cur ? undefined : room);
       if(res.committed){
+        track('roomsCreated');
         showWaiting(code);
         return;
       }
@@ -886,10 +900,12 @@ async function joinRoom(){
   const me = {name, g: myGender};
 
   let room = null;
+  let joinedNow = true;
   try{
     const res = await roomRef(code).transaction(r=>{
       if(!r) return r;
       if(r.hostId !== myId && r.guestId && r.guestId !== myId) return; // مكتملة
+      joinedNow = r.hostId !== myId && r.guestId !== myId;
       if(r.hostId !== myId) r.guestId = myId;
       r.players = r.players || {};
       r.players[myId] = me;
@@ -917,6 +933,7 @@ async function joinRoom(){
     return;
   }
   errEl.classList.add('hidden');
+  if(joinedNow) track('roomsJoined');
   saveSession(code);
   enterGame(room);
 }
@@ -1102,18 +1119,23 @@ function levelIsEmpty(){
 
 async function drawCard(){
   if(levelIsEmpty()) return;
-  await updateRoom(r=>{
+  const room = await updateRoom(r=>{
     if(r.currentCard || turnOf(r) !== myId || !r.guestId) return false;
     return pickCard(r);
   });
+  if(room){
+    track('cardsDrawn');
+    track('drawn_' + room.level);
+  }
 }
 
 async function skipCard(){
   if(levelIsEmpty()) return;
-  await updateRoom(r=>{
+  const room = await updateRoom(r=>{
     if(!r.currentCard || r.awaitingRating) return false;
     return pickCard(r);
   });
+  if(room) track('skips');
 }
 
 async function markDone(){
@@ -1125,7 +1147,7 @@ async function markDone(){
 }
 
 async function submitReaction(emoji){
-  await updateRoom(r=>{
+  const room = await updateRoom(r=>{
     const performer = turnOf(r);
     if(!r.awaitingRating || performer === myId) return false;
     r.done = r.done || {};
@@ -1136,6 +1158,12 @@ async function submitReaction(emoji){
     r.awaitingRating = false;
     r.updatedAt = Date.now();
   });
+  if(room){
+    track('cardsDone');
+    // لعبة "جدّية": كمّلوا فيها 3 تحديات
+    const total = Object.values(room.done || {}).reduce((a, b)=> a + b, 0);
+    if(total === 3) track('engagedGames');
+  }
 }
 
 /* ---------------- level modal ---------------- */

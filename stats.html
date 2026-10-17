@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>إحصائيات اللعبة</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap');
+:root{
+  --wine-950:#230811; --wine-900:#3a0f21; --wine-800:#4d1530;
+  --cream:#f7ead9; --cream-dim:#e9d7bd; --gold:#c9a15a; --gold-light:#e8c988; --ember-light:#f0837c;
+}
+*{box-sizing:border-box;}
+body{
+  margin:0; min-height:100vh; font-family:'Tajawal',sans-serif; color:var(--cream);
+  background:linear-gradient(160deg, var(--wine-950), var(--wine-900) 45%, var(--wine-800));
+  padding:calc(24px + env(safe-area-inset-top)) 16px calc(32px + env(safe-area-inset-bottom));
+}
+main{max-width:520px; margin:0 auto;}
+h1{font-size:24px; color:var(--gold-light); margin:0 0 4px;}
+.sub{font-size:13px; color:var(--cream-dim); margin:0 0 20px;}
+.tabs{display:flex; gap:8px; margin-bottom:14px;}
+.tab{flex:1; padding:10px; border-radius:12px; border:1px solid rgba(201,161,90,0.4); background:transparent; color:var(--cream-dim); font:700 14px 'Tajawal',sans-serif; cursor:pointer;}
+.tab.active{background:rgba(201,161,90,0.2); color:var(--gold-light); border-color:var(--gold-light);}
+.tiles{display:grid; grid-template-columns:repeat(2, 1fr); gap:10px;}
+.tile{background:rgba(247,234,217,0.05); border:1px solid rgba(201,161,90,0.3); border-radius:14px; padding:14px;}
+.tile .n{font-size:28px; font-weight:900; color:var(--gold-light); font-variant-numeric:tabular-nums;}
+.tile .l{font-size:12.5px; color:var(--cream-dim); margin-top:2px;}
+.tile .h{font-size:11px; color:rgba(247,234,217,0.55); margin-top:4px; line-height:1.5;}
+h2{font-size:15px; color:var(--gold-light); margin:24px 0 10px;}
+.bar{display:flex; height:12px; border-radius:6px; overflow:hidden; background:rgba(247,234,217,0.08);}
+.bar span{display:block; height:100%;}
+.legend{display:flex; gap:14px; font-size:12.5px; color:var(--cream-dim); margin-top:8px; flex-wrap:wrap;}
+.legend i{display:inline-block; width:10px; height:10px; border-radius:3px; margin-left:5px; vertical-align:middle;}
+table{width:100%; border-collapse:collapse; font-size:13px; font-variant-numeric:tabular-nums;}
+th{font-size:11.5px; color:var(--cream-dim); font-weight:700; text-align:center; padding:6px 2px; border-bottom:1px solid rgba(201,161,90,0.3);}
+td{text-align:center; padding:8px 2px; border-bottom:1px solid rgba(201,161,90,0.12);}
+td:first-child, th:first-child{text-align:right;}
+.box{background:rgba(247,234,217,0.05); border:1px solid rgba(201,161,90,0.3); border-radius:14px; padding:16px; font-size:14px; line-height:1.9;}
+.box ol{margin:6px 0 0; padding-right:20px;}
+code{direction:ltr; display:inline-block; background:rgba(0,0,0,0.3); padding:2px 8px; border-radius:6px; font-size:13px; user-select:all; word-break:break-all;}
+.muted{font-size:12px; color:rgba(247,234,217,0.55); margin-top:24px; line-height:1.8;}
+</style>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js" crossorigin="anonymous"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js" crossorigin="anonymous"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js" crossorigin="anonymous"></script>
+</head>
+<body>
+<main>
+  <h1>📊 إحصائيات اللعبة</h1>
+  <p class="sub">أرقام مجهولة بس، بدون أسماء أو محتوى. اليوم بتوقيت السعودية.</p>
+  <div id="content"><p class="sub">جاري التحميل...</p></div>
+  <p class="muted" id="my-id"></p>
+</main>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyAOCe2csk6z1MN7H0XPPo_GOKA-ed2l0uY",
+  authDomain: "couple-game-95ed7.firebaseapp.com",
+  databaseURL: "https://couple-game-95ed7-default-rtdb.firebaseio.com",
+  projectId: "couple-game-95ed7",
+  storageBucket: "couple-game-95ed7.firebasestorage.app",
+  messagingSenderId: "849435216562",
+  appId: "1:849435216562:web:3e7e9d022af0c65682d7ab"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+const LEVEL_COLORS = {light:'#e8c988', warm:'#f0837c', hot:'#b8342f'};
+const LEVEL_NAMES = {light:'خفيف', warm:'دافئ', hot:'حماسي'};
+let DAYS = [];   // [[day, metrics], ...] الأحدث أول
+let range = 7;
+
+function el(tag, attrs, text){
+  const e = document.createElement(tag);
+  Object.assign(e, attrs || {});
+  if(text !== undefined) e.textContent = text;
+  return e;
+}
+
+function sum(days, key){ return days.reduce((a, [, m])=> a + (m[key] || 0), 0); }
+
+function render(){
+  const root = document.getElementById('content');
+  root.innerHTML = '';
+  if(DAYS.length === 0){
+    root.appendChild(el('div', {className:'box'}, 'ما فيه أرقام للحين. أول ما أحد يفتح اللعبة بتبدأ تظهر هنا.'));
+    return;
+  }
+
+  const tabs = el('div', {className:'tabs'});
+  [[1,'اليوم'],[7,'7 أيام'],[30,'30 يوم']].forEach(([n, label])=>{
+    const b = el('button', {className:'tab' + (n===range ? ' active':'')}, label);
+    b.onclick = ()=>{ range = n; render(); };
+    tabs.appendChild(b);
+  });
+  root.appendChild(tabs);
+
+  const today = new Date().toLocaleDateString('en-CA', {timeZone:'Asia/Riyadh'});
+  const days = range === 1 ? DAYS.filter(([d])=> d === today) : DAYS.slice(0, range);
+
+  const tiles = el('div', {className:'tiles'});
+  const created = sum(days, 'roomsCreated');
+  const joined = sum(days, 'roomsJoined');
+  const engaged = sum(days, 'engagedGames');
+  [
+    [sum(days, 'devices'), 'زيارات أجهزة', 'كل جهاز ينحسب مرة في اليوم'],
+    [created, 'غرف انفتحت', joined ? `${joined} منها دخلها الشريك` : 'ما دخل شريك أي غرفة'],
+    [engaged, 'ألعاب جدّية', created ? `كمّلوا 3 تحديات أو أكثر (${Math.round(engaged / created * 100)}% من الغرف)` : 'كمّلوا 3 تحديات أو أكثر'],
+    [sum(days, 'cardsDone'), 'تحديات مكتملة', `${sum(days, 'skips')} تخطي`]
+  ].forEach(([n, l, h])=>{
+    const t = el('div', {className:'tile'});
+    t.appendChild(el('div', {className:'n'}, n.toLocaleString('en')));
+    t.appendChild(el('div', {className:'l'}, l));
+    t.appendChild(el('div', {className:'h'}, h));
+    tiles.appendChild(t);
+  });
+  root.appendChild(tiles);
+
+  const lv = {light: sum(days,'drawn_light'), warm: sum(days,'drawn_warm'), hot: sum(days,'drawn_hot')};
+  const lvTotal = lv.light + lv.warm + lv.hot;
+  if(lvTotal){
+    root.appendChild(el('h2', {}, 'البطاقات المسحوبة حسب المستوى'));
+    const bar = el('div', {className:'bar'});
+    const legend = el('div', {className:'legend'});
+    Object.keys(lv).forEach(k=>{
+      const pct = Math.round(lv[k] / lvTotal * 100);
+      const s = el('span'); s.style.width = pct + '%'; s.style.background = LEVEL_COLORS[k];
+      bar.appendChild(s);
+      const item = el('span');
+      const dot = el('i'); dot.style.background = LEVEL_COLORS[k];
+      item.appendChild(dot);
+      item.appendChild(document.createTextNode(`${LEVEL_NAMES[k]} ${pct}% (${lv[k]})`));
+      legend.appendChild(item);
+    });
+    root.appendChild(bar);
+    root.appendChild(legend);
+  }
+
+  root.appendChild(el('h2', {}, 'يوم بيوم'));
+  const table = el('table');
+  const head = el('tr');
+  ['اليوم','أجهزة','غرف','دخلها شريك','جدّية','تحديات'].forEach(h=> head.appendChild(el('th', {}, h)));
+  table.appendChild(head);
+  DAYS.slice(0, 30).forEach(([d, m])=>{
+    const tr = el('tr');
+    [d.slice(5), m.devices, m.roomsCreated, m.roomsJoined, m.engagedGames, m.cardsDone]
+      .forEach(v=> tr.appendChild(el('td', {}, v === undefined ? '0' : String(v))));
+    table.appendChild(tr);
+  });
+  root.appendChild(table);
+}
+
+function showLocked(uid){
+  const root = document.getElementById('content');
+  root.innerHTML = '';
+  const box = el('div', {className:'box'});
+  box.appendChild(el('div', {}, '🔒 هذي الصفحة لصاحب اللعبة بس. عشان تفتحها من هذا الجهاز:'));
+  const ol = el('ol');
+  [
+    'افتح Firebase Console ← Realtime Database ← تبويب Data',
+    'اضغط ➕ جنب اسم قاعدة البيانات وأضف: Key اسمه admins (بدون Value)',
+    'داخل admins أضف: Key هو المعرّف اللي تحت، و Value هو true',
+    'ارجع لهذي الصفحة وحدّثها'
+  ].forEach(t=> ol.appendChild(el('li', {}, t)));
+  box.appendChild(ol);
+  box.appendChild(el('div', {style:'margin-top:10px;'}, 'معرّف هذا الجهاز:'));
+  box.appendChild(el('code', {}, uid || 'غير متاح'));
+  root.appendChild(box);
+  document.getElementById('my-id').textContent = '';
+}
+
+firebase.auth().signInAnonymously()
+  .then(cred=> cred.user.uid)
+  .catch(e=>{ console.warn('auth failed', e); return null; })
+  .then(async uid=>{
+    if(uid) document.getElementById('my-id').textContent = 'معرّف هذا الجهاز: ' + uid;
+    try{
+      const snap = await db.ref('stats').orderByKey().limitToLast(60).once('value');
+      DAYS = Object.entries(snap.val() || {}).reverse();
+      render();
+    }catch(e){
+      console.warn('stats read failed', e);
+      showLocked(uid);
+    }
+  });
+</script>
+</body>
+</html>
