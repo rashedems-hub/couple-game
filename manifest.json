@@ -1,6 +1,6 @@
 {
-  "name": "لعبة الأزواج",
-  "short_name": "لعبة الأزواج",
+  "name": "حلالي",
+  "short_name": "حلالي",
   "description": "لعبة تقرّبكم لبعض، كل واحد يلعب من جواله",
   "start_url": "./index.html",
   "scope": "./",
