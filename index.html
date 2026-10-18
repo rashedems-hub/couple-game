@@ -37,7 +37,7 @@ window.addEventListener('unhandledrejection', function(ev){
 });
 </script>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=El+Messiri:wght@500;600;700&family=Tajawal:wght@300;400;500;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=El+Messiri:wght@500;600;700&family=Tajawal:wght@300;400;500;700;800&display=swap');
 
 /* ثيم "ليلة وردية" (الافتراضي) */
 :root{
@@ -358,6 +358,20 @@ label.field-label{display:block; width:100%; text-align:right; font-size:12.5px;
 .sub-row .status{font-size:12.5px; color:var(--text-dim);}
 .sub-row .status.on{color:var(--accent); font-weight:800;}
 
+/* info pages */
+.links-row{display:flex; flex-wrap:wrap; justify-content:center; gap:8px; width:100%; margin-top:16px;}
+.link-pill{background:var(--surface); border:1px solid var(--border); border-radius:999px; padding:9px 14px;
+  color:var(--text); font:700 13px 'Tajawal',sans-serif; cursor:pointer;}
+.terms-note{font-size:12px; color:var(--text-dim); margin-top:10px; line-height:1.8;}
+.terms-note .link-btn{font-size:12px; text-decoration:underline;}
+.info-list{display:flex; flex-direction:column; gap:12px; width:100%; text-align:right;}
+.info-heading{font-family:var(--title-font); font-size:20px; color:var(--accent); margin:10px 0 0;}
+.info-card{background:var(--surface); border:1px solid var(--border); border-radius:18px; padding:16px;}
+.info-card-title{font-weight:800; color:var(--accent); font-size:15px; margin-bottom:6px;}
+.info-text{margin:0; font-size:14.5px; line-height:1.9; color:var(--text);}
+.info-quote{margin:0; font-family:'Amiri', var(--title-font); font-size:18px; line-height:2; color:var(--text);}
+.info-source{margin-top:8px; font-size:12px; color:var(--text-dim);}
+
 /* theme picker */
 .theme-row{display:flex; justify-content:center; gap:12px; margin-top:22px;}
 .theme-dot{
@@ -408,6 +422,7 @@ label.field-label{display:block; width:100%; text-align:right; font-size:12.5px;
       <input type="password" id="pass-input" placeholder="6 أحرف أو أكثر" autocomplete="current-password">
       <button class="btn btn-primary" onclick="emailAuth('signin')">دخول</button>
       <button class="btn btn-gold" onclick="emailAuth('signup')">إنشاء حساب جديد</button>
+      <p class="terms-note">بإنشاء حساب أو استخدام التطبيق أنت توافق على <button class="link-btn" onclick="openInfo('terms')">الشروط والأحكام</button>، وتقر إن التطبيق للأزواج المتزوجين فوق 18 سنة.</p>
       <button class="small-close" onclick="resetPassword()">نسيت كلمة المرور؟</button>
       <p class="hint-text error-text hidden" id="welcome-error"></p>
       <div class="divider-word">أو تابع بحساب</div>
@@ -440,6 +455,11 @@ label.field-label{display:block; width:100%; text-align:right; font-size:12.5px;
       <button class="btn btn-primary" onclick="goTo('create')">✨ ابدأ لعبة جديدة</button>
       <button class="btn btn-ghost" onclick="goTo('join')">🔗 عندي كود، بانضم للعبة</button>
       <button class="btn btn-ghost" onclick="openAdmin()">⚙️ إدارة التحديات</button>
+    </div>
+    <div class="links-row">
+      <button class="link-pill" onclick="openInfo('sunnah')">📖 من الكتاب والسنة</button>
+      <button class="link-pill" onclick="openInfo('health')">🩺 صحة العلاقة</button>
+      <button class="link-pill" onclick="openInfo('terms')">📜 الشروط والأحكام</button>
     </div>
     <div class="theme-row" id="theme-row" aria-label="الألوان">
       <div class="theme-dot" data-t="rose" title="ليلة وردية"></div>
@@ -553,6 +573,18 @@ label.field-label{display:block; width:100%; text-align:right; font-size:12.5px;
       <div class="level-row" id="modal-level-row"></div>
       <button class="small-close" onclick="closeLevelModal()">إغلاق</button>
     </div>
+  </div>
+
+  <!-- SCREEN: INFO (آيات وأحاديث، صحة، شروط) -->
+  <div class="screen hidden" id="screen-info">
+    <div class="brand">
+      <span class="brand-icon" id="info-icon">📖</span>
+      <h1 class="title" id="info-title"></h1>
+      <p class="subtitle" id="info-intro"></p>
+    </div>
+    <div class="info-list" id="info-body"></div>
+    <p class="hint-text" id="info-footnote" style="margin-top:16px;"></p>
+    <button class="btn btn-ghost" onclick="closeInfo()">رجوع</button>
   </div>
 
   <!-- SCREEN: ADMIN -->
@@ -830,6 +862,142 @@ function playRoomSounds(room){
   if(now.awaiting && !prev.awaiting) sfx('done');
   if(now.reactTs !== prev.reactTs) sfx('reaction');
 }
+
+/* ---------------- info pages: آيات وأحاديث، صحة العلاقة، الشروط ---------------- */
+// إيميل التواصل اللي يظهر في الشروط والأحكام. اتركه فاضي لين تحدده
+const CONTACT_EMAIL = 'halalii.app@gmail.com';
+
+const INFO_PAGES = {
+  sunnah: {
+    icon: '📖',
+    title: 'من الكتاب والسنة',
+    intro: 'آيات وأحاديث صحيحة عن المودة بين الزوجين وحسن العشرة',
+    sections: [
+      {heading: 'من القرآن الكريم', items: [
+        {text: '﴿وَمِنْ آيَاتِهِ أَنْ خَلَقَ لَكُم مِّنْ أَنفُسِكُمْ أَزْوَاجًا لِّتَسْكُنُوا إِلَيْهَا وَجَعَلَ بَيْنَكُم مَّوَدَّةً وَرَحْمَةً﴾', source: 'سورة الروم: 21'},
+        {text: '﴿هُنَّ لِبَاسٌ لَّكُمْ وَأَنتُمْ لِبَاسٌ لَّهُنَّ﴾', source: 'سورة البقرة: 187'},
+        {text: '﴿وَعَاشِرُوهُنَّ بِالْمَعْرُوفِ﴾', source: 'سورة النساء: 19'},
+        {text: '﴿وَلَهُنَّ مِثْلُ الَّذِي عَلَيْهِنَّ بِالْمَعْرُوفِ﴾', source: 'سورة البقرة: 228'},
+        {text: '﴿نِسَاؤُكُمْ حَرْثٌ لَّكُمْ فَأْتُوا حَرْثَكُمْ أَنَّىٰ شِئْتُمْ وَقَدِّمُوا لِأَنفُسِكُمْ﴾', source: 'سورة البقرة: 223'}
+      ]},
+      {heading: 'من السنة النبوية', items: [
+        {text: 'قال رسول الله ﷺ: «خيرُكم خيرُكم لأهلِه، وأنا خيرُكم لأهلي»', source: 'رواه الترمذي (3895) وصححه الألباني'},
+        {text: 'قال رسول الله ﷺ: «أكملُ المؤمنين إيماناً أحسنُهم خُلُقاً، وخيارُكم خيارُكم لنسائِهم»', source: 'رواه الترمذي (1162) وقال: حسن صحيح'},
+        {text: 'قال رسول الله ﷺ: «استوصُوا بالنساءِ خيراً»', source: 'متفق عليه: البخاري (5186) ومسلم (1468)'},
+        {text: 'قال رسول الله ﷺ: «لا يَفْرَكْ مؤمنٌ مؤمنةً، إن كرِه منها خُلُقاً رضيَ منها آخرَ»', source: 'رواه مسلم (1469)'},
+        {text: 'قال رسول الله ﷺ: «الدنيا متاعٌ، وخيرُ متاعِ الدنيا المرأةُ الصالحة»', source: 'رواه مسلم (1467)'},
+        {text: 'قال رسول الله ﷺ: «...وفي بُضْعِ أحدِكم صدقةٌ» قالوا: يا رسول الله، أيأتي أحدُنا شهوتَه ويكون له فيها أجر؟ قال: «أرأيتم لو وضعها في حرامٍ أكان عليه فيها وِزر؟ فكذلك إذا وضعها في الحلال كان له أجر»', source: 'رواه مسلم (1006)'},
+        {text: 'قال رسول الله ﷺ: «لو أنَّ أحدَكم إذا أراد أن يأتيَ أهلَه قال: بسمِ الله، اللهمَّ جنِّبْنا الشيطانَ، وجنِّبِ الشيطانَ ما رزقتَنا، فإنه إن يُقدَّرْ بينهما ولدٌ في ذلك لم يضرَّه شيطانٌ أبداً»', source: 'متفق عليه: البخاري (5165) ومسلم (1434)'},
+        {text: 'قال رسول الله ﷺ: «إذا أتى أحدُكم أهلَه ثم أراد أن يعودَ فليتوضأ»', source: 'رواه مسلم (308)'},
+        {text: 'قال رسول الله ﷺ: «...وإنك لن تُنفقَ نفقةً تبتغي بها وجهَ الله إلا أُجِرتَ عليها، حتى ما تجعلُ في فَمِ امرأتِك»', source: 'متفق عليه: البخاري (56) ومسلم (1628)'},
+        {text: 'عن عائشة رضي الله عنها قالت: كنتُ أشربُ وأنا حائض، ثم أناولُه النبيَّ ﷺ فيضعُ فاه على موضعِ فِيَّ فيشرب', source: 'رواه مسلم (300)'},
+        {text: 'عن عائشة رضي الله عنها أنها كانت مع النبي ﷺ في سفر، قالت: فسابقتُه فسبقتُه على رجليّ، فلما حملتُ اللحمَ سابقتُه فسبقني، فقال: «هذه بتلك السَّبْقة»', source: 'رواه أبو داود (2578) وصححه الألباني'},
+        {text: 'عن عائشة رضي الله عنها قالت: كنتُ أغتسلُ أنا والنبيُّ ﷺ من إناءٍ واحد', source: 'متفق عليه: البخاري (250) ومسلم (321)'},
+        {text: 'عن عائشة رضي الله عنها قالت: كان النبيُّ ﷺ يُقبِّلُ ويُباشرُ وهو صائم، وكان أملكَكم لإرْبِه', source: 'متفق عليه: البخاري (1927) ومسلم (1106)'}
+      ]}
+    ],
+    footnote: 'للتحقق من أي حديث: موقع الدرر السنية dorar.net'
+  },
+
+  health: {
+    icon: '🩺',
+    title: 'صحة العلاقة',
+    intro: 'معلومات طبية عامة للتثقيف، وما تغني عن استشارة الطبيب',
+    sections: [
+      {items: [
+        {title: '💬 التواصل أولاً', text: 'الحديث بصراحة ولطف عن اللي يريحكم واللي يضايقكم من أهم أسباب الرضا في العلاقة. العلاقة الصحية قائمة على راحة الطرفين ورضاهم.'},
+        {title: '🌙 التمهيد مو رفاهية', text: 'المرأة غالباً تحتاج وقت أطول للاستثارة. التمهيد والمداعبة والكلام الحلو تقلل الألم وتزيد المتعة للاثنين.'},
+        {title: '⚠️ الألم مو طبيعي', text: 'إذا تكرر الألم أثناء العلاقة أو صعوبة الإيلاج، راجعي طبيبة نساء وولادة. أسبابه كثيرة، مثل الجفاف أو الالتهابات أو التشنج المهبلي، وأغلبها يتعالج.'},
+        {title: '💧 الجفاف', text: 'الجفاف شائع، خصوصاً مع التوتر أو الرضاعة أو بعض الأدوية. التمهيد الكافي يساعد، ويمكن استخدام مزلّق مائي مناسب.'},
+        {title: '🧼 النظافة والوقاية', text: 'غسل اليدين والنظافة الشخصية قبل العلاقة وبعدها، والتبول بعد العلاقة يساعد على تقليل التهابات المسالك البولية عند المرأة.'},
+        {title: '❤️‍🩹 ضعف الانتصاب', text: 'شائع ويتعالج، وأحياناً يكون علامة مبكرة على مشاكل في القلب أو السكر أو الضغط. راجع طبيب مسالك بولية، ولا تستخدم أدوية بدون وصفة طبية.'},
+        {title: '⏱️ سرعة القذف', text: 'من أكثر المشاكل شيوعاً عند الرجال، وتتحسن بتمارين وتغييرات سلوكية، وأحياناً بعلاج تحت إشراف طبيب.'},
+        {title: '🌸 الحيض والنفاس', text: 'الجماع ممنوع شرعاً وقت الحيض والنفاس. وبعد الولادة يُنصح بالانتظار لين يسمح الطبيب، غالباً بعد نحو ستة أسابيع.'},
+        {title: '😴 نمط الحياة يؤثر على الرغبة', text: 'قلة النوم والتوتر والتدخين وقلة الحركة كلها تضعف الرغبة والأداء. النوم الكافي والرياضة وتقليل الضغوط تفرق كثير.'},
+        {title: '⚖️ اختلاف الرغبة طبيعي', text: 'من الطبيعي إن رغبة الزوجين تختلف في الأوقات والمرات. التفاهم واللطف أفضل من الضغط، وإذا صار الموضوع مصدر خلاف، الاستشارة الزوجية تفيد.'},
+        {title: '👶 تنظيم الحمل', text: 'وسائل تنظيم الحمل كثيرة، ولكل وحدة إيجابيات وآثار جانبية. اختاروها مع الطبيب حسب حالتكم الصحية.'}
+      ]}
+    ],
+    footnote: 'هذي معلومات عامة للتثقيف فقط، وما تغني عن استشارة طبيب مختص. إذا عندكم أي أعراض أو قلق، راجعوا الطبيب.'
+  },
+
+  terms: {
+    icon: '📜',
+    title: 'الشروط والأحكام',
+    intro: 'وسياسة الخصوصية',
+    sections: [
+      {items: [
+        {title: '1. القبول', text: 'باستخدامك تطبيق "حلالي" أو إنشاء حساب فيه، فأنت توافق على هذي الشروط. إذا ما توافق عليها، فلا تستخدم التطبيق.'},
+        {title: '2. لمن التطبيق', text: 'التطبيق مخصص للأزواج المتزوجين زواجاً شرعياً، ولمن عمره 18 سنة أو أكثر. ويقر المستخدم إن الطرف الثاني في اللعبة زوجه أو زوجته.'},
+        {title: '3. طبيعة المحتوى', text: 'التطبيق لعبة ترفيهية لتقوية العلاقة بين الزوجين، وبعض المستويات فيها محتوى رومانسي للمتزوجين. كل تحدي اختياري، ويقدر أي طرف يتخطاه في أي وقت.'},
+        {title: '4. المحتوى الديني والطبي', text: 'الآيات والأحاديث والمعلومات الصحية في التطبيق للتذكير والتثقيف العام، وليست فتوى ولا استشارة طبية. ارجعوا لأهل العلم أو للطبيب المختص عند الحاجة.'},
+        {title: '5. الحساب', text: 'أنت مسؤول عن حماية بيانات دخولك وعن أي استخدام يتم من حسابك. ويحق لنا إيقاف أي حساب يخالف هذي الشروط.'},
+        {title: '6. الاشتراك المدفوع', text: 'بعض المزايا، مثل كتابة التحديات الخاصة، متاحة للمشتركين فقط. مدة الاشتراك وسعره يتم توضيحهما قبل الدفع، ويتفعّل الاشتراك بعد تأكيد الدفع.'},
+        {title: '7. الاستخدام الممنوع', text: 'يُمنع استخدام التطبيق لأي غرض مخالف للأنظمة أو للآداب العامة، أو محاولة الوصول لبيانات المستخدمين الآخرين، أو تعطيل الخدمة.'},
+        {title: '8. البيانات اللي نجمعها', text: 'عند التسجيل: الإيميل والاسم (إن وُجد) وطريقة الدخول وتاريخ التسجيل. أثناء اللعب: الاسم اللي تكتبه وبيانات الغرفة وحالتها، وتنحذف الغرفة لما يطلع الطرفين. والتحديات الخاصة للمشترك محفوظة في حسابه ولا يطلع عليها غيره. ونجمع كذلك أرقام استخدام مجهولة (مثل عدد الغرف والتحديات المكتملة) بدون أسماء ولا محتوى.'},
+        {title: '9. كيف نستخدم البيانات ونحميها', text: 'نستخدم البيانات لتشغيل اللعبة وإدارة الاشتراكات وتحسين التطبيق فقط، ولا نبيعها لأي طرف. البيانات محفوظة في خدمات Google Firebase، ومحمية بقواعد تمنع أي مستخدم من الوصول لبيانات غيره.'},
+        {title: '10. حذف الحساب', text: 'تقدر تطلب حذف حسابك وبياناتك في أي وقت عن طريق التواصل معنا.'},
+        {title: '11. إخلاء المسؤولية', text: 'التطبيق مقدّم "كما هو"، ولا نضمن خلوه من الأعطال أو توفره بشكل دائم، ولا نتحمل مسؤولية أي ضرر ناتج عن سوء استخدامه.'},
+        {title: '12. التعديلات', text: 'قد نحدّث هذي الشروط من وقت لآخر، واستمرارك في استخدام التطبيق بعد التحديث يعني موافقتك على الشروط الجديدة.'},
+        {title: '13. النظام المطبق', text: 'تخضع هذي الشروط لأنظمة المملكة العربية السعودية، بما فيها نظام حماية البيانات الشخصية.'}
+      ]}
+    ],
+    footnote: ''
+  }
+};
+
+function openInfo(key){
+  const page = INFO_PAGES[key];
+  if(!page) return;
+  document.getElementById('info-icon').textContent = page.icon;
+  document.getElementById('info-title').textContent = page.title;
+  document.getElementById('info-intro').textContent = page.intro;
+  const body = document.getElementById('info-body');
+  body.innerHTML = '';
+  page.sections.forEach(sec=>{
+    if(sec.heading){
+      const h = document.createElement('h2');
+      h.className = 'info-heading';
+      h.textContent = sec.heading;
+      body.appendChild(h);
+    }
+    sec.items.forEach(item=>{
+      const card = document.createElement('div');
+      card.className = 'info-card';
+      if(item.title){
+        const t = document.createElement('div');
+        t.className = 'info-card-title';
+        t.textContent = item.title;
+        card.appendChild(t);
+      }
+      const p = document.createElement('p');
+      p.className = item.source ? 'info-quote' : 'info-text';
+      p.textContent = item.text;
+      card.appendChild(p);
+      if(item.source){
+        const src = document.createElement('div');
+        src.className = 'info-source';
+        src.textContent = item.source;
+        card.appendChild(src);
+      }
+      body.appendChild(card);
+    });
+  });
+  let foot = page.footnote;
+  if(key === 'terms'){
+    foot = CONTACT_EMAIL
+      ? `للتواصل وطلبات حذف الحساب: ${CONTACT_EMAIL}`
+      : 'للتواصل وطلبات حذف الحساب: عن طريق قنوات التطبيق الرسمية.';
+  }
+  const footEl = document.getElementById('info-footnote');
+  footEl.textContent = foot;
+  footEl.classList.toggle('hidden', !foot);
+  infoReturnTo = document.querySelector('.screen:not(.hidden)')?.id.replace('screen-', '') || 'home';
+  goTo('info');
+  window.scrollTo(0, 0);
+}
+let infoReturnTo = 'home';
+function closeInfo(){ goTo(infoReturnTo === 'info' ? 'home' : infoReturnTo); }
 
 /* ---------------- nav ---------------- */
 function goTo(name){
