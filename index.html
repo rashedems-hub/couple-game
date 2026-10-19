@@ -358,6 +358,22 @@ label.field-label{display:block; width:100%; text-align:right; font-size:12.5px;
 .sub-row .status{font-size:12.5px; color:var(--text-dim);}
 .sub-row .status.on{color:var(--accent); font-weight:800;}
 
+/* points & leaderboard */
+.lb-tabs{display:flex; gap:10px; width:100%; margin-bottom:14px;}
+.lb-me{width:100%; padding:14px 16px; border-radius:18px; margin-bottom:14px; background:var(--surface-strong); border:1px solid var(--border-strong); font-size:14px; line-height:1.9; color:var(--text);}
+.lb-me b{color:var(--accent);}
+.lb-list{display:flex; flex-direction:column; gap:8px; width:100%; margin-bottom:16px;}
+.lb-row{display:flex; align-items:center; gap:12px; padding:12px 14px; border-radius:16px; background:var(--surface); border:1px solid var(--border);}
+.lb-row.me{border-color:var(--border-strong); box-shadow:0 0 0 3px var(--tag-bg);}
+.lb-rank{width:34px; flex:none; font-size:18px; font-weight:900; color:var(--text-dim); text-align:center;}
+.lb-name{flex:1; text-align:right; font-weight:700; color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.lb-pts{flex:none; font-weight:900; color:var(--accent);}
+.points-toast{position:fixed; left:50%; top:30%; transform:translate(-50%,0); z-index:20; pointer-events:none;
+  padding:12px 22px; border-radius:999px; font:900 22px 'Tajawal',sans-serif; color:var(--on-secondary);
+  background:linear-gradient(135deg, var(--secondary-1), var(--secondary-2)); box-shadow:0 14px 30px -10px rgba(0,0,0,0.5);
+  animation:pointsPop 1.8s ease forwards;}
+@keyframes pointsPop{0%{opacity:0; transform:translate(-50%,20px) scale(.8);} 15%{opacity:1; transform:translate(-50%,0) scale(1.05);} 75%{opacity:1; transform:translate(-50%,-10px) scale(1);} 100%{opacity:0; transform:translate(-50%,-40px) scale(.95);}}
+
 /* feedback */
 .count-badge{display:inline-block; min-width:20px; padding:1px 7px; margin-right:6px; border-radius:999px; background:#e0475f; color:#fff; font-size:12px; font-weight:800;}
 .fb-row{display:flex; flex-direction:column; gap:6px; background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:12px; text-align:right;}
@@ -463,6 +479,7 @@ a.link-btn{text-decoration:underline;}
     <div class="card-panel">
       <button class="btn btn-primary" onclick="goTo('create')">✨ ابدأ لعبة جديدة</button>
       <button class="btn btn-ghost" onclick="goTo('join')">🔗 عندي كود، بانضم للعبة</button>
+      <button class="btn btn-gold" onclick="openLeaderboard()">🏆 ترتيب اللاعبين <span id="my-points"></span></button>
       <button class="btn btn-ghost" onclick="openAdmin()">⚙️ إدارة التحديات<span class="count-badge hidden" id="admin-unread-badge"></span></button>
     </div>
     <div class="links-row">
@@ -595,6 +612,30 @@ a.link-btn{text-decoration:underline;}
     <div class="info-list" id="info-body"></div>
     <p class="hint-text" id="info-footnote" style="margin-top:16px;"></p>
     <button class="btn btn-ghost" onclick="closeInfo()">رجوع</button>
+  </div>
+
+  <!-- SCREEN: LEADERBOARD (ترتيب اللاعبين) -->
+  <div class="screen hidden" id="screen-leaderboard">
+    <div class="brand">
+      <span class="brand-icon">🏆</span>
+      <h1 class="title">ترتيب اللاعبين</h1>
+      <p class="subtitle">اجمعوا النقاط بإكمال التحديات وتفاعل الشريك</p>
+    </div>
+    <div class="lb-tabs" id="lb-tabs"></div>
+    <div class="lb-me" id="lb-me"></div>
+    <div class="lb-list" id="lb-list"></div>
+    <div class="card-panel">
+      <label class="field-label">اسمك في الترتيب</label>
+      <input type="text" id="lb-name" maxlength="30" placeholder="اسم مستعار">
+      <button class="btn btn-gold" onclick="saveLeaderboardName()">💾 حفظ الاسم</button>
+      <button class="btn btn-ghost" id="lb-hide-btn" onclick="toggleLeaderboardHidden()"></button>
+      <p class="hint-text error-text hidden" id="lb-error"></p>
+      <p class="hint-text" style="text-align:right;">⭐ <b>كيف تجمع النقاط؟</b><br>
+        كل تحدي تخلّصه: خفيف 10، دافئ 15، حماسي 20<br>
+        وبونص من تفاعل شريكك: 😊 +1، ❤️ +2، 😍 +3، 🔥 +5<br>
+        والتخطي ما ينقص نقاطك 🤍</p>
+    </div>
+    <button class="btn btn-ghost" onclick="goTo('home')">رجوع</button>
   </div>
 
   <!-- SCREEN: FEEDBACK (اقتراحات وتواصل) -->
@@ -1120,6 +1161,7 @@ async function loadRoles(){
   SUB_UNTIL = 0;
   try{ SUB_UNTIL = (await db.ref('subscribers/' + myId + '/until').once('value')).val() || 0; }catch(e){}
   renderAccountBar();
+  loadMyPoints();
   if(IS_ADMIN) refreshUnreadBadge();
   else document.getElementById('admin-unread-badge').classList.add('hidden');
 }
@@ -1504,6 +1546,170 @@ async function openAdmin(){
     inbox.classList.remove('hidden');
     loadInbox();
   }
+}
+
+/* ---------------- points & leaderboard ---------------- */
+const LEVEL_POINTS = {light:10, warm:15, hot:20};
+const REACTION_BONUS = {'😊':1, '❤️':2, '😍':3, '🔥':5};
+function pointsFor(level, emoji){ return Math.min(25, (LEVEL_POINTS[level] || 10) + (REACTION_BONUS[emoji] || 0)); }
+// الأسبوع بصيغة ISO مثل 2026-W42 (الترتيب الأسبوعي يبدأ من جديد كل أسبوع)
+function weekKey(d = new Date()){
+  const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  const day = t.getUTCDay() || 7;
+  t.setUTCDate(t.getUTCDate() + 4 - day);
+  const y = t.getUTCFullYear();
+  const w = Math.ceil(((t - Date.UTC(y, 0, 1)) / 86400000 + 1) / 7);
+  return `${y}-W${String(w).padStart(2, '0')}`;
+}
+let MY_POINTS = null;
+function myLbRef(){ return db.ref('leaderboard/' + myId); }
+function weekPtsOf(e){ return e && e.week === weekKey() ? (e.weekPts || 0) : 0; }
+async function loadMyPoints(){
+  try{ MY_POINTS = (await myLbRef().once('value')).val(); }catch(e){ MY_POINTS = null; }
+  renderPointsBadge();
+}
+function renderPointsBadge(){
+  const el = document.getElementById('my-points');
+  el.textContent = MY_POINTS && MY_POINTS.total ? `· ⭐ ${MY_POINTS.total}` : '';
+}
+function showPointsToast(pts){
+  const el = document.createElement('div');
+  el.className = 'points-toast';
+  el.textContent = `+${pts} ⭐`;
+  document.body.appendChild(el);
+  setTimeout(()=> el.remove(), 1900);
+}
+
+// اللي سوّى التحدي ياخذ نقاطه لما شريكه يتفاعل
+let awardingPoints = false;
+async function awardPoints(room){
+  const r = room.lastReaction;
+  if(!r || r.to !== myId || !r.ts || awardingPoints) return;
+  if(MY_POINTS && (MY_POINTS.lastTs || 0) >= r.ts) return;
+  if(Date.now() - r.ts > 6 * 3600000) return;
+  awardingPoints = true;
+  try{
+    const cur = (await myLbRef().once('value')).val();
+    if(cur && (cur.lastTs || 0) >= r.ts){ MY_POINTS = cur; return; }
+    const pts = pointsFor(r.level, r.emoji);
+    const wk = weekKey();
+    const next = {
+      name: (cur && cur.name) || playerName(room, myId).slice(0, 30) || 'لاعب',
+      total: (cur ? cur.total : 0) + pts,
+      weekPts: (cur && cur.week === wk ? cur.weekPts : 0) + pts,
+      week: wk,
+      lastAt: firebase.database.ServerValue.TIMESTAMP,
+      lastTs: r.ts,
+      hidden: !!(cur && cur.hidden)
+    };
+    await myLbRef().set(next);
+    MY_POINTS = {...next, lastAt: Date.now()};
+    renderPointsBadge();
+    showPointsToast(pts);
+  }catch(e){
+    console.warn('points failed', e); // غالباً تفاعلين ورا بعض بسرعة، ونعيد المحاولة مع التحديث الجاي
+  }finally{
+    awardingPoints = false;
+  }
+}
+
+let lbTab = 'week';
+async function openLeaderboard(){
+  goTo('leaderboard');
+  document.getElementById('lb-error').classList.add('hidden');
+  await authReady;
+  await loadMyPoints();
+  document.getElementById('lb-name').value = (MY_POINTS && MY_POINTS.name) || '';
+  renderLbHideBtn();
+  renderLbTabs();
+  renderLeaderboard();
+}
+function renderLbTabs(){
+  const row = document.getElementById('lb-tabs');
+  row.innerHTML = '';
+  [['week', '📅 هذا الأسبوع'], ['all', '🏅 كل الأوقات']].forEach(([id, name])=>{
+    const el = document.createElement('div');
+    el.className = 'level-opt' + (id === lbTab ? ' active' : '');
+    el.innerHTML = `<div class="level-name">${name}</div>`;
+    el.onclick = ()=>{ lbTab = id; renderLbTabs(); renderLeaderboard(); };
+    row.appendChild(el);
+  });
+}
+function renderLbHideBtn(){
+  const hidden = !!(MY_POINTS && MY_POINTS.hidden);
+  document.getElementById('lb-hide-btn').textContent = hidden ? '👁️ أظهرني في الترتيب' : '🙈 أخفني من الترتيب';
+}
+async function renderLeaderboard(){
+  const list = document.getElementById('lb-list');
+  const me = document.getElementById('lb-me');
+  list.innerHTML = '<p class="hint-text">جاري التحميل...</p>';
+  const field = lbTab === 'week' ? 'weekPts' : 'total';
+  let rows = [];
+  try{
+    const snap = await db.ref('leaderboard').orderByChild(field).limitToLast(100).once('value');
+    snap.forEach(c=>{ rows.push([c.key, c.val()]); });
+  }catch(e){
+    list.innerHTML = '<p class="hint-text error-text">ما قدرنا نحمّل الترتيب. تأكد إن قواعد الأمان محدّثة.</p>';
+    return;
+  }
+  const score = e=> lbTab === 'week' ? weekPtsOf(e) : (e.total || 0);
+  rows = rows.filter(([, e])=> !e.hidden && score(e) > 0).sort((a, b)=> score(b[1]) - score(a[1])).slice(0, 50);
+  list.innerHTML = '';
+  if(rows.length === 0) list.innerHTML = '<p class="hint-text">ما فيه نقاط للحين. كن أول واحد في الترتيب! 🔥</p>';
+  const medals = ['🥇', '🥈', '🥉'];
+  let myRank = 0;
+  rows.forEach(([uid, e], i)=>{
+    if(uid === myId) myRank = i + 1;
+    const row = document.createElement('div');
+    row.className = 'lb-row' + (uid === myId ? ' me' : '');
+    const rank = document.createElement('div');
+    rank.className = 'lb-rank';
+    rank.textContent = medals[i] || `${i + 1}`;
+    const name = document.createElement('div');
+    name.className = 'lb-name';
+    name.textContent = (e.name || 'لاعب') + (uid === myId ? ' (أنت)' : '');
+    const pts = document.createElement('div');
+    pts.className = 'lb-pts';
+    pts.textContent = `⭐ ${score(e)}`;
+    row.appendChild(rank);
+    row.appendChild(name);
+    row.appendChild(pts);
+    list.appendChild(row);
+  });
+  const total = (MY_POINTS && MY_POINTS.total) || 0;
+  const week = weekPtsOf(MY_POINTS);
+  me.innerHTML = '';
+  me.append(`نقاطك هذا الأسبوع: `, Object.assign(document.createElement('b'), {textContent: week}),
+    ` · المجموع: `, Object.assign(document.createElement('b'), {textContent: total}));
+  me.appendChild(document.createElement('br'));
+  me.append(MY_POINTS && MY_POINTS.hidden ? '🙈 أنت مخفي من الترتيب'
+    : (myRank ? `ترتيبك: #${myRank}` : (total ? 'العب أكثر عشان تدخل أول 50 🔥' : 'خلّص تحدي واحد عشان تدخل الترتيب')));
+}
+// إنشاء سجل بدون نقاط (لما يغيّر الاسم أو الإخفاء قبل ما يلعب)
+function emptyLbEntry(name, hidden){
+  return {name, total:0, weekPts:0, week:weekKey(), lastAt:firebase.database.ServerValue.TIMESTAMP, lastTs:0, hidden};
+}
+async function saveLeaderboardName(){
+  const errEl = document.getElementById('lb-error');
+  errEl.classList.add('hidden');
+  const name = document.getElementById('lb-name').value.trim().slice(0, 30);
+  if(!name){ errEl.textContent = 'اكتب اسم أول'; errEl.classList.remove('hidden'); return; }
+  try{
+    if(MY_POINTS) await myLbRef().update({name});
+    else await myLbRef().set(emptyLbEntry(name, false));
+    await loadMyPoints();
+    renderLeaderboard();
+  }catch(e){ errEl.textContent = 'صار خلل بالحفظ، جرب مرة ثانية'; errEl.classList.remove('hidden'); }
+}
+async function toggleLeaderboardHidden(){
+  const hidden = !(MY_POINTS && MY_POINTS.hidden);
+  try{
+    if(MY_POINTS) await myLbRef().update({hidden});
+    else await myLbRef().set(emptyLbEntry(document.getElementById('lb-name').value.trim().slice(0, 30) || 'لاعب', hidden));
+    await loadMyPoints();
+    renderLbHideBtn();
+    renderLeaderboard();
+  }catch(e){ alert('صار خلل، جرب مرة ثانية'); }
 }
 
 /* ---------------- feedback (اقتراحات وتواصل) ---------------- */
@@ -2002,6 +2208,7 @@ function levelInfo(id){ return LEVELS.find(l=>l.id===id) || LEVELS[0]; }
 function renderRoom(room){
   lastRoom = room;
   playRoomSounds(room);
+  awardPoints(room);
   const lv = levelInfo(room.level);
   document.getElementById('level-badge').textContent = `${lv.flames} المستوى: ${lv.name}`;
 
@@ -2034,8 +2241,8 @@ function renderRoom(room){
   ids.forEach(id=>{
     const chip = document.createElement('div');
     chip.className = 'player-chip' + (id===turnId ? ' turn':'');
-    const done = room.done && room.done[id];
-    chip.textContent = (id===turnId ? '🎯 ':'') + playerName(room, id) + (done ? ` · ✅${done}` : '');
+    const pts = room.score && room.score[id];
+    chip.textContent = (id===turnId ? '🎯 ':'') + playerName(room, id) + (pts ? ` · ⭐${pts}` : '');
     strip.appendChild(chip);
   });
 
@@ -2054,9 +2261,10 @@ function renderRoom(room){
       : (isMyTurn ? '🎯 دورك أنت الحين' : `⏳ دور ${turnName}`);
     if(room.lastReaction){
       const r = room.lastReaction;
-      reactionNote.textContent = r.to === myId
+      const ptsTxt = r.points ? ` · +${r.points} ⭐` : '';
+      reactionNote.textContent = (r.to === myId
         ? personalize(`${playerName(room, r.from)} تفاعل{|ت} مع تحديك: ${r.emoji}`, playerGender(room, r.from))
-        : personalize(`تفاعلت{|ي} مع تحدي ${playerName(room, r.to)}: ${r.emoji}`, myGender);
+        : personalize(`تفاعلت{|ي} مع تحدي ${playerName(room, r.to)}: ${r.emoji}`, myGender)) + ptsTxt;
       reactionNote.classList.remove('hidden');
     }
     card3d.classList.add('hidden');
@@ -2167,7 +2375,10 @@ async function submitReaction(emoji){
     if(!r.awaitingRating || performer === myId) return false;
     r.done = r.done || {};
     r.done[performer] = (r.done[performer] || 0) + 1;
-    r.lastReaction = {from: myId, to: performer, emoji, ts: Date.now()};
+    const points = pointsFor(r.level, emoji);
+    r.score = r.score || {};
+    r.score[performer] = (r.score[performer] || 0) + points;
+    r.lastReaction = {from: myId, to: performer, emoji, level: r.level, points, ts: Date.now()};
     r.turn = myId;
     r.currentCard = null;
     r.awaitingRating = false;
