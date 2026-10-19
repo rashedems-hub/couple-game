@@ -370,6 +370,11 @@ label.field-label{display:block; width:100%; text-align:right; font-size:12.5px;
 .mini-result{display:flex; flex-direction:column; gap:6px; font-size:15px; font-weight:700; margin-top:4px;}
 .mini-points{color:var(--tag-ink); font-weight:900;}
 .opt-btn{margin-top:10px;}
+.mini-steps{font-size:15px; line-height:1.9; font-weight:600; text-align:right; margin:0; padding-right:20px;}
+.wyr-vs{display:flex; flex-direction:column; align-items:center; gap:6px; width:100%;}
+.wyr-opt{width:100%; padding:10px 12px; border-radius:16px; background:var(--tag-bg); font-size:18px; font-weight:800;}
+.wyr-opt.picked{outline:2px solid var(--tag-ink);}
+.wyr-or{font-size:13px; font-weight:900; color:var(--tag-ink);}
 
 /* points & leaderboard */
 .lb-tabs{display:flex; gap:10px; width:100%; margin-bottom:14px;}
@@ -1793,6 +1798,11 @@ function el(tag, cls, text){
   if(text !== undefined) e.textContent = text;
   return e;
 }
+function miniSteps(steps){
+  const ol = el('ol', 'mini-steps');
+  steps.forEach(t=> ol.appendChild(el('li', '', t)));
+  return ol;
+}
 function miniButton(label, cls, onclick){
   const b = el('button', 'btn ' + cls, label);
   b.setAttribute('data-sfx-none', '');
@@ -1852,7 +1862,12 @@ function renderKnow(room, stage, banner){
 
   if(!m){
     banner.textContent = isSubject ? '💭 دورك تجاوب عن نفسك' : personalize(`💭 دور ${subjName} {يجاوب|تجاوب}`, subjG);
-    card.appendChild(el('div', 'mini-text', 'واحد يجاوب عن نفسه بالسر، والثاني يخمّن إجابته'));
+    card.appendChild(miniSteps([
+      'يطلع سؤال عن اللي عليه الدور، مثل: وش أكلتك المفضلة؟ ومعه 4 خيارات',
+      'يختار إجابته من جواله، وشريكه ما يشوفها',
+      'الشريك يشوف نفس الخيارات ويخمّن وش اختار',
+      'تنكشف الإجابتين، وبعدها تتبادلون الأدوار'
+    ]));
     card.appendChild(el('div', 'mini-hint', `التخمين الصح = ${KNOW_POINTS} نقاط ⭐`));
     if(isSubject) stage.appendChild(miniButton('🎴 اسحب سؤال', 'btn-primary', startKnow));
     else stage.appendChild(el('p', 'hint-text', personalize(`بانتظار ${subjName} {يسحب|تسحب} سؤال...`, subjG)));
@@ -1866,6 +1881,7 @@ function renderKnow(room, stage, banner){
     if(isSubject){
       banner.textContent = '🤫 جاوب بصراحة، شريكك ما يشوف إجابتك';
       card.appendChild(el('div', 'mini-text', asked));
+      card.appendChild(el('div', 'mini-hint', personalize('اختار{|ي} إجابتك من الخيارات تحت 👇', myGender)));
       Q.options.forEach((o, i)=> stage.appendChild(miniButton(o, 'btn-ghost opt-btn', ()=> knowAnswer(i))));
     } else {
       banner.textContent = personalize(`⏳ ${subjName} {يجاوب|تجاوب} بالسر...`, subjG);
@@ -1878,6 +1894,7 @@ function renderKnow(room, stage, banner){
     if(!isSubject){
       banner.textContent = personalize(`🎯 خمّن{|ي} إجابة ${subjName}`, myGender);
       card.appendChild(el('div', 'mini-text', about));
+      card.appendChild(el('div', 'mini-hint', personalize(`وش تتوقع{|ين} ${subjName} ${personalize('{اختار|اختارت}', subjG)}؟ اختار{|ي} من تحت 👇`, myGender)));
       Q.options.forEach((o, i)=> stage.appendChild(miniButton(o, 'btn-ghost opt-btn', ()=> knowGuess(i))));
     } else {
       banner.textContent = personalize(`⏳ بانتظار تخمين ${playerName(room, partnerId)}`, myGender);
@@ -1933,7 +1950,11 @@ function renderWyr(room, stage, banner){
 
   if(!m){
     banner.textContent = '🤔 لو خيّروك';
-    card.appendChild(el('div', 'mini-text', 'كل واحد يختار بالسر، وبعدين تنكشف الاختيارات'));
+    card.appendChild(miniSteps([
+      'يطلع سؤال فيه خيارين، مثل: كشتة بر أو شاليه على البحر',
+      'كل واحد يضغط الخيار اللي يفضّله من جواله، بدون ما يشوف اختيار الثاني',
+      'لما تختارون الاثنين، ينكشف اختيار كل واحد'
+    ]));
     card.appendChild(el('div', 'mini-hint', `إذا اخترتوا نفس الشي: +${WYR_POINTS} ⭐ لكل واحد`));
     stage.appendChild(miniButton('🎴 سؤال جديد', 'btn-primary', startWyr));
     return;
@@ -1942,11 +1963,18 @@ function renderWyr(room, stage, banner){
   const opts = [Q.a, Q.b];
   const picks = m.picks || {};
   const mine = picks[myId];
-  card.appendChild(el('div', 'mini-text', personalize('لو خيّروك، وش تختار{|ين}؟', myGender)));
+  card.appendChild(el('div', 'mini-text', personalize('لو خيّروك بين هذول، وش تختار{|ين}؟', myGender)));
+  const vs = el('div', 'wyr-vs');
+  opts.forEach((o, i)=>{
+    if(i) vs.appendChild(el('div', 'wyr-or', 'أو'));
+    vs.appendChild(el('div', 'wyr-opt' + (mine === i ? ' picked' : ''), o));
+  });
+  card.appendChild(vs);
   if(!m.revealed){
     if(mine === undefined){
       banner.textContent = personalize('🤫 اختار{|ي} بالسر', myGender);
-      opts.forEach((o, i)=> stage.appendChild(miniButton(o, i === 0 ? 'btn-gold opt-btn' : 'btn-primary opt-btn', ()=> wyrPick(i))));
+      card.appendChild(el('div', 'mini-hint', personalize('اضغط{|ي} اختيارك تحت 👇', myGender) + ' ' + personalize(`و${partnerName} ما {يشوفه|تشوفه} لين {يختار|تختار}`, playerGender(room, partnerId))));
+      opts.forEach((o, i)=> stage.appendChild(miniButton('أختار: ' + o, i === 0 ? 'btn-gold opt-btn' : 'btn-primary opt-btn', ()=> wyrPick(i))));
     } else {
       banner.textContent = personalize(`⏳ بانتظار ${partnerName} {يختار|تختار}`, playerGender(room, partnerId));
       card.appendChild(el('div', 'mini-hint', personalize(`اخترت{|ي}: ${opts[mine]}`, myGender)));
