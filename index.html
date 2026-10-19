@@ -359,7 +359,7 @@ label.field-label{display:block; width:100%; text-align:right; font-size:12.5px;
 .sub-row .status.on{color:var(--accent); font-weight:800;}
 
 /* mini games */
-.mode-row{margin:0 0 14px;}
+.mode-row{margin:0 0 14px; display:grid; grid-template-columns:1fr 1fr; gap:8px;}
 .mode-row .level-opt{padding:10px 4px;}
 .mini-card{width:100%; min-height:200px; border-radius:26px; padding:24px 20px; margin-bottom:6px;
   display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; text-align:center;
@@ -374,6 +374,15 @@ label.field-label{display:block; width:100%; text-align:right; font-size:12.5px;
 .wyr-vs{display:flex; flex-direction:column; align-items:center; gap:6px; width:100%;}
 .wyr-opt{width:100%; padding:10px 12px; border-radius:16px; background:var(--tag-bg); font-size:18px; font-weight:800;}
 .wyr-opt.picked{outline:2px solid var(--tag-ink);}
+.wheel-wrap{position:relative; width:250px; height:250px; flex-shrink:0; max-width:100%; aspect-ratio:1; margin:4px auto 6px;}
+.wheel-pointer{position:absolute; top:-6px; left:50%; transform:translateX(-50%); z-index:2; font-size:28px; line-height:1;
+  filter:drop-shadow(0 3px 4px rgba(0,0,0,0.35));}
+.wheel{position:absolute; inset:0; border-radius:50%; border:5px solid var(--card-1);
+  box-shadow:0 0 0 3px var(--tag-ink), 0 18px 34px -16px rgba(0,0,0,0.6);}
+.wheel-label{position:absolute; top:50%; left:50%; width:0; height:0;}
+.wheel-label span{position:absolute; left:-16px; top:-104px; width:32px; text-align:center; font-size:24px;}
+.wheel-hub{position:absolute; top:50%; left:50%; width:46px; height:46px; margin:-23px 0 0 -23px; border-radius:50%; z-index:1;
+  background:var(--card-1); border:3px solid var(--tag-ink); display:flex; align-items:center; justify-content:center; font-size:20px;}
 .wyr-or{font-size:13px; font-weight:900; color:var(--tag-ink);}
 
 /* points & leaderboard */
@@ -919,6 +928,8 @@ const SFX = {
   done: c=> [523.25, 659.25, 783.99, 1046.5].forEach((f, i)=> tone(c, {type:'triangle', f0:f, t:i * 0.09, dur:0.35, vol:0.11})),
   // تخطي البطاقة
   skip: c=>{ swish(c, {dur:0.22, f0:2500, f1:400, vol:0.18}); tone(c, {f0:600, f1:250, dur:0.2, vol:0.07}); },
+  // تكتكة العجلة وهي تدور، تبطى شوي شوي
+  spin: c=>{ for(let i = 0, t = 0; i < 26; i++){ tone(c, {type:'square', f0:1400, f1:900, t, dur:0.03, vol:0.04}); t += 0.05 + i * i * 0.0007; } },
   // جرس خفيف للتفاعل
   reaction: c=>{ tone(c, {f0:1318.5, dur:0.25, vol:0.08}); tone(c, {f0:1760, t:0.08, dur:0.3, vol:0.07}); }
 };
@@ -959,7 +970,8 @@ function playRoomSounds(room){
     skipTs: room.skippedAt || 0,
     reactTs: (room.lastReaction && room.lastReaction.ts) || 0,
     miniTs: (room.mini && room.mini.ts) || 0,
-    revealed: !!(room.mini && room.mini.revealed)
+    revealed: !!(room.mini && room.mini.revealed),
+    status: (room.mini && room.mini.status) || ''
   };
   const prev = soundState;
   soundState = now;
@@ -968,7 +980,14 @@ function playRoomSounds(room){
   else if(now.cardTs && now.cardTs !== prev.cardTs) sfx('flip');
   if(now.awaiting && !prev.awaiting) sfx('done');
   if(now.reactTs !== prev.reactTs) sfx('reaction');
-  if(now.miniTs && now.miniTs !== prev.miniTs) sfx('flip');
+  const wheel = room.mini && room.mini.kind === 'wheel';
+  if(now.miniTs && now.miniTs !== prev.miniTs){
+    sfx(wheel ? 'spin' : 'flip');
+    if(wheel && now.status === 'done') setTimeout(()=> sfx('done'), WHEEL_SPIN_MS);
+  } else if(wheel && now.status !== prev.status){
+    if(now.status === 'done') sfx('done');
+    else if(now.status === 'skipped') sfx('skip');
+  }
   if(now.revealed && !prev.revealed) sfx(room.mini.correct || room.mini.match ? 'done' : 'skip');
 }
 
@@ -1756,7 +1775,8 @@ const WYR_QUESTIONS = [
 const MODES = [
   {id:'cards', name:'🎴 تحديات'},
   {id:'know', name:'💭 كم تعرفني؟'},
-  {id:'wyr', name:'🤔 لو خيّروك'}
+  {id:'wyr', name:'🤔 لو خيّروك'},
+  {id:'wheel', name:'🎡 عجلة الحظ'}
 ];
 const KNOW_POINTS = 10;
 const WYR_POINTS = 5;
@@ -1989,6 +2009,141 @@ function renderWyr(room, stage, banner){
   res.appendChild(el('div', 'mini-points', m.match ? `+${WYR_POINTS} ⭐ لكل واحد` : 'وهذا اللي يحلّي السوالف، تناقشوا ليش اخترتوا كذا 😉'));
   card.appendChild(res);
   stage.appendChild(miniButton('سؤال جديد ⬅️', 'btn-primary', startWyr));
+}
+
+/* ----- عجلة الحظ ----- */
+// اللي عليه الدور يدوّر، والنص يتغير حسب جنسه: {للزوج|للزوجة}
+// lucky: النقاط تنضاف على طول بدون تحدي
+const WHEEL_SEGMENTS = [
+  {emoji:'🤗', name:'حضن', text:'{احضن|احضني} {زوجتك|زوجك} حضن طويل لين تعدّون للعشرة', points:10, color:'#f3a6b8'},
+  {emoji:'💬', name:'كلمة حلوة', text:'{قول|قولي} 3 أشياء تحب{|ين}ها في {زوجتك|زوجك}', points:10, color:'#f7d6a0'},
+  {emoji:'💆', name:'مساج', text:'{سوّ|سوّي} مساج لكتوف {زوجتك|زوجك} لمدة دقيقتين', points:15, color:'#c9b3e6'},
+  {emoji:'⭐', name:'ضربة حظ', text:'ضربة حظ! تاخذ{|ين} النقاط بدون أي تحدي 🎉', points:20, color:'#ffd66b', lucky:true},
+  {emoji:'💋', name:'بوسة', text:'{بوس|بوسي} {زوجتك|زوجك} على جبين{ها|ه}', points:10, color:'#f08aa4'},
+  {emoji:'📸', name:'ذكرى', text:'احك{|ي} أحلى ذكرى لك مع {زوجتك|زوجك}، وليش ما تنساها', points:10, color:'#a9d3e8'},
+  {emoji:'🎁', name:'طلب', text:'{زوجتك تطلب|زوجك يطلب} منك طلب بسيط، و{تنفذه|تنفذينه} الحين', points:15, color:'#b9e3c6'},
+  {emoji:'😂', name:'تقليد', text:'{قلّد|قلّدي} {زوجتك|زوجك} في شي {تسويه|يسويه} دايم، لين {تضحك|يضحك}', points:10, color:'#f5c0a0'}
+];
+const WHEEL_SPIN_MS = 4200;
+const SEG_DEG = 360 / WHEEL_SEGMENTS.length;
+// متى شاف هذا الجهاز كل دورة، عشان الدوران يكمل من مكانه لو انرسمت الشاشة من جديد
+const wheelSeen = {};
+
+async function spinWheel(){
+  await updateRoom(r=>{
+    if(r.mode !== 'wheel' || r.mini || turnOf(r) !== myId) return false;
+    const seg = Math.floor(Math.random() * WHEEL_SEGMENTS.length);
+    const lucky = !!WHEEL_SEGMENTS[seg].lucky;
+    r.mini = {kind:'wheel', seg, spinner:myId, turns:4 + Math.floor(Math.random() * 3), status: lucky ? 'done' : 'pending', ts:Date.now()};
+    if(lucky) addScore(r, myId, WHEEL_SEGMENTS[seg].points);
+    r.updatedAt = Date.now();
+  });
+}
+// الشريك يأكد إن التحدي تنفّذ، وبعدها تنضاف النقاط
+async function wheelDone(){
+  await updateRoom(r=>{
+    const m = r.mini;
+    if(!m || m.kind !== 'wheel' || m.status !== 'pending' || m.spinner === myId) return false;
+    m.status = 'done';
+    addScore(r, m.spinner, WHEEL_SEGMENTS[m.seg].points);
+    r.updatedAt = Date.now();
+  });
+}
+async function wheelSkip(){
+  await updateRoom(r=>{
+    const m = r.mini;
+    if(!m || m.kind !== 'wheel' || m.status !== 'pending') return false;
+    m.status = 'skipped';
+    r.updatedAt = Date.now();
+  });
+}
+async function wheelNext(){
+  await updateRoom(r=>{
+    const m = r.mini;
+    if(!m || m.kind !== 'wheel' || m.status === 'pending') return false;
+    r.turn = otherId(r, m.spinner) || r.turn;
+    r.mini = null;
+    r.updatedAt = Date.now();
+  });
+}
+function buildWheel(){
+  const wrap = el('div', 'wheel-wrap');
+  wrap.appendChild(el('div', 'wheel-pointer', '🔻'));
+  const wheel = el('div', 'wheel');
+  wheel.style.background = 'conic-gradient(' + WHEEL_SEGMENTS.map((s, i)=> `${s.color} ${i * SEG_DEG}deg ${(i + 1) * SEG_DEG}deg`).join(', ') + ')';
+  WHEEL_SEGMENTS.forEach((s, i)=>{
+    const lab = el('div', 'wheel-label');
+    lab.style.transform = `rotate(${(i + 0.5) * SEG_DEG}deg)`;
+    lab.appendChild(el('span', '', s.emoji));
+    wheel.appendChild(lab);
+  });
+  wrap.appendChild(wheel);
+  wrap.appendChild(el('div', 'wheel-hub', '💞'));
+  return {wrap, wheel};
+}
+function renderWheel(room, stage, banner){
+  const m = room.mini && room.mini.kind === 'wheel' ? room.mini : null;
+  const spinnerId = m ? m.spinner : turnOf(room);
+  const isSpinner = spinnerId === myId;
+  const spinName = playerName(room, spinnerId);
+  const spinG = playerGender(room, spinnerId);
+  const card = el('div', 'mini-card');
+  stage.appendChild(card);
+  card.appendChild(el('div', 'card-type-tag', '🎡 عجلة الحظ'));
+  const {wrap, wheel} = buildWheel();
+  card.appendChild(wrap);
+
+  if(!m){
+    banner.textContent = isSpinner ? '🎡 دورك تدوّر العجلة' : personalize(`🎡 دور ${spinName} {يدوّر|تدوّر}`, spinG);
+    card.appendChild(miniSteps([
+      'اللي عليه الدور يدوّر العجلة',
+      'يسوي التحدي اللي توقف عليه العجلة',
+      'شريكه يأكّد إنه نفّذه، ويحصل على النقاط ⭐'
+    ]));
+    if(isSpinner) stage.appendChild(miniButton('🎡 دوّر العجلة', 'btn-primary', spinWheel));
+    else stage.appendChild(el('p', 'hint-text', personalize(`بانتظار ${spinName} {يدوّر|تدوّر} العجلة...`, spinG)));
+    return;
+  }
+
+  const seg = WHEEL_SEGMENTS[m.seg] || WHEEL_SEGMENTS[0];
+  const finalDeg = m.turns * 360 - (m.seg + 0.5) * SEG_DEG;
+  if(!wheelSeen[m.ts]) wheelSeen[m.ts] = m.status === 'pending' || Date.now() - m.ts < WHEEL_SPIN_MS ? Date.now() : 1;
+  const elapsed = Date.now() - wheelSeen[m.ts];
+  if(elapsed < WHEEL_SPIN_MS){
+    const anim = wheel.animate([{transform:'rotate(0deg)'}, {transform:`rotate(${finalDeg}deg)`}],
+      {duration:WHEEL_SPIN_MS, easing:'cubic-bezier(0.17, 0.67, 0.12, 1)', fill:'forwards'});
+    anim.currentTime = elapsed;
+    banner.textContent = '🎡 العجلة تدور...';
+    card.appendChild(el('div', 'mini-hint', personalize(`${spinName} {دوّر|دوّرت} العجلة`, spinG)));
+    // نرسم النتيجة لما توقف العجلة
+    setTimeout(()=>{ if(lastRoom && lastRoom.mini && lastRoom.mini.ts === m.ts) renderRoom(lastRoom); }, WHEEL_SPIN_MS - elapsed + 30);
+    return;
+  }
+  wheel.style.transform = `rotate(${finalDeg}deg)`;
+
+  card.appendChild(el('div', 'mini-hint', `${seg.emoji} ${seg.name} · ${seg.points} نقاط ⭐`));
+  card.appendChild(el('div', 'mini-text', personalize(seg.text, spinG)));
+  if(m.status === 'pending'){
+    if(isSpinner){
+      banner.textContent = personalize('🎯 نفّذ{|ي} التحدي', myGender);
+      const partnerId = otherId(room, myId);
+      card.appendChild(el('div', 'mini-hint', personalize(`بعد ما تخلص{|ين}، ${playerName(room, partnerId)} ${personalize('{يأكّد|تأكّد}', playerGender(room, partnerId))} وتاخذ{|ين} النقاط`, myGender)));
+      stage.appendChild(miniButton('⏭️ تخطّي', 'btn-ghost opt-btn', wheelSkip));
+    } else {
+      banner.textContent = personalize(`⏳ ${spinName} {ينفّذ|تنفّذ} التحدي`, spinG);
+      stage.appendChild(miniButton(personalize(`✅ ${spinName} {نفّذه|نفّذته}`, spinG), 'btn-primary opt-btn', wheelDone));
+      stage.appendChild(miniButton('⏭️ تخطّي', 'btn-ghost opt-btn', wheelSkip));
+    }
+    return;
+  }
+  if(m.status === 'done'){
+    banner.textContent = seg.lucky ? '🍀 ضربة حظ!' : '🎉 كفو!';
+    card.appendChild(el('div', 'mini-points', `+${seg.points} ⭐ لـ ${spinName}`));
+  } else {
+    banner.textContent = '⏭️ انتخطى التحدي';
+    card.appendChild(el('div', 'mini-hint', 'بدون نقاط هالمرة'));
+  }
+  stage.appendChild(miniButton('التالي ⬅️', 'btn-primary', wheelNext));
 }
 
 /* ----- النقاط: نرسل نقاط الغرفة للترتيب، 25 نقطة كحد أقصى كل 15 ثانية ----- */
@@ -2580,7 +2735,7 @@ function renderRoom(room){
     return;
   }
 
-  // الألعاب: تحديات، كم تعرفني، لو خيّروك
+  // الألعاب: تحديات، كم تعرفني، لو خيّروك، عجلة الحظ
   const mode = room.mode || 'cards';
   modeRow.classList.remove('hidden');
   renderModeRow(mode);
@@ -2592,6 +2747,7 @@ function renderRoom(room){
     miniStage.classList.remove('hidden');
     if(!partnerId){ banner.textContent = 'بانتظار انضمام شريكك...'; return; }
     if(mode === 'know') renderKnow(room, miniStage, banner);
+    else if(mode === 'wheel') renderWheel(room, miniStage, banner);
     else renderWyr(room, miniStage, banner);
     return;
   }
