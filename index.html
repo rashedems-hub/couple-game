@@ -358,6 +358,19 @@ label.field-label{display:block; width:100%; text-align:right; font-size:12.5px;
 .sub-row .status{font-size:12.5px; color:var(--text-dim);}
 .sub-row .status.on{color:var(--accent); font-weight:800;}
 
+/* mini games */
+.mode-row{margin:0 0 14px;}
+.mode-row .level-opt{padding:10px 4px;}
+.mini-card{width:100%; min-height:200px; border-radius:26px; padding:24px 20px; margin-bottom:6px;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; text-align:center;
+  background:radial-gradient(circle at 100% 0%, var(--tag-bg), transparent 45%), linear-gradient(160deg, var(--card-1), var(--card-2));
+  color:var(--card-ink); border:1px solid var(--border-strong); box-shadow:0 26px 50px -24px rgba(0,0,0,0.6); animation:fadeUp .35s ease both;}
+.mini-text{font-family:var(--title-font); font-size:22px; line-height:1.7; font-weight:600;}
+.mini-hint{font-size:13.5px; color:var(--tag-ink); font-weight:700;}
+.mini-result{display:flex; flex-direction:column; gap:6px; font-size:15px; font-weight:700; margin-top:4px;}
+.mini-points{color:var(--tag-ink); font-weight:900;}
+.opt-btn{margin-top:10px;}
+
 /* points & leaderboard */
 .lb-tabs{display:flex; gap:10px; width:100%; margin-bottom:14px;}
 .lb-me{width:100%; padding:14px 16px; border-radius:18px; margin-bottom:14px; background:var(--surface-strong); border:1px solid var(--border-strong); font-size:14px; line-height:1.9; color:var(--text);}
@@ -563,6 +576,8 @@ a.link-btn{text-decoration:underline;}
     <div class="turn-banner" id="turn-banner">دور فلان</div>
     <p class="hint-text reaction-note hidden" id="reaction-note"></p>
 
+    <div class="level-row mode-row" id="mode-row"></div>
+
     <div class="level-badge" onclick="openLevelModal()" id="level-badge">🔥 المستوى: خفيف</div>
 
     <div class="stage">
@@ -579,6 +594,7 @@ a.link-btn{text-decoration:underline;}
     </div>
 
     <div id="empty-stage" class="empty-stage">بانتظار سحب البطاقة...</div>
+    <div id="mini-stage" class="hidden" style="width:100%;"></div>
 
     <div class="rating-panel hidden" id="rating-panel">
       <p class="hint-text" id="rating-prompt">وش رأيك بهالتحدي؟</p>
@@ -936,7 +952,9 @@ function playRoomSounds(room){
     cardTs: (room.currentCard && room.currentCard.ts) || 0,
     awaiting: !!room.awaitingRating,
     skipTs: room.skippedAt || 0,
-    reactTs: (room.lastReaction && room.lastReaction.ts) || 0
+    reactTs: (room.lastReaction && room.lastReaction.ts) || 0,
+    miniTs: (room.mini && room.mini.ts) || 0,
+    revealed: !!(room.mini && room.mini.revealed)
   };
   const prev = soundState;
   soundState = now;
@@ -945,6 +963,8 @@ function playRoomSounds(room){
   else if(now.cardTs && now.cardTs !== prev.cardTs) sfx('flip');
   if(now.awaiting && !prev.awaiting) sfx('done');
   if(now.reactTs !== prev.reactTs) sfx('reaction');
+  if(now.miniTs && now.miniTs !== prev.miniTs) sfx('flip');
+  if(now.revealed && !prev.revealed) sfx(room.mini.correct || room.mini.match ? 'done' : 'skip');
 }
 
 /* ---------------- info pages: آيات وأحاديث، صحة العلاقة، الشروط ---------------- */
@@ -1580,39 +1600,6 @@ function showPointsToast(pts){
   setTimeout(()=> el.remove(), 1900);
 }
 
-// اللي سوّى التحدي ياخذ نقاطه لما شريكه يتفاعل
-let awardingPoints = false;
-async function awardPoints(room){
-  const r = room.lastReaction;
-  if(!r || r.to !== myId || !r.ts || awardingPoints) return;
-  if(MY_POINTS && (MY_POINTS.lastTs || 0) >= r.ts) return;
-  if(Date.now() - r.ts > 6 * 3600000) return;
-  awardingPoints = true;
-  try{
-    const cur = (await myLbRef().once('value')).val();
-    if(cur && (cur.lastTs || 0) >= r.ts){ MY_POINTS = cur; return; }
-    const pts = pointsFor(r.level, r.emoji);
-    const wk = weekKey();
-    const next = {
-      name: (cur && cur.name) || playerName(room, myId).slice(0, 30) || 'لاعب',
-      total: (cur ? cur.total : 0) + pts,
-      weekPts: (cur && cur.week === wk ? cur.weekPts : 0) + pts,
-      week: wk,
-      lastAt: firebase.database.ServerValue.TIMESTAMP,
-      lastTs: r.ts,
-      hidden: !!(cur && cur.hidden)
-    };
-    await myLbRef().set(next);
-    MY_POINTS = {...next, lastAt: Date.now()};
-    renderPointsBadge();
-    showPointsToast(pts);
-  }catch(e){
-    console.warn('points failed', e); // غالباً تفاعلين ورا بعض بسرعة، ونعيد المحاولة مع التحديث الجاي
-  }finally{
-    awardingPoints = false;
-  }
-}
-
 let lbTab = 'week';
 async function openLeaderboard(){
   goTo('leaderboard');
@@ -1710,6 +1697,313 @@ async function toggleLeaderboardHidden(){
     renderLbHideBtn();
     renderLeaderboard();
   }catch(e){ alert('صار خلل، جرب مرة ثانية'); }
+}
+
+/* ---------------- mini games: كم تعرفني؟ و لو خيّروك ---------------- */
+// q: السؤال للي يجاوب عن نفسه، about: نفس السؤال للي يخمّن ({name} اسم اللي يجاوب)
+// {أ|ب} تتغير حسب اللي يجاوب: أ للزوج، ب للزوجة
+const KNOW_QUESTIONS = [
+  {q:'وش أكلتك المفضلة؟', about:'وش أكلة {name} المفضلة؟', options:['كبسة أو مندي', 'مشويات', 'بيتزا وباستا', 'سوشي وأكل آسيوي']},
+  {q:'وش أكثر مشروب تحب{|ين}ه؟', about:'وش أكثر مشروب {يحبه|تحبه} {name}؟', options:['قهوة عربية', 'قهوة مختصة', 'شاي', 'عصير']},
+  {q:'وين تفضّل{|ين} نسافر؟', about:'وين {يفضّل|تفضّل} {name} تسافرون؟', options:['بحر وجزر', 'جبال وطبيعة', 'مدينة وتسوق', 'رحلة داخلية']},
+  {q:'وش تحب{|ين} نسوي في الويكند؟', about:'وش {يحب|تحب} {name} تسوون في الويكند؟', options:['نطلع مطعم', 'نجلس بالبيت', 'زيارة الأهل', 'طلعة بر أو بحر']},
+  {q:'وش أكثر شي يزعجك؟', about:'وش أكثر شي يزعج {name}؟', options:['التأخير', 'الفوضى', 'التجاهل', 'الإزعاج والصوت العالي']},
+  {q:'وش أحلى هدية تفرحك؟', about:'وش أحلى هدية تفرّح {name}؟', options:['عطر', 'ورد وكلمة حلوة', 'طلعة مفاجأة', 'شي مسوّى باليد']},
+  {q:'لو عندك يوم فاضي كامل، وش تسوي{|ن}؟', about:'لو عند {name} يوم فاضي كامل، وش {يسوي|تسوي}؟', options:['نوم وراحة', 'طلعة وتسوق', 'رياضة', 'جلسة مع الأهل']},
+  {q:'وش أكثر وقت تحب{|ين}ه في اليوم؟', about:'وش أكثر وقت {يحبه|تحبه} {name} في اليوم؟', options:['الصباح', 'العصر', 'المغرب', 'الليل']},
+  {q:'وش نوع الأفلام اللي تحب{|ين}ها؟', about:'وش نوع الأفلام اللي {يحبها|تحبها} {name}؟', options:['أكشن', 'كوميدي', 'رومانسي', 'رعب وغموض']},
+  {q:'وش أكثر شي يريحك لما تكون{|ين} {متضايق|متضايقة}؟', about:'وش أكثر شي يريّح {name} لما {يكون متضايق|تكون متضايقة}؟', options:['الفضفضة', 'الهدوء والسكوت', 'الحضن', 'الطلعة']},
+  {q:'كيف تحب{|ين} نحتفل بذكرى زواجنا؟', about:'كيف {يحب|تحب} {name} تحتفلون بذكرى زواجكم؟', options:['عشاء رومانسي', 'سفرة', 'هدية مفاجأة', 'جلسة هادية بالبيت']},
+  {q:'وش أكثر صفة تحب{|ين}ها في نفسك؟', about:'وش أكثر صفة {يحبها|تحبها} {name} في {نفسه|نفسها}؟', options:['الطيبة', 'الصبر', 'المرح', 'الطموح']},
+  {q:'وش أكثر شي يوصّل لك الحب؟', about:'وش أكثر شي يوصّل الحب لـ{name}؟', options:['الكلام الحلو', 'الهدايا', 'الوقت مع بعض', 'اللمسة والحضن']},
+  {q:'وش الحلى اللي تحب{|ين}ه أكثر؟', about:'وش الحلى اللي {يحبه|تحبه} {name} أكثر؟', options:['تشيز كيك', 'كنافة', 'آيس كريم', 'شوكولاتة']},
+  {q:'إذا زعلت{|ي}، وش يرضيك أسرع؟', about:'إذا {زعل|زعلت} {name}، وش {يرضيه|يرضيها} أسرع؟', options:['اعتذار صريح', 'هدية', 'ضحكة ونكتة', 'حضن']},
+  {q:'وش أكثر فصل تحب{|ين}ه؟', about:'وش أكثر فصل {يحبه|تحبه} {name}؟', options:['الصيف', 'الشتاء', 'الربيع', 'الخريف']},
+  {q:'وش أول شي تسوي{|ن}ه أول ما تصح{ى|ين}؟', about:'وش أول شي {يسويه|تسويه} {name} أول ما {يصحى|تصحى}؟', options:['الجوال', 'القهوة', 'الصلاة', 'غفوة ثانية 😄']},
+  {q:'وش أكثر شي تحب{|ين}ه فيني؟', about:'وش أكثر شي {يحبه|تحبه} {name} فيك؟', options:['الاهتمام', 'الضحكة', 'الحنية', 'الشكل']},
+  {q:'لو تقدر{|ين} تغيّر{|ين} شي في روتيننا، وش يكون؟', about:'لو {يقدر|تقدر} {name} {يغيّر|تغيّر} شي في روتينكم، وش يكون؟', options:['طلعات أكثر', 'نوم أبكر', 'رياضة مع بعض', 'سوالف أكثر']},
+  {q:'وش أكثر لون تحب{|ين}ه؟', about:'وش أكثر لون {يحبه|تحبه} {name}؟', options:['الأسود', 'الأبيض', 'الأزرق', 'الوردي أو الأحمر']}
+];
+
+const WYR_QUESTIONS = [
+  {a:'سفرة لجزيرة هادية', b:'سفرة لمدينة مليانة أنشطة'},
+  {a:'عشاء رومانسي بالبيت', b:'عشاء فخم في مطعم'},
+  {a:'هدية غالية مرة بالسنة', b:'هدايا بسيطة كل أسبوع'},
+  {a:'نصحى بدري ونطلع', b:'ننام لين الظهر ونرتاح'},
+  {a:'فيلم رعب مع بعض', b:'فيلم رومانسي مع بعض'},
+  {a:'نطبخ مع بعض', b:'نطلب أكل من برا'},
+  {a:'كشتة بر', b:'شاليه على البحر'},
+  {a:'رسالة حب مكتوبة', b:'كلمة حلوة بالصوت'},
+  {a:'تعرف كل أفكار شريكك', b:'شريكك يعرف كل أفكارك'},
+  {a:'يوم كامل بدون جوالات', b:'يوم كامل نلعب ألعاب مع بعض'},
+  {a:'نرجع لأول يوم تعارفنا', b:'نشوف حياتنا بعد 10 سنين'},
+  {a:'مفاجأة مخططة بالتفصيل', b:'مفاجأة عفوية بدون تخطيط'},
+  {a:'صيف على طول', b:'شتاء على طول'},
+  {a:'حفلة كبيرة لذكرى زواجنا', b:'احتفال خاص بيننا بس'},
+  {a:'بيت هادي برا المدينة', b:'شقة في قلب المدينة'},
+  {a:'هدية عطر', b:'هدية ذهب'},
+  {a:'سهرة سوالف لين الفجر', b:'نوم بدري وفطور برا الصبح'},
+  {a:'كل سنة نسافر لمكان جديد', b:'نرجع لنفس المكان اللي نحبه'},
+  {a:'حضن طويل', b:'بوسة سريعة'},
+  {a:'رقصة هادية بالبيت', b:'تمشية تحت المطر'}
+];
+
+const MODES = [
+  {id:'cards', name:'🎴 تحديات'},
+  {id:'know', name:'💭 كم تعرفني؟'},
+  {id:'wyr', name:'🤔 لو خيّروك'}
+];
+const KNOW_POINTS = 10;
+const WYR_POINTS = 5;
+
+function renderModeRow(mode){
+  const row = document.getElementById('mode-row');
+  row.innerHTML = '';
+  MODES.forEach(m=>{
+    const el = document.createElement('div');
+    el.className = 'level-opt' + (m.id === mode ? ' active' : '');
+    el.innerHTML = `<div class="level-name">${m.name}</div>`;
+    el.onclick = ()=> setMode(m.id);
+    row.appendChild(el);
+  });
+}
+async function setMode(id){
+  await updateRoom(r=>{
+    if((r.mode || 'cards') === id) return false;
+    r.mode = id;
+    r.mini = null;
+    r.currentCard = null;
+    r.awaitingRating = false;
+    r.updatedAt = Date.now();
+  });
+}
+
+function pickUnused(len, used){
+  let available = [...Array(len).keys()].filter(i=> !used.includes(i));
+  if(available.length === 0){ used.length = 0; available = [...Array(len).keys()]; }
+  return available[Math.floor(Math.random() * available.length)];
+}
+function addScore(r, id, pts){
+  r.score = r.score || {};
+  r.score[id] = (r.score[id] || 0) + pts;
+}
+function el(tag, cls, text){
+  const e = document.createElement(tag);
+  if(cls) e.className = cls;
+  if(text !== undefined) e.textContent = text;
+  return e;
+}
+function miniButton(label, cls, onclick){
+  const b = el('button', 'btn ' + cls, label);
+  b.setAttribute('data-sfx-none', '');
+  b.onclick = onclick;
+  return b;
+}
+
+/* ----- كم تعرفني؟ ----- */
+async function startKnow(){
+  await updateRoom(r=>{
+    if(r.mode !== 'know' || (r.mini && !r.mini.revealed) || turnOf(r) !== myId) return false;
+    r.usedKnow = r.usedKnow || [];
+    const q = pickUnused(KNOW_QUESTIONS.length, r.usedKnow);
+    r.usedKnow.push(q);
+    r.mini = {kind:'know', q, subject:myId, answer:-1, guess:-1, revealed:false, correct:false, ts:Date.now()};
+    r.updatedAt = Date.now();
+  });
+}
+async function knowAnswer(i){
+  await updateRoom(r=>{
+    const m = r.mini;
+    if(!m || m.kind !== 'know' || m.subject !== myId || m.answer >= 0) return false;
+    m.answer = i;
+    r.updatedAt = Date.now();
+  });
+}
+async function knowGuess(i){
+  await updateRoom(r=>{
+    const m = r.mini;
+    if(!m || m.kind !== 'know' || m.subject === myId || m.answer < 0 || m.revealed) return false;
+    m.guess = i;
+    m.revealed = true;
+    m.correct = i === m.answer;
+    if(m.correct) addScore(r, myId, KNOW_POINTS);
+    r.updatedAt = Date.now();
+  });
+}
+async function knowNext(){
+  await updateRoom(r=>{
+    if(!r.mini || !r.mini.revealed) return false;
+    r.turn = otherId(r, r.mini.subject) || r.turn;
+    r.mini = null;
+    r.updatedAt = Date.now();
+  });
+}
+function renderKnow(room, stage, banner){
+  const m = room.mini && room.mini.kind === 'know' ? room.mini : null;
+  const subjectId = m ? m.subject : turnOf(room);
+  const partnerId = otherId(room, myId);
+  const isSubject = subjectId === myId;
+  const subjName = playerName(room, subjectId);
+  const subjG = playerGender(room, subjectId);
+  const guesserName = playerName(room, otherId(room, subjectId));
+  const card = el('div', 'mini-card');
+  stage.appendChild(card);
+  card.appendChild(el('div', 'card-type-tag', '💭 كم تعرفني؟'));
+
+  if(!m){
+    banner.textContent = isSubject ? '💭 دورك تجاوب عن نفسك' : personalize(`💭 دور ${subjName} {يجاوب|تجاوب}`, subjG);
+    card.appendChild(el('div', 'mini-text', 'واحد يجاوب عن نفسه بالسر، والثاني يخمّن إجابته'));
+    card.appendChild(el('div', 'mini-hint', `التخمين الصح = ${KNOW_POINTS} نقاط ⭐`));
+    if(isSubject) stage.appendChild(miniButton('🎴 اسحب سؤال', 'btn-primary', startKnow));
+    else stage.appendChild(el('p', 'hint-text', personalize(`بانتظار ${subjName} {يسحب|تسحب} سؤال...`, subjG)));
+    return;
+  }
+
+  const Q = KNOW_QUESTIONS[m.q] || KNOW_QUESTIONS[0];
+  const asked = personalize(Q.q, subjG);
+  const about = personalize(Q.about, subjG).replace('{name}', subjName);
+  if(m.answer < 0){
+    if(isSubject){
+      banner.textContent = '🤫 جاوب بصراحة، شريكك ما يشوف إجابتك';
+      card.appendChild(el('div', 'mini-text', asked));
+      Q.options.forEach((o, i)=> stage.appendChild(miniButton(o, 'btn-ghost opt-btn', ()=> knowAnswer(i))));
+    } else {
+      banner.textContent = personalize(`⏳ ${subjName} {يجاوب|تجاوب} بالسر...`, subjG);
+      card.appendChild(el('div', 'mini-text', about));
+      card.appendChild(el('div', 'mini-hint', personalize(`بعد ما {يجاوب|تجاوب} بتخمّن إجابت{ه|ها}`, subjG)));
+    }
+    return;
+  }
+  if(!m.revealed){
+    if(!isSubject){
+      banner.textContent = personalize(`🎯 خمّن{|ي} إجابة ${subjName}`, myGender);
+      card.appendChild(el('div', 'mini-text', about));
+      Q.options.forEach((o, i)=> stage.appendChild(miniButton(o, 'btn-ghost opt-btn', ()=> knowGuess(i))));
+    } else {
+      banner.textContent = personalize(`⏳ بانتظار تخمين ${playerName(room, partnerId)}`, myGender);
+      card.appendChild(el('div', 'mini-text', asked));
+      card.appendChild(el('div', 'mini-hint', `إجابتك: ${Q.options[m.answer]}`));
+    }
+    return;
+  }
+  banner.textContent = m.correct ? '🎉 تخمين صحيح!' : '😅 قريب، المرة الجاية!';
+  card.appendChild(el('div', 'mini-text', about));
+  const res = el('div', 'mini-result');
+  res.appendChild(el('div', '', `إجابة ${subjName}: ${Q.options[m.answer]}`));
+  res.appendChild(el('div', '', `تخمين ${guesserName}: ${Q.options[m.guess]} ${m.correct ? '✅' : '❌'}`));
+  if(m.correct) res.appendChild(el('div', 'mini-points', `+${KNOW_POINTS} ⭐ لـ ${guesserName}`));
+  card.appendChild(res);
+  stage.appendChild(miniButton('التالي ⬅️', 'btn-primary', knowNext));
+}
+
+/* ----- لو خيّروك ----- */
+async function startWyr(){
+  await updateRoom(r=>{
+    if(r.mode !== 'wyr' || (r.mini && !r.mini.revealed)) return false;
+    r.usedWyr = r.usedWyr || [];
+    const q = pickUnused(WYR_QUESTIONS.length, r.usedWyr);
+    r.usedWyr.push(q);
+    r.mini = {kind:'wyr', q, revealed:false, match:false, ts:Date.now()};
+    r.updatedAt = Date.now();
+  });
+}
+async function wyrPick(i){
+  await updateRoom(r=>{
+    const m = r.mini;
+    if(!m || m.kind !== 'wyr' || m.revealed) return false;
+    m.picks = m.picks || {};
+    if(m.picks[myId] !== undefined) return false;
+    m.picks[myId] = i;
+    const ids = playerIds(r);
+    if(ids.length === 2 && ids.every(id=> m.picks[id] !== undefined)){
+      m.revealed = true;
+      m.match = m.picks[ids[0]] === m.picks[ids[1]];
+      if(m.match) ids.forEach(id=> addScore(r, id, WYR_POINTS));
+    }
+    r.updatedAt = Date.now();
+  });
+}
+function renderWyr(room, stage, banner){
+  const m = room.mini && room.mini.kind === 'wyr' ? room.mini : null;
+  const partnerId = otherId(room, myId);
+  const partnerName = playerName(room, partnerId);
+  const card = el('div', 'mini-card');
+  stage.appendChild(card);
+  card.appendChild(el('div', 'card-type-tag', '🤔 لو خيّروك'));
+
+  if(!m){
+    banner.textContent = '🤔 لو خيّروك';
+    card.appendChild(el('div', 'mini-text', 'كل واحد يختار بالسر، وبعدين تنكشف الاختيارات'));
+    card.appendChild(el('div', 'mini-hint', `إذا اخترتوا نفس الشي: +${WYR_POINTS} ⭐ لكل واحد`));
+    stage.appendChild(miniButton('🎴 سؤال جديد', 'btn-primary', startWyr));
+    return;
+  }
+  const Q = WYR_QUESTIONS[m.q] || WYR_QUESTIONS[0];
+  const opts = [Q.a, Q.b];
+  const picks = m.picks || {};
+  const mine = picks[myId];
+  card.appendChild(el('div', 'mini-text', personalize('لو خيّروك، وش تختار{|ين}؟', myGender)));
+  if(!m.revealed){
+    if(mine === undefined){
+      banner.textContent = personalize('🤫 اختار{|ي} بالسر', myGender);
+      opts.forEach((o, i)=> stage.appendChild(miniButton(o, i === 0 ? 'btn-gold opt-btn' : 'btn-primary opt-btn', ()=> wyrPick(i))));
+    } else {
+      banner.textContent = personalize(`⏳ بانتظار ${partnerName} {يختار|تختار}`, playerGender(room, partnerId));
+      card.appendChild(el('div', 'mini-hint', personalize(`اخترت{|ي}: ${opts[mine]}`, myGender)));
+    }
+    return;
+  }
+  banner.textContent = m.match ? '🎉 نفس الاختيار!' : '😄 اختلفتوا!';
+  const res = el('div', 'mini-result');
+  playerIds(room).forEach(id=>{
+    res.appendChild(el('div', '', `${playerName(room, id)}: ${opts[picks[id]]}`));
+  });
+  res.appendChild(el('div', 'mini-points', m.match ? `+${WYR_POINTS} ⭐ لكل واحد` : 'وهذا اللي يحلّي السوالف، تناقشوا ليش اخترتوا كذا 😉'));
+  card.appendChild(res);
+  stage.appendChild(miniButton('سؤال جديد ⬅️', 'btn-primary', startWyr));
+}
+
+/* ----- النقاط: نرسل نقاط الغرفة للترتيب، 25 نقطة كحد أقصى كل 15 ثانية ----- */
+function sentKey(room){ return `cg_sent_${room.code}_${room.hostId}`; }
+let flushing = false;
+let flushTimer = null;
+let flushFails = 0;
+async function flushPoints(room){
+  if(!room || flushing || !room.code) return;
+  const earned = (room.score && room.score[myId]) || 0;
+  const sent = Number(localStorage.getItem(sentKey(room)) || 0);
+  if(earned - sent <= 0) return;
+  flushing = true;
+  const pts = Math.min(25, earned - sent);
+  try{
+    const cur = (await myLbRef().once('value')).val();
+    const wk = weekKey();
+    const next = {
+      name: (cur && cur.name) || playerName(room, myId).slice(0, 30) || 'لاعب',
+      total: (cur ? cur.total : 0) + pts,
+      weekPts: (cur && cur.week === wk ? cur.weekPts : 0) + pts,
+      week: wk,
+      lastAt: firebase.database.ServerValue.TIMESTAMP,
+      lastTs: Date.now(),
+      hidden: !!(cur && cur.hidden)
+    };
+    await myLbRef().set(next);
+    localStorage.setItem(sentKey(room), String(sent + pts));
+    MY_POINTS = {...next, lastAt: Date.now()};
+    flushFails = 0;
+    renderPointsBadge();
+    showPointsToast(pts);
+  }catch(e){
+    flushFails++;
+    console.warn('points not sent yet', e); // غالباً نقاط ورا بعض بسرعة، ونرسلها بعد شوي
+  }finally{
+    flushing = false;
+    const left = earned - Number(localStorage.getItem(sentKey(room)) || 0);
+    clearTimeout(flushTimer);
+    if(left > 0 && flushFails < 20){
+      flushTimer = setTimeout(()=> flushPoints(lastRoom && lastRoom.code === room.code ? lastRoom : room), 16000);
+    }
+  }
 }
 
 /* ---------------- feedback (اقتراحات وتواصل) ---------------- */
@@ -2208,7 +2502,7 @@ function levelInfo(id){ return LEVELS.find(l=>l.id===id) || LEVELS[0]; }
 function renderRoom(room){
   lastRoom = room;
   playRoomSounds(room);
-  awardPoints(room);
+  flushPoints(room);
   const lv = levelInfo(room.level);
   document.getElementById('level-badge').textContent = `${lv.flames} المستوى: ${lv.name}`;
 
@@ -2221,7 +2515,10 @@ function renderRoom(room){
   const btnSkip = document.getElementById('btn-skip');
   const btnHome = document.getElementById('btn-home');
   const ratingPanel = document.getElementById('rating-panel');
-  [btnDraw, btnDone, btnSkip, btnHome, ratingPanel, reactionNote].forEach(el=>el.classList.add('hidden'));
+  const miniStage = document.getElementById('mini-stage');
+  const modeRow = document.getElementById('mode-row');
+  const levelBadge = document.getElementById('level-badge');
+  [btnDraw, btnDone, btnSkip, btnHome, ratingPanel, reactionNote, miniStage, modeRow].forEach(el=>el.classList.add('hidden'));
 
   const ids = playerIds(room);
   if(!ids.includes(myId)){
@@ -2252,6 +2549,22 @@ function renderRoom(room){
     emptyStage.classList.remove('hidden');
     emptyStage.textContent = 'تقدر ترجع للرئيسية وتبدأ لعبة جديدة';
     btnHome.classList.remove('hidden');
+    return;
+  }
+
+  // الألعاب: تحديات، كم تعرفني، لو خيّروك
+  const mode = room.mode || 'cards';
+  modeRow.classList.remove('hidden');
+  renderModeRow(mode);
+  levelBadge.classList.toggle('hidden', mode !== 'cards');
+  if(mode !== 'cards'){
+    card3d.classList.add('hidden');
+    emptyStage.classList.add('hidden');
+    miniStage.innerHTML = '';
+    miniStage.classList.remove('hidden');
+    if(!partnerId){ banner.textContent = 'بانتظار انضمام شريكك...'; return; }
+    if(mode === 'know') renderKnow(room, miniStage, banner);
+    else renderWyr(room, miniStage, banner);
     return;
   }
 
