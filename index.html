@@ -552,8 +552,10 @@ a.link-btn{text-decoration:underline;}
       <h1 class="title">بانتظار شريكك</h1>
     </div>
     <div class="card-panel">
-      <p class="hint-text">شارك هذا الكود مع شريكك عشان ينضم للعبة</p>
+      <p class="hint-text">أرسل الرابط لشريكك، أو عطه هذا الكود عشان ينضم للعبة</p>
       <div class="room-code-display" id="waiting-code">----</div>
+      <button class="btn btn-gold" onclick="shareInvite()">📤 أرسل الرابط لشريكك</button>
+      <p class="hint-text hidden" id="share-note"></p>
       <p class="hint-text"><span class="pulse-dot"></span> نبحث عن شريكك...</p>
       <button class="btn btn-ghost" onclick="leaveRoom()">إلغاء</button>
     </div>
@@ -1477,7 +1479,38 @@ async function restoreSession(){
   if(room.guestId) enterGame(room);
   else showWaiting(code);
 }
-restoreSession();
+restoreSession().finally(openInviteLink);
+
+/* ---------------- رابط الدعوة: ?join=الكود يفتح شاشة الانضمام والكود مكتوب ---------------- */
+function inviteUrl(code){ return location.origin + location.pathname + '?join=' + code; }
+async function shareInvite(){
+  const code = currentRoomCode;
+  if(!code) return;
+  const url = inviteUrl(code);
+  const text = `تعال نلعب حلالي 💞\nافتح الرابط واضغط "انضم الآن"، الكود: ${code}`;
+  const note = document.getElementById('share-note');
+  if(navigator.share){
+    try{ await navigator.share({title:'حلالي', text, url}); return; }
+    catch(e){ if(e && e.name === 'AbortError') return; }
+  }
+  try{
+    await navigator.clipboard.writeText(text + '\n' + url);
+    note.textContent = '✅ نسخنا الرابط، الصقه لشريكك في الواتساب';
+  }catch(e){
+    note.textContent = url;
+  }
+  note.classList.remove('hidden');
+}
+function openInviteLink(){
+  const code = new URLSearchParams(location.search).get('join');
+  if(!code) return;
+  history.replaceState(null, '', location.pathname);
+  if(!/^\d{6}$/.test(code) || currentRoomCode === code) return;
+  if(currentRoomCode) return; // في لعبة ثانية الحين، ما نطلّعه منها
+  localStorage.setItem('cg_entered', '1');
+  document.getElementById('join-code').value = code;
+  goTo('join');
+}
 
 /* ---------------- decks ---------------- */
 // المدير يعدّل التحديات الرسمية اللي يلعب فيها الكل، والمشترك يعدّل نسخته الخاصة
