@@ -48,6 +48,20 @@
       ".read": "auth != null",
       ".write": "auth != null && ((auth.uid === '3IMTePhIFeZo5nOHwDues02yN0y2' || auth.uid === 'HuzxWxVWcbRIdkvXVs6bYi6C4F83') || root.child('admins').child(auth.uid).exists())"
     },
+    "feedback": {
+      ".read": "auth != null && ((auth.uid === '3IMTePhIFeZo5nOHwDues02yN0y2' || auth.uid === 'HuzxWxVWcbRIdkvXVs6bYi6C4F83') || root.child('admins').child(auth.uid).exists())",
+      "$id": {
+        ".write": "auth != null && ((!data.exists() && newData.child('uid').val() === auth.uid && newData.child('read').val() === false) || ((auth.uid === '3IMTePhIFeZo5nOHwDues02yN0y2' || auth.uid === 'HuzxWxVWcbRIdkvXVs6bYi6C4F83') || root.child('admins').child(auth.uid).exists()))",
+        ".validate": "newData.hasChildren(['uid', 'type', 'message', 'createdAt', 'read'])",
+        "uid": {".validate": "newData.isString()"},
+        "type": {".validate": "newData.isString() && newData.val().matches(/^(suggestion|problem|question)$/)"},
+        "message": {".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 2000"},
+        "email": {".validate": "newData.isString() && newData.val().length <= 200"},
+        "createdAt": {".validate": "newData.isNumber()"},
+        "read": {".validate": "newData.isBoolean()"},
+        "$other": {".validate": false}
+      }
+    },
     "userDecks": {
       "$uid": {
         ".read": "auth != null && auth.uid === $uid",

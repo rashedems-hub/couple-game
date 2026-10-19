@@ -358,6 +358,15 @@ label.field-label{display:block; width:100%; text-align:right; font-size:12.5px;
 .sub-row .status{font-size:12.5px; color:var(--text-dim);}
 .sub-row .status.on{color:var(--accent); font-weight:800;}
 
+/* feedback */
+.count-badge{display:inline-block; min-width:20px; padding:1px 7px; margin-right:6px; border-radius:999px; background:#e0475f; color:#fff; font-size:12px; font-weight:800;}
+.fb-row{display:flex; flex-direction:column; gap:6px; background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:12px; text-align:right;}
+.fb-row.unread{border-color:var(--border-strong); box-shadow:0 0 0 3px var(--tag-bg);}
+.fb-meta{font-size:12px; color:var(--text-dim);}
+.fb-msg{font-size:14.5px; line-height:1.8; color:var(--text); white-space:pre-wrap; word-break:break-word;}
+.fb-done{font-size:44px; margin:6px 0;}
+a.link-btn{text-decoration:underline;}
+
 /* info pages */
 .links-row{display:flex; flex-wrap:wrap; justify-content:center; gap:8px; width:100%; margin-top:16px;}
 .link-pill{background:var(--surface); border:1px solid var(--border); border-radius:999px; padding:9px 14px;
@@ -454,12 +463,13 @@ label.field-label{display:block; width:100%; text-align:right; font-size:12.5px;
     <div class="card-panel">
       <button class="btn btn-primary" onclick="goTo('create')">✨ ابدأ لعبة جديدة</button>
       <button class="btn btn-ghost" onclick="goTo('join')">🔗 عندي كود، بانضم للعبة</button>
-      <button class="btn btn-ghost" onclick="openAdmin()">⚙️ إدارة التحديات</button>
+      <button class="btn btn-ghost" onclick="openAdmin()">⚙️ إدارة التحديات<span class="count-badge hidden" id="admin-unread-badge"></span></button>
     </div>
     <div class="links-row">
       <button class="link-pill" onclick="openInfo('sunnah')">📖 من الكتاب والسنة</button>
       <button class="link-pill" onclick="openInfo('health')">🩺 صحة العلاقة</button>
       <button class="link-pill" onclick="openInfo('terms')">📜 الشروط والأحكام</button>
+      <button class="link-pill" onclick="openFeedback()">💬 اقتراحات وتواصل</button>
     </div>
     <div class="theme-row" id="theme-row" aria-label="الألوان">
       <div class="theme-dot" data-t="rose" title="ليلة وردية"></div>
@@ -587,6 +597,33 @@ label.field-label{display:block; width:100%; text-align:right; font-size:12.5px;
     <button class="btn btn-ghost" onclick="closeInfo()">رجوع</button>
   </div>
 
+  <!-- SCREEN: FEEDBACK (اقتراحات وتواصل) -->
+  <div class="screen hidden" id="screen-feedback">
+    <div class="brand">
+      <span class="brand-icon">💬</span>
+      <h1 class="title">اقتراحات وتواصل</h1>
+      <p class="subtitle">رأيك يهمنا. اكتب لنا اقتراحك أو أي مشكلة واجهتك</p>
+    </div>
+    <div class="card-panel" id="feedback-form">
+      <label class="field-label">نوع الرسالة</label>
+      <div class="level-row" id="feedback-type-row"></div>
+      <label class="field-label">رسالتك</label>
+      <textarea id="feedback-text" maxlength="2000" placeholder="اكتب رسالتك هنا..."></textarea>
+      <label class="field-label">إيميلك للرد (اختياري)</label>
+      <input type="email" id="feedback-email" placeholder="name@example.com" inputmode="email">
+      <button class="btn btn-primary" id="feedback-send" onclick="sendFeedback()">📨 إرسال</button>
+      <p class="hint-text error-text hidden" id="feedback-error"></p>
+      <p class="hint-text">أو راسلنا مباشرة على <a class="link-btn" id="feedback-mailto" href="#"></a></p>
+      <button class="btn btn-ghost" onclick="goTo('home')">رجوع</button>
+    </div>
+    <div class="card-panel hidden" id="feedback-thanks">
+      <div class="fb-done">💌</div>
+      <p class="hint-text">وصلتنا رسالتك، شكراً لك! نقرأ كل الرسائل، وإذا كتبت إيميلك بنرد عليك.</p>
+      <button class="btn btn-ghost" onclick="openFeedback()">رسالة ثانية</button>
+      <button class="btn btn-primary" onclick="goTo('home')">رجوع للرئيسية</button>
+    </div>
+  </div>
+
   <!-- SCREEN: ADMIN -->
   <div class="screen hidden" id="screen-admin">
     <div class="brand">
@@ -623,6 +660,12 @@ label.field-label{display:block; width:100%; text-align:right; font-size:12.5px;
       <p class="hint-text">الحسابات المسجّلة. فعّل الاشتراك لأي حساب بعد ما يدفع.</p>
       <input type="text" id="subs-filter" placeholder="ابحث بالإيميل أو الاسم" oninput="renderSubscribers()">
       <div id="admin-subs-list" class="admin-list"></div>
+    </div>
+
+    <div class="card-panel hidden" id="admin-inbox" style="margin-top:16px;">
+      <h1 class="title" style="font-size:24px;">📬 الرسائل</h1>
+      <p class="hint-text">اقتراحات ورسائل المستخدمين، الأحدث أول.</p>
+      <div id="admin-inbox-list" class="admin-list"></div>
     </div>
   </div>
 </div>
@@ -1077,6 +1120,8 @@ async function loadRoles(){
   SUB_UNTIL = 0;
   try{ SUB_UNTIL = (await db.ref('subscribers/' + myId + '/until').once('value')).val() || 0; }catch(e){}
   renderAccountBar();
+  if(IS_ADMIN) refreshUnreadBadge();
+  else document.getElementById('admin-unread-badge').classList.add('hidden');
 }
 
 // كل زائر يدخل تلقائياً بحساب مجهول، ولما يسجّل نربط حسابه الجديد بنفس الهوية
@@ -1415,7 +1460,8 @@ async function openAdmin(){
   const editor = document.getElementById('admin-editor');
   const locked = document.getElementById('admin-locked');
   const subs = document.getElementById('admin-subs');
-  [editor, locked, subs].forEach(el=> el.classList.add('hidden'));
+  const inbox = document.getElementById('admin-inbox');
+  [editor, locked, subs, inbox].forEach(el=> el.classList.add('hidden'));
   await authReady;
   await loadRoles();
 
@@ -1455,7 +1501,159 @@ async function openAdmin(){
   if(IS_ADMIN){
     subs.classList.remove('hidden');
     loadSubscribers();
+    inbox.classList.remove('hidden');
+    loadInbox();
   }
+}
+
+/* ---------------- feedback (اقتراحات وتواصل) ---------------- */
+const FEEDBACK_TYPES = [
+  {id:'suggestion', name:'💡 اقتراح'},
+  {id:'problem', name:'🛠️ مشكلة'},
+  {id:'question', name:'❓ استفسار'}
+];
+let feedbackType = 'suggestion';
+
+function renderFeedbackTypes(){
+  const row = document.getElementById('feedback-type-row');
+  row.innerHTML = '';
+  FEEDBACK_TYPES.forEach(t=>{
+    const el = document.createElement('div');
+    el.className = 'level-opt' + (t.id === feedbackType ? ' active' : '');
+    el.innerHTML = `<div class="level-name">${t.name}</div>`;
+    el.onclick = ()=>{ feedbackType = t.id; renderFeedbackTypes(); };
+    row.appendChild(el);
+  });
+}
+
+function openFeedback(){
+  document.getElementById('feedback-form').classList.remove('hidden');
+  document.getElementById('feedback-thanks').classList.add('hidden');
+  document.getElementById('feedback-error').classList.add('hidden');
+  const emailEl = document.getElementById('feedback-email');
+  if(!emailEl.value && currentUser && currentUser.email) emailEl.value = currentUser.email;
+  const mail = document.getElementById('feedback-mailto');
+  mail.textContent = CONTACT_EMAIL;
+  mail.href = 'mailto:' + CONTACT_EMAIL + '?subject=' + encodeURIComponent('حلالي - اقتراح');
+  renderFeedbackTypes();
+  goTo('feedback');
+}
+
+async function sendFeedback(){
+  const textEl = document.getElementById('feedback-text');
+  const errEl = document.getElementById('feedback-error');
+  const btn = document.getElementById('feedback-send');
+  const message = textEl.value.trim();
+  const email = document.getElementById('feedback-email').value.trim();
+  errEl.classList.add('hidden');
+  if(message.length < 3){
+    errEl.textContent = 'اكتب رسالتك أول';
+    errEl.classList.remove('hidden');
+    return;
+  }
+  btn.disabled = true;
+  try{
+    await authReady;
+    await db.ref('feedback').push({
+      uid: myId,
+      type: feedbackType,
+      message: message.slice(0, 2000),
+      email: email.slice(0, 200),
+      createdAt: Date.now(),
+      read: false
+    });
+    textEl.value = '';
+    document.getElementById('feedback-form').classList.add('hidden');
+    document.getElementById('feedback-thanks').classList.remove('hidden');
+  }catch(e){
+    console.error('feedback failed', e);
+    errEl.textContent = `ما قدرنا نرسل رسالتك. جرّب مرة ثانية، أو راسلنا على ${CONTACT_EMAIL}`;
+    errEl.classList.remove('hidden');
+  }finally{
+    btn.disabled = false;
+  }
+}
+
+// للمدير: الرسائل
+let INBOX = {};
+async function refreshUnreadBadge(){
+  const badge = document.getElementById('admin-unread-badge');
+  try{
+    const snap = await db.ref('feedback').limitToLast(200).once('value');
+    INBOX = snap.val() || {};
+    const unread = Object.values(INBOX).filter(m=> !m.read).length;
+    badge.textContent = unread;
+    badge.classList.toggle('hidden', unread === 0);
+  }catch(e){ badge.classList.add('hidden'); }
+}
+async function loadInbox(){
+  const list = document.getElementById('admin-inbox-list');
+  list.innerHTML = '<p class="hint-text">جاري التحميل...</p>';
+  await refreshUnreadBadge();
+  renderInbox();
+}
+function renderInbox(){
+  const list = document.getElementById('admin-inbox-list');
+  list.innerHTML = '';
+  const rows = Object.entries(INBOX).sort((a, b)=> (b[1].createdAt || 0) - (a[1].createdAt || 0));
+  if(rows.length === 0){
+    list.innerHTML = '<p class="hint-text">ما فيه رسائل للحين.</p>';
+    return;
+  }
+  const typeName = id=> (FEEDBACK_TYPES.find(t=> t.id === id) || {name:'✉️ رسالة'}).name;
+  rows.forEach(([key, m])=>{
+    const row = document.createElement('div');
+    row.className = 'fb-row' + (m.read ? '' : ' unread');
+    const meta = document.createElement('div');
+    meta.className = 'fb-meta';
+    const when = new Date(m.createdAt || 0).toLocaleString('ar-SA-u-ca-gregory', {year:'numeric', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'});
+    meta.textContent = `${m.read ? '' : '🔴 جديدة · '}${typeName(m.type)} · ${when}${m.email ? ' · ' + m.email : ''}`;
+    const msg = document.createElement('div');
+    msg.className = 'fb-msg';
+    msg.textContent = m.message || '';
+    const btns = document.createElement('div');
+    btns.className = 'btn-row';
+    if(m.email){
+      const reply = document.createElement('a');
+      reply.className = 'btn btn-gold btn-sm';
+      reply.style.textAlign = 'center';
+      reply.style.textDecoration = 'none';
+      reply.textContent = '↩️ رد';
+      reply.href = 'mailto:' + m.email + '?subject=' + encodeURIComponent('رد من حلالي');
+      btns.appendChild(reply);
+    }
+    const toggle = document.createElement('button');
+    toggle.className = 'btn btn-ghost btn-sm';
+    toggle.textContent = m.read ? 'علّمها جديدة' : '✓ قرأتها';
+    toggle.onclick = ()=> setFeedbackRead(key, !m.read);
+    btns.appendChild(toggle);
+    const del = document.createElement('button');
+    del.className = 'btn btn-danger btn-sm';
+    del.textContent = '🗑️';
+    del.onclick = ()=> deleteFeedback(key);
+    btns.appendChild(del);
+    row.appendChild(meta);
+    row.appendChild(msg);
+    row.appendChild(btns);
+    list.appendChild(row);
+  });
+}
+async function setFeedbackRead(key, read){
+  try{
+    await db.ref('feedback/' + key + '/read').set(read);
+    INBOX[key].read = read;
+    renderInbox();
+    refreshUnreadBadge();
+  }catch(e){ alert('صار خلل، جرب مرة ثانية'); }
+}
+async function deleteFeedback(key){
+  if(!confirm('تحذف هذي الرسالة؟')) return;
+  try{
+    await db.ref('feedback/' + key).remove();
+    delete INBOX[key];
+    renderInbox();
+    refreshUnreadBadge();
+  }catch(e){ alert('صار خلل بالحذف، جرب مرة ثانية'); }
 }
 
 /* ---------------- subscribers (للمدير) ---------------- */
