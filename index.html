@@ -477,8 +477,8 @@ a.link-btn{text-decoration:underline;}
       <p class="terms-note">بإنشاء حساب أو استخدام التطبيق أنت توافق على <button class="link-btn" onclick="openInfo('terms')">الشروط والأحكام</button>، وتقر إن التطبيق للأزواج المتزوجين فوق 18 سنة.</p>
       <button class="small-close" onclick="resetPassword()">نسيت كلمة المرور؟</button>
       <p class="hint-text error-text hidden" id="welcome-error"></p>
-      <div class="divider-word">أو تابع بحساب</div>
-      <button class="btn btn-google btn-icon" onclick="signInWith('google')">
+      <div class="divider-word" id="social-divider">أو تابع بحساب</div>
+      <button class="btn btn-google btn-icon" id="btn-google" onclick="signInWith('google')">
         <svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>
         المتابعة بحساب Google
       </button>
@@ -643,6 +643,7 @@ a.link-btn{text-decoration:underline;}
     </div>
     <div class="info-list" id="info-body"></div>
     <p class="hint-text" id="info-footnote" style="margin-top:16px;"></p>
+    <button class="btn btn-ghost hidden" id="btn-delete-account" onclick="deleteAccount()">🗑️ حذف حسابي وبياناتي</button>
     <button class="btn btn-ghost" onclick="closeInfo()">رجوع</button>
   </div>
 
@@ -1066,7 +1067,7 @@ const INFO_PAGES = {
         {title: '7. الاستخدام الممنوع', text: 'يُمنع استخدام التطبيق لأي غرض مخالف للأنظمة أو للآداب العامة، أو محاولة الوصول لبيانات المستخدمين الآخرين، أو تعطيل الخدمة.'},
         {title: '8. البيانات اللي نجمعها', text: 'عند التسجيل: الإيميل والاسم (إن وُجد) وطريقة الدخول وتاريخ التسجيل. أثناء اللعب: الاسم اللي تكتبه وبيانات الغرفة وحالتها، وتنحذف الغرفة لما يطلع الطرفين. والتحديات الخاصة للمشترك محفوظة في حسابه ولا يطلع عليها غيره. ونجمع كذلك أرقام استخدام مجهولة (مثل عدد الغرف والتحديات المكتملة) بدون أسماء ولا محتوى.'},
         {title: '9. كيف نستخدم البيانات ونحميها', text: 'نستخدم البيانات لتشغيل اللعبة وإدارة الاشتراكات وتحسين التطبيق فقط، ولا نبيعها لأي طرف. البيانات محفوظة في خدمات Google Firebase، ومحمية بقواعد تمنع أي مستخدم من الوصول لبيانات غيره.'},
-        {title: '10. حذف الحساب', text: 'تقدر تطلب حذف حسابك وبياناتك في أي وقت عن طريق التواصل معنا.'},
+        {title: '10. حذف الحساب', text: 'تقدر تحذف حسابك وبياناتك (نقاطك وتحدياتك الخاصة وبيانات حسابك) في أي وقت من زر "حذف حسابي وبياناتي" أسفل هذي الصفحة وأنت مسجّل دخول، أو تطلب الحذف بالتواصل معنا.'},
         {title: '11. إخلاء المسؤولية', text: 'التطبيق مقدّم "كما هو"، ولا نضمن خلوه من الأعطال أو توفره بشكل دائم، ولا نتحمل مسؤولية أي ضرر ناتج عن سوء استخدامه.'},
         {title: '12. التعديلات', text: 'قد نحدّث هذي الشروط من وقت لآخر، واستمرارك في استخدام التطبيق بعد التحديث يعني موافقتك على الشروط الجديدة.'},
         {title: '13. النظام المطبق', text: 'تخضع هذي الشروط لأنظمة المملكة العربية السعودية، بما فيها نظام حماية البيانات الشخصية.'}
@@ -1122,6 +1123,7 @@ function openInfo(key){
   const footEl = document.getElementById('info-footnote');
   footEl.textContent = foot;
   footEl.classList.toggle('hidden', !foot);
+  document.getElementById('btn-delete-account').classList.toggle('hidden', key !== 'terms' || !currentUser || isGuest());
   infoReturnTo = document.querySelector('.screen:not(.hidden)')?.id.replace('screen-', '') || 'home';
   goTo('info');
   window.scrollTo(0, 0);
@@ -1189,6 +1191,9 @@ const db = firebase.database();
 /* ---------------- account & roles ---------------- */
 // فعّلها بعد ما تجهّز تطبيق فيسبوك وتربطه في Firebase
 const FACEBOOK_ENABLED = false;
+// نسخة التطبيق (Capacitor) ولا المتصفح
+const IS_NATIVE = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+const PUBLIC_URL = 'https://rashedems-hub.github.io/couple-game/';
 
 const auth = firebase.auth ? firebase.auth() : null;
 let currentUser = null;
@@ -1412,6 +1417,32 @@ function enterAsGuest(){
   goTo('home');
 }
 
+// حذف الحساب وبياناته (مطلوب في متاجر التطبيقات)
+async function deleteAccount(){
+  if(!currentUser || isGuest()) return;
+  if(!confirm('متأكد تبي تحذف حسابك؟ بتنحذف نقاطك وتحدياتك الخاصة وبيانات حسابك نهائياً، وما نقدر نرجعها')) return;
+  const user = currentUser;
+  const uid = user.uid;
+  if(currentRoomCode) await leaveRoom();
+  await Promise.allSettled(['leaderboard', 'userDecks', 'users'].map(n=> db.ref(n + '/' + uid).remove()));
+  try{
+    await user.delete(); // بعدها يدخل تلقائياً كزائر جديد
+  }catch(e){
+    if(e && e.code === 'auth/requires-recent-login'){
+      alert('لحماية حسابك: سجّل خروج وادخل من جديد، وبعدها احذف الحساب على طول');
+    } else {
+      alert('ما قدرنا نحذف الحساب. حاول مرة ثانية، أو تواصل معنا: ' + CONTACT_EMAIL);
+    }
+    return;
+  }
+  localStorage.removeItem('cg_entered');
+  EDIT_DECK = null;
+  IS_ADMIN = false;
+  SUB_UNTIL = 0;
+  alert('انحذف حسابك وبياناتك');
+  goTo('welcome');
+}
+
 async function signOut(){
   if(!confirm('متأكد تبي تسجّل خروج؟')) return;
   if(currentRoomCode) await leaveRoom();
@@ -1454,6 +1485,11 @@ function renderAccountBar(){
 }
 
 if(FACEBOOK_ENABLED) document.getElementById('btn-facebook').classList.remove('hidden');
+// داخل تطبيق الأندرويد/الآيفون: Google ما يسمح بتسجيل الدخول من نافذة داخل التطبيق
+if(IS_NATIVE){
+  document.getElementById('btn-google').classList.add('hidden');
+  if(!FACEBOOK_ENABLED) document.getElementById('social-divider').classList.add('hidden');
+}
 // متصفحات داخل التطبيقات (إنستقرام، فيسبوك، سناب...) ما تسمح بالدخول بحساب Google
 if(/FBAN|FBAV|Instagram|Snapchat|Line\/|TikTok|musical_ly|Twitter/i.test(navigator.userAgent)){
   document.getElementById('inapp-notice').classList.remove('hidden');
@@ -1482,7 +1518,7 @@ async function restoreSession(){
 restoreSession().finally(openInviteLink);
 
 /* ---------------- رابط الدعوة: ?join=الكود يفتح شاشة الانضمام والكود مكتوب ---------------- */
-function inviteUrl(code){ return location.origin + location.pathname + '?join=' + code; }
+function inviteUrl(code){ return (IS_NATIVE ? PUBLIC_URL : location.origin + location.pathname) + '?join=' + code; }
 async function shareInvite(){
   const code = currentRoomCode;
   if(!code) return;

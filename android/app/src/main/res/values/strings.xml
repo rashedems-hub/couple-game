@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">حلالي</string>
+    <string name="title_activity_main">حلالي</string>
+    <string name="package_name">com.halalii.app</string>
+    <string name="custom_url_scheme">com.halalii.app</string>
+</resources>
