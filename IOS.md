@@ -22,7 +22,7 @@ npm run ios:open    # يفتح المشروع في Xcode
 في Xcode:
 
 1. اختر الـ target ‏**App** ← تبويب **Signing & Capabilities** ← اختر الـ **Team** حقك.
-2. لو طلع خطأ إن الـ Bundle ID مستخدم، غيّر `com.rashed.couplegame` لشي خاص فيك
+2. لو طلع خطأ إن الـ Bundle ID مستخدم، غيّر `com.halalii.app` لشي خاص فيك
    (وغيّره بعدين في `capacitor.config.json` بعد).
 3. وصّل الآيفون بالكيبل (أو اختر Simulator) واضغط ▶︎ **Run**.
 

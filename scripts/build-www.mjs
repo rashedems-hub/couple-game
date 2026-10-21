@@ -1,5 +1,5 @@
 // Copies the web game (kept at the repo root so the PWA keeps working)
-// into www/, which Capacitor bundles into the iOS app.
+// into www/, which Capacitor bundles into the iOS and Android apps.
 import { cpSync, mkdirSync, rmSync } from 'node:fs';
 
 const FILES = [
