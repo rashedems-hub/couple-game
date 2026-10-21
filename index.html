@@ -11,6 +11,15 @@
 <meta name="apple-mobile-web-app-title" content="حلالي">
 <link rel="apple-touch-icon" href="icon-192.png">
 <script>
+// اللغة: المحفوظة، أو لغة الجوال (عربي لو الجوال عربي، وإلا إنجليزي)
+(function(){
+  var l = 'ar';
+  try{ l = localStorage.getItem('cg_lang') || ((navigator.language || '').toLowerCase().indexOf('ar') === 0 ? 'ar' : 'en'); }catch(e){}
+  window.APP_LANG = l === 'en' ? 'en' : 'ar';
+  if(window.APP_LANG === 'en'){ document.documentElement.lang = 'en'; document.documentElement.dir = 'ltr'; document.title = 'Halalii'; }
+})();
+</script>
+<script>
 // نطبّق الثيم المحفوظ قبل ما تنرسم الصفحة
 (function(){
   var t = localStorage.getItem('cg_theme');
@@ -206,7 +215,7 @@ textarea{font-size:14.5px; line-height:1.7; resize:vertical; min-height:70px; ma
 select{width:auto; padding:6px 12px; font-size:12.5px; border-radius:10px; color:var(--accent);}
 input::placeholder, textarea::placeholder{color:var(--text-faint);}
 input:focus, textarea:focus{border-color:var(--border-strong); box-shadow:0 0 0 4px var(--tag-bg);}
-label.field-label{display:block; width:100%; text-align:right; font-size:12.5px; color:var(--text-dim); margin-top:18px; padding-right:4px; font-weight:700;}
+label.field-label{display:block; width:100%; text-align:start; font-size:12.5px; color:var(--text-dim); margin-top:18px; padding-inline-start:4px; font-weight:700;}
 
 .divider-word{margin:22px 0; display:flex; align-items:center; gap:10px; width:100%; color:var(--text-dim); font-size:12.5px;}
 .divider-word::before, .divider-word::after{content:""; flex:1; height:1px; background:var(--border);}
@@ -231,7 +240,7 @@ label.field-label{display:block; width:100%; text-align:right; font-size:12.5px;
 }
 .hint-text{font-size:13px; color:var(--text-dim); line-height:1.85; margin-top:4px;}
 .error-text{color:var(--danger);}
-.pulse-dot{display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--primary-1); margin-left:6px; animation:pulse 1.3s infinite;}
+.pulse-dot{display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--primary-1); margin-inline-end:6px; animation:pulse 1.3s infinite;}
 @keyframes pulse{0%,100%{opacity:0.3; transform:scale(0.8);}50%{opacity:1; transform:scale(1.15);}}
 
 /* game screen */
@@ -334,7 +343,7 @@ label.field-label{display:block; width:100%; text-align:right; font-size:12.5px;
 .icon-btn{background:var(--surface); border:1px solid var(--border); border-radius:999px; padding:7px 14px; color:var(--text-dim); font-size:13px; font-family:'Tajawal',sans-serif; cursor:pointer;}
 
 /* admin */
-.admin-list{margin-top:18px; display:flex; flex-direction:column; gap:10px; text-align:right; width:100%;}
+.admin-list{margin-top:18px; display:flex; flex-direction:column; gap:10px; text-align:start; width:100%;}
 .admin-row{background:var(--surface); border:1px solid var(--border); border-radius:18px; padding:12px;}
 .admin-row textarea{min-height:60px; margin-top:8px; font-size:14px; padding:10px 12px; border-radius:12px;}
 .admin-preview{margin:6px 0 0; font-size:12px; white-space:pre-line;}
@@ -353,7 +362,7 @@ label.field-label{display:block; width:100%; text-align:right; font-size:12.5px;
 .btn-icon svg{width:20px; height:20px; flex:none;}
 .notice{width:100%; padding:12px 14px; border-radius:16px; background:var(--tag-bg); color:var(--text); font-size:13px; line-height:1.8; margin-top:12px;}
 .locked-icon{font-size:40px; margin-bottom:6px;}
-.sub-row{display:flex; flex-direction:column; gap:6px; background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:12px; text-align:right;}
+.sub-row{display:flex; flex-direction:column; gap:6px; background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:12px; text-align:start;}
 .sub-row .who{font-weight:800; color:var(--text); font-size:14px; word-break:break-all;}
 .sub-row .status{font-size:12.5px; color:var(--text-dim);}
 .sub-row .status.on{color:var(--accent); font-weight:800;}
@@ -370,7 +379,7 @@ label.field-label{display:block; width:100%; text-align:right; font-size:12.5px;
 .mini-result{display:flex; flex-direction:column; gap:6px; font-size:15px; font-weight:700; margin-top:4px;}
 .mini-points{color:var(--tag-ink); font-weight:900;}
 .opt-btn{margin-top:10px;}
-.mini-steps{font-size:15px; line-height:1.9; font-weight:600; text-align:right; margin:0; padding-right:20px;}
+.mini-steps{font-size:15px; line-height:1.9; font-weight:600; text-align:start; margin:0; padding-inline-start:20px;}
 .wyr-vs{display:flex; flex-direction:column; align-items:center; gap:6px; width:100%;}
 .wyr-opt{width:100%; padding:10px 12px; border-radius:16px; background:var(--tag-bg); font-size:18px; font-weight:800;}
 .wyr-opt.picked{outline:2px solid var(--tag-ink);}
@@ -393,7 +402,7 @@ label.field-label{display:block; width:100%; text-align:right; font-size:12.5px;
 .lb-row{display:flex; align-items:center; gap:12px; padding:12px 14px; border-radius:16px; background:var(--surface); border:1px solid var(--border);}
 .lb-row.me{border-color:var(--border-strong); box-shadow:0 0 0 3px var(--tag-bg);}
 .lb-rank{width:34px; flex:none; font-size:18px; font-weight:900; color:var(--text-dim); text-align:center;}
-.lb-name{flex:1; text-align:right; font-weight:700; color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.lb-name{flex:1; text-align:start; font-weight:700; color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
 .lb-pts{flex:none; font-weight:900; color:var(--accent);}
 .points-toast{position:fixed; left:50%; top:30%; transform:translate(-50%,0); z-index:20; pointer-events:none;
   padding:12px 22px; border-radius:999px; font:900 22px 'Tajawal',sans-serif; color:var(--on-secondary);
@@ -402,8 +411,8 @@ label.field-label{display:block; width:100%; text-align:right; font-size:12.5px;
 @keyframes pointsPop{0%{opacity:0; transform:translate(-50%,20px) scale(.8);} 15%{opacity:1; transform:translate(-50%,0) scale(1.05);} 75%{opacity:1; transform:translate(-50%,-10px) scale(1);} 100%{opacity:0; transform:translate(-50%,-40px) scale(.95);}}
 
 /* feedback */
-.count-badge{display:inline-block; min-width:20px; padding:1px 7px; margin-right:6px; border-radius:999px; background:#e0475f; color:#fff; font-size:12px; font-weight:800;}
-.fb-row{display:flex; flex-direction:column; gap:6px; background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:12px; text-align:right;}
+.count-badge{display:inline-block; min-width:20px; padding:1px 7px; margin-inline-start:6px; border-radius:999px; background:#e0475f; color:#fff; font-size:12px; font-weight:800;}
+.fb-row{display:flex; flex-direction:column; gap:6px; background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:12px; text-align:start;}
 .fb-row.unread{border-color:var(--border-strong); box-shadow:0 0 0 3px var(--tag-bg);}
 .fb-meta{font-size:12px; color:var(--text-dim);}
 .fb-msg{font-size:14.5px; line-height:1.8; color:var(--text); white-space:pre-wrap; word-break:break-word;}
@@ -416,7 +425,7 @@ a.link-btn{text-decoration:underline;}
   color:var(--text); font:700 13px 'Tajawal',sans-serif; cursor:pointer;}
 .terms-note{font-size:12px; color:var(--text-dim); margin-top:10px; line-height:1.8;}
 .terms-note .link-btn{font-size:12px; text-decoration:underline;}
-.info-list{display:flex; flex-direction:column; gap:12px; width:100%; text-align:right;}
+.info-list{display:flex; flex-direction:column; gap:12px; width:100%; text-align:start;}
 .info-heading{font-family:var(--title-font); font-size:20px; color:var(--accent); margin:10px 0 0;}
 .info-card{background:var(--surface); border:1px solid var(--border); border-radius:18px; padding:16px;}
 .info-card-title{font-weight:800; color:var(--accent); font-size:15px; margin-bottom:6px;}
@@ -432,6 +441,7 @@ a.link-btn{text-decoration:underline;}
 }
 .sound-toggle{width:30px; height:30px; border-radius:50%; border:1px solid var(--border); background:var(--surface);
   font-size:14px; line-height:1; padding:0; cursor:pointer; display:inline-flex; align-items:center; justify-content:center;}
+.lang-toggle{font-family:'Tajawal',sans-serif; font-size:13px; font-weight:800; color:var(--text); width:auto; padding:0 10px; border-radius:999px;}
 .icon-btn.sound-toggle{width:auto; height:auto; border-radius:999px; padding:7px 12px;}
 .theme-dot.active{border-color:var(--text); transform:scale(1.12);}
 .theme-dot[data-t="rose"]{background:linear-gradient(135deg, #3a1838 50%, #ec8aa0 50%);}
@@ -520,6 +530,7 @@ a.link-btn{text-decoration:underline;}
       <div class="theme-dot" data-t="blush" title="ورد وكريمي"></div>
       <div class="theme-dot" data-t="midnight" title="ليل وذهب"></div>
       <button class="sound-toggle" onclick="setSound(!soundOn)" data-sfx-none>🔊</button>
+      <button class="sound-toggle lang-toggle" id="lang-toggle" onclick="setLang(IS_EN ? 'ar' : 'en')"></button>
     </div>
   </div>
 
@@ -663,7 +674,7 @@ a.link-btn{text-decoration:underline;}
       <button class="btn btn-gold" onclick="saveLeaderboardName()">💾 حفظ الاسم</button>
       <button class="btn btn-ghost" id="lb-hide-btn" onclick="toggleLeaderboardHidden()"></button>
       <p class="hint-text error-text hidden" id="lb-error"></p>
-      <p class="hint-text" style="text-align:right;">⭐ <b>كيف تجمع النقاط؟</b><br>
+      <p class="hint-text" style="text-align:start;">⭐ <b>كيف تجمع النقاط؟</b><br>
         كل تحدي تخلّصه: خفيف 10، دافئ 15، حماسي 20<br>
         وبونص من تفاعل شريكك: 😊 +1، ❤️ +2، 😍 +3، 🔥 +5<br>
         والتخطي ما ينقص نقاطك 🤍</p>
@@ -722,7 +733,7 @@ a.link-btn{text-decoration:underline;}
       <div class="divider-word">إضافة جديد</div>
       <div class="level-row" id="admin-new-type-row"></div>
       <textarea id="admin-new-text" placeholder="اكتب نص التحدي أو السؤال هنا..."></textarea>
-      <p class="hint-text" style="text-align:right;">💡 تقدر تكتب {زوجتك|زوجك} أو قبّل{|ي} والكلمة تتغير حسب اللي عليه الدور: الأول للزوج والثاني للزوجة</p>
+      <p class="hint-text" style="text-align:start;">💡 تقدر تكتب {زوجتك|زوجك} أو قبّل{|ي} والكلمة تتغير حسب اللي عليه الدور: الأول للزوج والثاني للزوجة</p>
       <button class="btn btn-gold" onclick="addNewCard()">➕ إضافة</button>
       <button class="btn btn-ghost" onclick="resetMyDeck()">↩️ رجّع التحديات الأصلية</button>
 
@@ -745,91 +756,231 @@ a.link-btn{text-decoration:underline;}
 </div>
 
 <script>
+/* ---------------- اللغة ---------------- */
+const LANG = window.APP_LANG || 'ar';
+const IS_EN = LANG === 'en';
+// L('نص عربي', 'English text'): يرجع النص حسب لغة التطبيق
+function L(ar, en){ return IS_EN && en != null ? en : ar; }
+function setLang(l){
+  try{ localStorage.setItem('cg_lang', l); }catch(e){}
+  location.reload();
+}
+
 /* ---------------- content ---------------- */
 const LEVELS = [
-  {id:'light', name:'خفيف', flames:'🔥'},
-  {id:'warm', name:'دافئ', flames:'🔥🔥'},
-  {id:'hot', name:'حماسي', flames:'🔥🔥🔥'}
+  {id:'light', name:'خفيف', flames:'🔥', name_en:'Light'},
+  {id:'warm', name:'دافئ', flames:'🔥🔥', name_en:'Warm'},
+  {id:'hot', name:'حماسي', flames:'🔥🔥🔥', name_en:'Spicy'}
 ];
 
 const GENDERS = [
-  {id:'m', name:'زوج', icon:'🤵'},
-  {id:'f', name:'زوجة', icon:'👰'}
+  {id:'m', name:'زوج', icon:'🤵', name_en:'Husband'},
+  {id:'f', name:'زوجة', icon:'👰', name_en:'Wife'}
 ];
 
 // {أ|ب} تتغير حسب اللي عليه الدور: أ للزوج، ب للزوجة
 const DEFAULT_DECKS = {
   light: [
-    {type:'سؤال', text:'قول{|ي} {لزوجتك|لزوجك} 3 أشياء تحب{|ين}ها في{ها|ه} وما قلت{ها|يها} من قبل'},
-    {type:'تحدي', text:'امسكوا أيدي بعض وطالعوا في عيون بعض 30 ثانية بدون كلام'},
-    {type:'تحدي', text:'اكتب{|ي} رسالة حب قصيرة {لزوجتك|لزوجك} الحين واقرأ{ها|يها} {عليها|عليه}'},
-    {type:'سؤال', text:'وش أول شي لفت انتباهك في {زوجتك|زوجك} أول ما شفت{ها|يه}؟'},
-    {type:'تحدي', text:'غنّ{|ي} مقطع من أغنية تذكّرك {بزوجتك|بزوجك}'},
-    {type:'سؤال', text:'اذكروا أحلى موقف ضحكتوا فيه مع بعض'},
-    {type:'تحدي', text:'احضن{|ي} {زوجتك|زوجك} دقيقة كاملة بدون ما تفك{|ين}'},
-    {type:'سؤال', text:'وش أكثر شي يعجبك في شكل {زوجتك|زوجك}؟ قول{ه|يه} الحين'},
-    {type:'تحدي', text:'امسك{|ي} يد {زوجتك|زوجك} وأنتم تسولفون عن يوم حلو عشتوه مع بعض'},
-    {type:'سؤال', text:'لو تختصر{|ين} علاقتكم بكلمة وحدة، وش تكون؟'},
-    {type:'سؤال', text:'وش الشي الصغير اللي {تسويه زوجتك|يسويه زوجك} ويفرّحك؟'},
-    {type:'تحدي', text:'قلّد{|ي} طريقة {زوجتك|زوجك} لما {تزعل|يزعل}، بس بلطف 😄'},
-    {type:'سؤال', text:'وش أحلى ذكرى من أيام الملكة أو الزواج تحب{|ين} ترجع لها؟'},
-    {type:'تحدي', text:'سوّ{|ي} {لزوجتك|لزوجك} مساج خفيف لليدين دقيقة'},
-    {type:'سؤال', text:'وش الشي اللي تتمن{ى|ين} تسوونه مع بعض هالسنة؟'},
-    {type:'تحدي', text:'أرسل{|ي} {لزوجتك|لزوجك} رسالة غزل على الجوال و{هي|هو} جنبك'},
-    {type:'سؤال', text:'متى آخر مرة حسيت{|ي} إن {زوجتك|زوجك} {فخورة|فخور} فيك؟'},
-    {type:'تحدي', text:'اختار{|ي} أغنية تهديها {لزوجتك|لزوجك} وقول{|ي} ليش اخترت{ها|يها}'},
-    {type:'سؤال', text:'وش الصفة اللي أخذت{ها|يها} من {زوجتك|زوجك} بعد الزواج؟'},
-    {type:'تحدي', text:'بوس{|ي} يد {زوجتك|زوجك} وقول{|ي} {لها|له} شكراً على شي {سوّته|سوّاه} لك هالأسبوع'}
+    {type:'سؤال', text:'قول{|ي} {لزوجتك|لزوجك} 3 أشياء تحب{|ين}ها في{ها|ه} وما قلت{ها|يها} من قبل', en:'Tell {your wife|your husband} 3 things you love about {her|him} that you’ve never said out loud'},
+    {type:'تحدي', text:'امسكوا أيدي بعض وطالعوا في عيون بعض 30 ثانية بدون كلام', en:'Hold hands and look into each other’s eyes for 30 seconds without saying a word'},
+    {type:'تحدي', text:'اكتب{|ي} رسالة حب قصيرة {لزوجتك|لزوجك} الحين واقرأ{ها|يها} {عليها|عليه}', en:'Write {your wife|your husband} a short love note right now and read it to {her|him}'},
+    {type:'سؤال', text:'وش أول شي لفت انتباهك في {زوجتك|زوجك} أول ما شفت{ها|يه}؟', en:'What was the first thing you noticed about {your wife|your husband} when you first saw {her|him}?'},
+    {type:'تحدي', text:'غنّ{|ي} مقطع من أغنية تذكّرك {بزوجتك|بزوجك}', en:'Sing a few lines from a song that reminds you of {your wife|your husband}'},
+    {type:'سؤال', text:'اذكروا أحلى موقف ضحكتوا فيه مع بعض', en:'Share the funniest moment you’ve ever laughed about together'},
+    {type:'تحدي', text:'احضن{|ي} {زوجتك|زوجك} دقيقة كاملة بدون ما تفك{|ين}', en:'Hug {your wife|your husband} for a full minute without letting go'},
+    {type:'سؤال', text:'وش أكثر شي يعجبك في شكل {زوجتك|زوجك}؟ قول{ه|يه} الحين', en:'What do you love most about how {your wife|your husband} looks? Say it now'},
+    {type:'تحدي', text:'امسك{|ي} يد {زوجتك|زوجك} وأنتم تسولفون عن يوم حلو عشتوه مع بعض', en:'Hold {your wife’s|your husband’s} hand while you talk about a lovely day you spent together'},
+    {type:'سؤال', text:'لو تختصر{|ين} علاقتكم بكلمة وحدة، وش تكون؟', en:'If you had to sum up your relationship in one word, what would it be?'},
+    {type:'سؤال', text:'وش الشي الصغير اللي {تسويه زوجتك|يسويه زوجك} ويفرّحك؟', en:'What’s a little thing {your wife does|your husband does} that makes you happy?'},
+    {type:'تحدي', text:'قلّد{|ي} طريقة {زوجتك|زوجك} لما {تزعل|يزعل}، بس بلطف 😄', en:'Imitate how {your wife|your husband} acts when {she’s|he’s} upset, gently 😄'},
+    {type:'سؤال', text:'وش أحلى ذكرى من أيام الملكة أو الزواج تحب{|ين} ترجع لها؟', en:'What’s your favorite memory from your engagement or wedding days that you love going back to?'},
+    {type:'تحدي', text:'سوّ{|ي} {لزوجتك|لزوجك} مساج خفيف لليدين دقيقة', en:'Give {your wife|your husband} a gentle one-minute hand massage'},
+    {type:'سؤال', text:'وش الشي اللي تتمن{ى|ين} تسوونه مع بعض هالسنة؟', en:'What’s one thing you wish you could do together this year?'},
+    {type:'تحدي', text:'أرسل{|ي} {لزوجتك|لزوجك} رسالة غزل على الجوال و{هي|هو} جنبك', en:'Send {your wife|your husband} a flirty text while {she’s|he’s} sitting right next to you'},
+    {type:'سؤال', text:'متى آخر مرة حسيت{|ي} إن {زوجتك|زوجك} {فخورة|فخور} فيك؟', en:'When was the last time you felt {your wife|your husband} was proud of you?'},
+    {type:'تحدي', text:'اختار{|ي} أغنية تهديها {لزوجتك|لزوجك} وقول{|ي} ليش اخترت{ها|يها}', en:'Pick a song to dedicate to {your wife|your husband} and say why you chose it'},
+    {type:'سؤال', text:'وش الصفة اللي أخذت{ها|يها} من {زوجتك|زوجك} بعد الزواج؟', en:'What trait have you picked up from {your wife|your husband} since you got married?'},
+    {type:'تحدي', text:'بوس{|ي} يد {زوجتك|زوجك} وقول{|ي} {لها|له} شكراً على شي {سوّته|سوّاه} لك هالأسبوع', en:'Kiss {your wife’s|your husband’s} hand and thank {her|him} for something {she|he} did for you this week'}
   ],
   warm: [
-    {type:'تحدي', text:'قبّل{|ي} جبين {زوجتك|زوجك} وقول{|ي} {لها|له} كلمة حلوة بأذن{ها|ه}'},
-    {type:'تحدي', text:'دلّك{|ي} كتوف {زوجتك|زوجك} دقيقتين بهدوء'},
-    {type:'سؤال', text:'وش أكثر لمسة تحس{|ين} إنها تقرّبكم من بعض؟'},
-    {type:'تحدي', text:'اهمس{|ي} بأذن {زوجتك|زوجك} بشي يعجبك في{ها|ه}'},
-    {type:'تحدي', text:'قبّل{|ي} يد {زوجتك|زوجك} وقول{|ي} {لها|له} عن موقف رومانسي بينكم'},
-    {type:'تحدي', text:'العب{|ي} بشعر {زوجتك|زوجك} وأنتم تتكلمون عن حلمكم المشترك'},
-    {type:'تحدي', text:'قبّل{|ي} خد {زوجتك|زوجك} وقول{|ي} {لها|له} "{مشتاق|مشتاقة} لك"'},
-    {type:'تحدي', text:'امسك{|ي} وجه {زوجتك|زوجك} بهدوء وطالع{|ي} في{ها|ه} قبل ما تبوس{|ين}{ها|ه}'},
-    {type:'تحدي', text:'احضن{|ي} {زوجتك|زوجك} من الخلف واهمس{|ي} {لها|له} بكلمة حب'},
-    {type:'سؤال', text:'وش أكثر شي يخليك تحس{|ين} بالأمان جنب {زوجتك|زوجك}؟'},
-    {type:'تحدي', text:'حط{|ي} راسك على صدر {زوجتك|زوجك} دقيقة وأنتم ساكتين'},
-    {type:'سؤال', text:'وش اللبس اللي تحب{|ين} {زوجتك|زوجك} {تلبسه|يلبسه} لك؟'},
-    {type:'تحدي', text:'بوس{|ي} أصابع {زوجتك|زوجك} وحدة وحدة'},
-    {type:'سؤال', text:'وش أكثر كلمة غزل تحب{|ين} تسمعها من {زوجتك|زوجك}؟'},
-    {type:'تحدي', text:'غمّض{|ي} عيونك وخل{|ي} {زوجتك|زوجك} {تبوسك|يبوسك} في المكان اللي {تختاره|يختاره}'},
-    {type:'تحدي', text:'ارقصوا مع بعض رقصة هادية على أغنية تحبونها'},
-    {type:'سؤال', text:'وش الشي اللي {تسويه زوجتك|يسويه زوجك} ويذوّبك؟'},
-    {type:'تحدي', text:'دلّك{|ي} رجول {زوجتك|زوجك} دقيقتين'},
-    {type:'تحدي', text:'اكتب{|ي} بإصبعك على ظهر {زوجتك|زوجك} كلمة و{هي تخمّنها|هو يخمّنها}'},
-    {type:'سؤال', text:'وش أحلى بوسة صارت بينكم وتتذكر{|ين}ها؟'}
+    {type:'تحدي', text:'قبّل{|ي} جبين {زوجتك|زوجك} وقول{|ي} {لها|له} كلمة حلوة بأذن{ها|ه}', en:'Kiss {your wife’s|your husband’s} forehead and whisper something sweet in {her|his} ear'},
+    {type:'تحدي', text:'دلّك{|ي} كتوف {زوجتك|زوجك} دقيقتين بهدوء', en:'Gently massage {your wife’s|your husband’s} shoulders for two minutes'},
+    {type:'سؤال', text:'وش أكثر لمسة تحس{|ين} إنها تقرّبكم من بعض؟', en:'What kind of touch makes you feel closest to each other?'},
+    {type:'تحدي', text:'اهمس{|ي} بأذن {زوجتك|زوجك} بشي يعجبك في{ها|ه}', en:'Whisper in {your wife’s|your husband’s} ear something you love about {her|him}'},
+    {type:'تحدي', text:'قبّل{|ي} يد {زوجتك|زوجك} وقول{|ي} {لها|له} عن موقف رومانسي بينكم', en:'Kiss {your wife’s|your husband’s} hand and remind {her|him} of a romantic moment you shared'},
+    {type:'تحدي', text:'العب{|ي} بشعر {زوجتك|زوجك} وأنتم تتكلمون عن حلمكم المشترك', en:'Play with {your wife’s|your husband’s} hair while you talk about a dream you share'},
+    {type:'تحدي', text:'قبّل{|ي} خد {زوجتك|زوجك} وقول{|ي} {لها|له} "{مشتاق|مشتاقة} لك"', en:'Kiss {your wife’s|your husband’s} cheek and tell {her|him} “I miss you”'},
+    {type:'تحدي', text:'امسك{|ي} وجه {زوجتك|زوجك} بهدوء وطالع{|ي} في{ها|ه} قبل ما تبوس{|ين}{ها|ه}', en:'Gently hold {your wife’s|your husband’s} face and look at {her|him} before you kiss {her|him}'},
+    {type:'تحدي', text:'احضن{|ي} {زوجتك|زوجك} من الخلف واهمس{|ي} {لها|له} بكلمة حب', en:'Hug {your wife|your husband} from behind and whisper a word of love to {her|him}'},
+    {type:'سؤال', text:'وش أكثر شي يخليك تحس{|ين} بالأمان جنب {زوجتك|زوجك}؟', en:'What makes you feel safest next to {your wife|your husband}?'},
+    {type:'تحدي', text:'حط{|ي} راسك على صدر {زوجتك|زوجك} دقيقة وأنتم ساكتين', en:'Rest your head on {your wife’s|your husband’s} chest for a minute in silence'},
+    {type:'سؤال', text:'وش اللبس اللي تحب{|ين} {زوجتك|زوجك} {تلبسه|يلبسه} لك؟', en:'What outfit do you love {your wife|your husband} wearing for you?'},
+    {type:'تحدي', text:'بوس{|ي} أصابع {زوجتك|زوجك} وحدة وحدة', en:'Kiss {your wife’s|your husband’s} fingers, one by one'},
+    {type:'سؤال', text:'وش أكثر كلمة غزل تحب{|ين} تسمعها من {زوجتك|زوجك}؟', en:'What compliment do you love hearing most from {your wife|your husband}?'},
+    {type:'تحدي', text:'غمّض{|ي} عيونك وخل{|ي} {زوجتك|زوجك} {تبوسك|يبوسك} في المكان اللي {تختاره|يختاره}', en:'Close your eyes and let {your wife|your husband} kiss you wherever {she|he} chooses'},
+    {type:'تحدي', text:'ارقصوا مع بعض رقصة هادية على أغنية تحبونها', en:'Slow dance together to a song you both love'},
+    {type:'سؤال', text:'وش الشي اللي {تسويه زوجتك|يسويه زوجك} ويذوّبك؟', en:'What does {your wife do|your husband do} that makes you melt?'},
+    {type:'تحدي', text:'دلّك{|ي} رجول {زوجتك|زوجك} دقيقتين', en:'Massage {your wife’s|your husband’s} feet for two minutes'},
+    {type:'تحدي', text:'اكتب{|ي} بإصبعك على ظهر {زوجتك|زوجك} كلمة و{هي تخمّنها|هو يخمّنها}', en:'Trace a word on {your wife’s|your husband’s} back with your finger and let {her|him} guess it'},
+    {type:'سؤال', text:'وش أحلى بوسة صارت بينكم وتتذكر{|ين}ها؟', en:'What’s the most memorable kiss you’ve shared?'}
   ],
   hot: [
-    {type:'تحدي', text:'قبّل{|ي} رقبة {زوجتك|زوجك} بهدوء نص دقيقة'},
-    {type:'تحدي', text:'طفّوا الأنوار وقرّبوا من بعض بدون كلام دقيقة'},
-    {type:'تحدي', text:'اهمس{|ي} {لزوجتك|لزوجك} بشي {يخليها تستحي|يخليه يستحي}'},
-    {type:'تحدي', text:'بوس{|ي} {زوجتك|زوجك} بوسة طويلة وخل{|ي}ك بس في هاللحظة'},
-    {type:'تحدي', text:'خل{|ي} {زوجتك|زوجك} {تحس|يحس} إنك {مشتاق|مشتاقة} {لها|له} بدون كلام، بس بلمسة'},
-    {type:'سؤال', text:'وش تتمن{ى|ين} يصير بينكم الليلة؟ قول{ه|يه} بصراحة'},
-    {type:'تحدي', text:'قرّب{|ي} من {زوجتك|زوجك} وقول{|ي} {لها|له} أكثر شي يجذبك في{ها|ه} الليلة'},
-    {type:'تحدي', text:'ضم{|ي} {زوجتك|زوجك} بقوة وقرّب{ها|يه} منك وبوس{ها|يه}'},
-    {type:'سؤال', text:'وش أكثر ذكرى حميمية بينكم تحب{|ين} إنها تتكرر؟'},
-    {type:'تحدي', text:'خذوا نفس عميق مع بعض واحضنوا بعض دقيقتين بدون ما تفكون'},
-    {type:'تحدي', text:'بوس{|ي} {زوجتك|زوجك} من رقبت{ها|ه} لين أذن{ها|ه} بهدوء'},
-    {type:'سؤال', text:'وش الشي اللي ودك تجربونه مع بعض وما قلت{ه|يه} من قبل؟'},
-    {type:'تحدي', text:'غمّض{|ي} عيون {زوجتك|زوجك} وفاجئ{ها|يه} بثلاث بوسات في أماكن مختلفة'},
-    {type:'تحدي', text:'فك{|ي} أول زرار في قميص {زوجتك|زوجك} بهدوء وأنت{|ي} تطالع{|ين} في عيون{ها|ه}'},
-    {type:'سؤال', text:'وش أكثر شي {تسويه زوجتك|يسويه زوجك} ويحمّسك؟'},
-    {type:'تحدي', text:'مرّر{|ي} أصابعك على ظهر {زوجتك|زوجك} ببطء دقيقة كاملة'},
-    {type:'تحدي', text:'اختار{|ي} عطر وحط{|ي}ه على رقبة {زوجتك|زوجك} وبعدين شمّ{|ي}ه'},
-    {type:'سؤال', text:'متى آخر مرة ما قدرت{|ي} تقاوم{|ين} {زوجتك|زوجك}؟'},
-    {type:'تحدي', text:'قول{|ي} {لزوجتك|لزوجك} بصوت هادي وش تبي{|ن} تسوي{|ن} {لها|له} الليلة'},
-    {type:'تحدي', text:'احضنوا بعض والأنوار مطفية، وخلوا القلب يتكلم بدل الكلام'}
+    {type:'تحدي', text:'قبّل{|ي} رقبة {زوجتك|زوجك} بهدوء نص دقيقة', en:'Gently kiss {your wife’s|your husband’s} neck for thirty seconds'},
+    {type:'تحدي', text:'طفّوا الأنوار وقرّبوا من بعض بدون كلام دقيقة', en:'Turn off the lights and get close to each other for a minute without talking'},
+    {type:'تحدي', text:'اهمس{|ي} {لزوجتك|لزوجك} بشي {يخليها تستحي|يخليه يستحي}', en:'Whisper something to {your wife|your husband} that will make {her|him} blush'},
+    {type:'تحدي', text:'بوس{|ي} {زوجتك|زوجك} بوسة طويلة وخل{|ي}ك بس في هاللحظة', en:'Give {your wife|your husband} a long kiss and stay completely in the moment'},
+    {type:'تحدي', text:'خل{|ي} {زوجتك|زوجك} {تحس|يحس} إنك {مشتاق|مشتاقة} {لها|له} بدون كلام، بس بلمسة', en:'Show {your wife|your husband} how much you’ve missed {her|him} without words, just with a touch'},
+    {type:'سؤال', text:'وش تتمن{ى|ين} يصير بينكم الليلة؟ قول{ه|يه} بصراحة', en:'What do you wish would happen between you tonight? Be honest'},
+    {type:'تحدي', text:'قرّب{|ي} من {زوجتك|زوجك} وقول{|ي} {لها|له} أكثر شي يجذبك في{ها|ه} الليلة', en:'Move closer to {your wife|your husband} and tell {her|him} what attracts you most about {her|him} tonight'},
+    {type:'تحدي', text:'ضم{|ي} {زوجتك|زوجك} بقوة وقرّب{ها|يه} منك وبوس{ها|يه}', en:'Hold {your wife|your husband} tight, pull {her|him} close and kiss {her|him}'},
+    {type:'سؤال', text:'وش أكثر ذكرى حميمية بينكم تحب{|ين} إنها تتكرر؟', en:'Which intimate memory of yours would you love to relive?'},
+    {type:'تحدي', text:'خذوا نفس عميق مع بعض واحضنوا بعض دقيقتين بدون ما تفكون', en:'Take a deep breath together and hold each other for two minutes without letting go'},
+    {type:'تحدي', text:'بوس{|ي} {زوجتك|زوجك} من رقبت{ها|ه} لين أذن{ها|ه} بهدوء', en:'Slowly kiss {your wife|your husband} from {her|his} neck up to {her|his} ear'},
+    {type:'سؤال', text:'وش الشي اللي ودك تجربونه مع بعض وما قلت{ه|يه} من قبل؟', en:'What’s something you’d like to try together that you’ve never mentioned before?'},
+    {type:'تحدي', text:'غمّض{|ي} عيون {زوجتك|زوجك} وفاجئ{ها|يه} بثلاث بوسات في أماكن مختلفة', en:'Cover {your wife’s|your husband’s} eyes and surprise {her|him} with three kisses in different places'},
+    {type:'تحدي', text:'فك{|ي} أول زرار في قميص {زوجتك|زوجك} بهدوء وأنت{|ي} تطالع{|ين} في عيون{ها|ه}', en:'Slowly undo the top button of {your wife’s|your husband’s} shirt while looking into {her|his} eyes'},
+    {type:'سؤال', text:'وش أكثر شي {تسويه زوجتك|يسويه زوجك} ويحمّسك؟', en:'What does {your wife do|your husband do} that excites you most?'},
+    {type:'تحدي', text:'مرّر{|ي} أصابعك على ظهر {زوجتك|زوجك} ببطء دقيقة كاملة', en:'Slowly run your fingers along {your wife’s|your husband’s} back for a full minute'},
+    {type:'تحدي', text:'اختار{|ي} عطر وحط{|ي}ه على رقبة {زوجتك|زوجك} وبعدين شمّ{|ي}ه', en:'Pick a perfume, put some on {your wife’s|your husband’s} neck, then breathe it in'},
+    {type:'سؤال', text:'متى آخر مرة ما قدرت{|ي} تقاوم{|ين} {زوجتك|زوجك}؟', en:'When was the last time you couldn’t resist {your wife|your husband}?'},
+    {type:'تحدي', text:'قول{|ي} {لزوجتك|لزوجك} بصوت هادي وش تبي{|ن} تسوي{|ن} {لها|له} الليلة', en:'Tell {your wife|your husband} softly what you’d like to do for {her|him} tonight'},
+    {type:'تحدي', text:'احضنوا بعض والأنوار مطفية، وخلوا القلب يتكلم بدل الكلام', en:'Hold each other with the lights off, and let your hearts do the talking'}
   ]
 };
 
 function personalize(text, gender){
   return String(text || '').replace(/\{([^{}|]*)\|([^{}]*)\}/g, (_, m, f)=> gender==='f' ? f : m);
 }
+
+// نص البطاقة ونوعها حسب اللغة (البطاقات اللي كتبها المدير أو المشترك بدون ترجمة تطلع بالعربي)
+const EN_CARD_BY_AR = {};
+Object.values(DEFAULT_DECKS).forEach(list=> list.forEach(c=>{ if(c.en) EN_CARD_BY_AR[c.text] = c.en; }));
+function cardText(card){ return L(card.text, card.en || EN_CARD_BY_AR[card.text]); }
+const CARD_TYPE_EN = {'سؤال':'Question', 'تحدي':'Dare'};
+function cardType(type){ return L(type, CARD_TYPE_EN[type]); }
+
+/* ---------------- الواجهة بالإنجليزي: نترجم النصوص الثابتة في الصفحة ---------------- */
+// المفتاح = النص العربي كما هو في الصفحة (بدون المسافات اللي حوله)
+const STATIC_EN = {
+  'أهلاً فيكم': 'Welcome',
+  'سجّل دخولك عشان تحفظ حسابك وتقدر تشترك،': 'Sign in to save your account and subscribe,',
+  'أو جرّب اللعبة كزائر': 'or try the game as a guest',
+  'الإيميل': 'Email',
+  'كلمة المرور': 'Password',
+  '6 أحرف أو أكثر': '6 characters or more',
+  'دخول': 'Sign in',
+  'إنشاء حساب جديد': 'Create a new account',
+  'بإنشاء حساب أو استخدام التطبيق أنت توافق على': 'By creating an account or using the app, you agree to the',
+  'الشروط والأحكام': 'Terms & Conditions',
+  '، وتقر إن التطبيق للأزواج المتزوجين فوق 18 سنة.': ', and confirm the app is for married couples aged 18+.',
+  'نسيت كلمة المرور؟': 'Forgot your password?',
+  'أو تابع بحساب': 'or continue with',
+  'المتابعة بحساب Google': 'Continue with Google',
+  'المتابعة بحساب Facebook': 'Continue with Facebook',
+  '👤 جرّب كزائر': '👤 Try as a guest',
+  '💡 أنت فاتح اللعبة من داخل تطبيق. عشان تسجّل بحساب Google، افتح الرابط في Safari أو Chrome.': '💡 You opened the game inside another app. To sign in with Google, open the link in Safari or Chrome.',
+  'حلالي': 'Halalii',
+  'لعبة تقرّبكم لبعض، كل واحد يلعب من جواله': 'A game that brings you closer, each of you playing on your own phone',
+  'اختاروا المستوى وخلوا القلب يسبق العقل': 'Pick a level and let your heart lead the way',
+  '✨ ابدأ لعبة جديدة': '✨ Start a new game',
+  '🔗 عندي كود، بانضم للعبة': '🔗 I have a code, join a game',
+  '🏆 ترتيب اللاعبين': '🏆 Leaderboard',
+  '⚙️ إدارة التحديات': '⚙️ Manage challenges',
+  '📖 من الكتاب والسنة': '📖 From the Quran & Sunnah',
+  '🩺 صحة العلاقة': '🩺 Relationship health',
+  '📜 الشروط والأحكام': '📜 Terms & Conditions',
+  '💬 اقتراحات وتواصل': '💬 Feedback & contact',
+  'الألوان': 'Colors',
+  'ليلة وردية': 'Rose Night',
+  'ورد وكريمي': 'Rose & Cream',
+  'ليل وذهب': 'Midnight & Gold',
+  'لعبة جديدة': 'New game',
+  'اختر اسمك ومستوى اللعبة، وبنعطيك كود تشاركه مع شريكك': 'Choose your name and the game level, and we\'ll give you a code to share with your partner',
+  'اسمك': 'Your name',
+  'مثلاً: سارة': 'e.g. Sarah',
+  'أنا': 'I am',
+  'مستوى اللعبة': 'Game level',
+  'إنشاء الغرفة': 'Create room',
+  'رجوع': 'Back',
+  'بانتظار شريكك': 'Waiting for your partner',
+  'أرسل الرابط لشريكك، أو عطه هذا الكود عشان ينضم للعبة': 'Send your partner the link, or give them this code to join',
+  '📤 أرسل الرابط لشريكك': '📤 Send the link to your partner',
+  'نبحث عن شريكك...': 'Looking for your partner...',
+  'إلغاء': 'Cancel',
+  'انضمام للعبة': 'Join a game',
+  'أدخل الكود اللي أرسله لك شريكك': 'Enter the code your partner sent you',
+  'مثلاً: محمد': 'e.g. Mohammed',
+  'كود الغرفة': 'Room code',
+  'انضم الآن': 'Join now',
+  '🚪 خروج': '🚪 Exit',
+  'كود: ----': 'Code: ----',
+  'دور فلان': 'Someone\'s turn',
+  '🔥 المستوى: خفيف': '🔥 Level: Light',
+  'سؤال': 'Question',
+  'بانتظار سحب البطاقة...': 'Waiting for a card to be drawn...',
+  'وش رأيك بهالتحدي؟': 'What did you think of this challenge?',
+  '🎴 اسحب بطاقة': '🎴 Draw a card',
+  '✅ خلصت التحدي': '✅ Challenge done',
+  '⏭️ تخطّي، عطونا بطاقة ثانية': '⏭️ Skip, give us another card',
+  '🏠 رجوع للرئيسية': '🏠 Back to home',
+  'غيّروا المستوى وقت ما تبون': 'Change the level whenever you like',
+  'إغلاق': 'Close',
+  '🗑️ حذف حسابي وبياناتي': '🗑️ Delete my account and data',
+  'ترتيب اللاعبين': 'Leaderboard',
+  'اجمعوا النقاط بإكمال التحديات وتفاعل الشريك': 'Earn points by completing challenges and getting your partner\'s reactions',
+  'اسمك في الترتيب': 'Your leaderboard name',
+  'اسم مستعار': 'Nickname',
+  '💾 حفظ الاسم': '💾 Save name',
+  'كيف تجمع النقاط؟': 'How do you earn points?',
+  'كل تحدي تخلّصه: خفيف 10، دافئ 15، حماسي 20': 'Each challenge you complete: Light 10, Warm 15, Spicy 20',
+  'وبونص من تفاعل شريكك: 😊 +1، ❤️ +2، 😍 +3، 🔥 +5': 'Plus a bonus from your partner\'s reaction: 😊 +1, ❤️ +2, 😍 +3, 🔥 +5',
+  'والتخطي ما ينقص نقاطك 🤍': 'And skipping never costs you points 🤍',
+  'اقتراحات وتواصل': 'Feedback & contact',
+  'رأيك يهمنا. اكتب لنا اقتراحك أو أي مشكلة واجهتك': 'Your opinion matters. Send us your suggestion or any problem you ran into',
+  'نوع الرسالة': 'Message type',
+  'رسالتك': 'Your message',
+  'اكتب رسالتك هنا...': 'Write your message here...',
+  'إيميلك للرد (اختياري)': 'Your email for a reply (optional)',
+  '📨 إرسال': '📨 Send',
+  'أو راسلنا مباشرة على': 'Or email us directly at',
+  'وصلتنا رسالتك، شكراً لك! نقرأ كل الرسائل، وإذا كتبت إيميلك بنرد عليك.': 'We got your message, thank you! We read every message, and if you left your email we\'ll reply.',
+  'رسالة ثانية': 'Another message',
+  'رجوع للرئيسية': 'Back to home',
+  'إدارة التحديات': 'Manage challenges',
+  'سجّل دخولك': 'Sign in',
+  'اختر المستوى': 'Choose a level',
+  'إضافة جديد': 'Add new',
+  'اكتب نص التحدي أو السؤال هنا...': 'Write the challenge or question here...',
+  '💡 تقدر تكتب {زوجتك|زوجك} أو قبّل{|ي} والكلمة تتغير حسب اللي عليه الدور: الأول للزوج والثاني للزوجة': '💡 You can write {wife|husband} or {his|her}: the word changes based on whose turn it is. The first is for the husband, the second for the wife',
+  '➕ إضافة': '➕ Add',
+  '↩️ رجّع التحديات الأصلية': '↩️ Restore the original challenges',
+  '👥 المشتركين': '👥 Subscribers',
+  'الحسابات المسجّلة. فعّل الاشتراك لأي حساب بعد ما يدفع.': 'Registered accounts. Activate a subscription for any account after they pay.',
+  'ابحث بالإيميل أو الاسم': 'Search by email or name',
+  '📬 الرسائل': '📬 Messages',
+  'اقتراحات ورسائل المستخدمين، الأحدث أول.': 'User suggestions and messages, newest first.',
+};
+function applyStaticLang(){
+  if(!IS_EN) return;
+  const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
+    acceptNode: n=> n.parentElement && !/^(SCRIPT|STYLE)$/.test(n.parentElement.tagName) && n.nodeValue.trim()
+      ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT
+  });
+  const nodes = [];
+  while(walker.nextNode()) nodes.push(walker.currentNode);
+  nodes.forEach(n=>{
+    const key = n.nodeValue.trim().replace(/\s+/g, ' ');
+    if(STATIC_EN[key] != null) n.nodeValue = n.nodeValue.replace(n.nodeValue.trim(), STATIC_EN[key]);
+  });
+  document.querySelectorAll('[placeholder],[title],[aria-label]').forEach(e=>{
+    ['placeholder', 'title', 'aria-label'].forEach(attr=>{
+      const v = e.getAttribute(attr);
+      if(v && STATIC_EN[v.trim()] != null) e.setAttribute(attr, STATIC_EN[v.trim()]);
+    });
+  });
+}
+applyStaticLang();
+document.getElementById('lang-toggle').textContent = IS_EN ? 'عربي' : 'EN';
 
 /* ---------------- state ---------------- */
 function getOrCreateDeviceId(){
@@ -947,7 +1098,7 @@ function sfx(name){
 function renderSoundToggles(){
   document.querySelectorAll('.sound-toggle').forEach(b=>{
     b.textContent = soundOn ? '🔊' : '🔇';
-    b.title = soundOn ? 'كتم الصوت' : 'تشغيل الصوت';
+    b.title = soundOn ? L('كتم الصوت', 'Mute') : L('تشغيل الصوت', 'Unmute');
   });
 }
 function setSound(on){
@@ -1002,75 +1153,83 @@ const INFO_PAGES = {
   sunnah: {
     icon: '📖',
     title: 'من الكتاب والسنة',
+    title_en: 'From the Quran & Sunnah',
     intro: 'آيات وأحاديث صحيحة عن المودة بين الزوجين وحسن العشرة',
+    intro_en: 'Authentic verses and hadiths on love between spouses and treating each other well',
     sections: [
-      {heading: 'من القرآن الكريم', items: [
-        {text: '﴿وَمِنْ آيَاتِهِ أَنْ خَلَقَ لَكُم مِّنْ أَنفُسِكُمْ أَزْوَاجًا لِّتَسْكُنُوا إِلَيْهَا وَجَعَلَ بَيْنَكُم مَّوَدَّةً وَرَحْمَةً﴾', source: 'سورة الروم: 21'},
-        {text: '﴿هُنَّ لِبَاسٌ لَّكُمْ وَأَنتُمْ لِبَاسٌ لَّهُنَّ﴾', source: 'سورة البقرة: 187'},
-        {text: '﴿وَعَاشِرُوهُنَّ بِالْمَعْرُوفِ﴾', source: 'سورة النساء: 19'},
-        {text: '﴿وَلَهُنَّ مِثْلُ الَّذِي عَلَيْهِنَّ بِالْمَعْرُوفِ﴾', source: 'سورة البقرة: 228'},
-        {text: '﴿نِسَاؤُكُمْ حَرْثٌ لَّكُمْ فَأْتُوا حَرْثَكُمْ أَنَّىٰ شِئْتُمْ وَقَدِّمُوا لِأَنفُسِكُمْ﴾', source: 'سورة البقرة: 223'}
+      {heading: 'من القرآن الكريم', heading_en: 'From the Holy Quran', items: [
+        {text: '﴿وَمِنْ آيَاتِهِ أَنْ خَلَقَ لَكُم مِّنْ أَنفُسِكُمْ أَزْوَاجًا لِّتَسْكُنُوا إِلَيْهَا وَجَعَلَ بَيْنَكُم مَّوَدَّةً وَرَحْمَةً﴾', source: 'سورة الروم: 21', text_en:'“And of His signs is that He created for you from yourselves mates that you may find tranquillity in them; and He placed between you affection and mercy.”', source_en:'Surah Ar-Rum 30:21'},
+        {text: '﴿هُنَّ لِبَاسٌ لَّكُمْ وَأَنتُمْ لِبَاسٌ لَّهُنَّ﴾', source: 'سورة البقرة: 187', text_en:'“They are clothing for you and you are clothing for them.”', source_en:'Surah Al-Baqarah 2:187'},
+        {text: '﴿وَعَاشِرُوهُنَّ بِالْمَعْرُوفِ﴾', source: 'سورة النساء: 19', text_en:'“And live with them in kindness.”', source_en:'Surah An-Nisa 4:19'},
+        {text: '﴿وَلَهُنَّ مِثْلُ الَّذِي عَلَيْهِنَّ بِالْمَعْرُوفِ﴾', source: 'سورة البقرة: 228', text_en:'“And due to the wives is similar to what is expected of them, according to what is reasonable.”', source_en:'Surah Al-Baqarah 2:228'},
+        {text: '﴿نِسَاؤُكُمْ حَرْثٌ لَّكُمْ فَأْتُوا حَرْثَكُمْ أَنَّىٰ شِئْتُمْ وَقَدِّمُوا لِأَنفُسِكُمْ﴾', source: 'سورة البقرة: 223', text_en:'“Your wives are a place of sowing of seed for you, so come to your place of cultivation however you wish and put forth [righteousness] for yourselves.”', source_en:'Surah Al-Baqarah 2:223'}
       ]},
-      {heading: 'من السنة النبوية', items: [
-        {text: 'قال رسول الله ﷺ: «خيرُكم خيرُكم لأهلِه، وأنا خيرُكم لأهلي»', source: 'رواه الترمذي (3895) وصححه الألباني'},
-        {text: 'قال رسول الله ﷺ: «أكملُ المؤمنين إيماناً أحسنُهم خُلُقاً، وخيارُكم خيارُكم لنسائِهم»', source: 'رواه الترمذي (1162) وقال: حسن صحيح'},
-        {text: 'قال رسول الله ﷺ: «استوصُوا بالنساءِ خيراً»', source: 'متفق عليه: البخاري (5186) ومسلم (1468)'},
-        {text: 'قال رسول الله ﷺ: «لا يَفْرَكْ مؤمنٌ مؤمنةً، إن كرِه منها خُلُقاً رضيَ منها آخرَ»', source: 'رواه مسلم (1469)'},
-        {text: 'قال رسول الله ﷺ: «الدنيا متاعٌ، وخيرُ متاعِ الدنيا المرأةُ الصالحة»', source: 'رواه مسلم (1467)'},
-        {text: 'قال رسول الله ﷺ: «...وفي بُضْعِ أحدِكم صدقةٌ» قالوا: يا رسول الله، أيأتي أحدُنا شهوتَه ويكون له فيها أجر؟ قال: «أرأيتم لو وضعها في حرامٍ أكان عليه فيها وِزر؟ فكذلك إذا وضعها في الحلال كان له أجر»', source: 'رواه مسلم (1006)'},
-        {text: 'قال رسول الله ﷺ: «لو أنَّ أحدَكم إذا أراد أن يأتيَ أهلَه قال: بسمِ الله، اللهمَّ جنِّبْنا الشيطانَ، وجنِّبِ الشيطانَ ما رزقتَنا، فإنه إن يُقدَّرْ بينهما ولدٌ في ذلك لم يضرَّه شيطانٌ أبداً»', source: 'متفق عليه: البخاري (5165) ومسلم (1434)'},
-        {text: 'قال رسول الله ﷺ: «إذا أتى أحدُكم أهلَه ثم أراد أن يعودَ فليتوضأ»', source: 'رواه مسلم (308)'},
-        {text: 'قال رسول الله ﷺ: «...وإنك لن تُنفقَ نفقةً تبتغي بها وجهَ الله إلا أُجِرتَ عليها، حتى ما تجعلُ في فَمِ امرأتِك»', source: 'متفق عليه: البخاري (56) ومسلم (1628)'},
-        {text: 'عن عائشة رضي الله عنها قالت: كنتُ أشربُ وأنا حائض، ثم أناولُه النبيَّ ﷺ فيضعُ فاه على موضعِ فِيَّ فيشرب', source: 'رواه مسلم (300)'},
-        {text: 'عن عائشة رضي الله عنها أنها كانت مع النبي ﷺ في سفر، قالت: فسابقتُه فسبقتُه على رجليّ، فلما حملتُ اللحمَ سابقتُه فسبقني، فقال: «هذه بتلك السَّبْقة»', source: 'رواه أبو داود (2578) وصححه الألباني'},
-        {text: 'عن عائشة رضي الله عنها قالت: كنتُ أغتسلُ أنا والنبيُّ ﷺ من إناءٍ واحد', source: 'متفق عليه: البخاري (250) ومسلم (321)'},
-        {text: 'عن عائشة رضي الله عنها قالت: كان النبيُّ ﷺ يُقبِّلُ ويُباشرُ وهو صائم، وكان أملكَكم لإرْبِه', source: 'متفق عليه: البخاري (1927) ومسلم (1106)'}
+      {heading: 'من السنة النبوية', heading_en: 'From the Sunnah', items: [
+        {text: 'قال رسول الله ﷺ: «خيرُكم خيرُكم لأهلِه، وأنا خيرُكم لأهلي»', source: 'رواه الترمذي (3895) وصححه الألباني', text_en:'The Messenger of Allah ﷺ said: “The best of you is the one who is best to his family, and I am the best of you to my family.”', source_en:'Jami at-Tirmidhi 3895 (graded sahih by al-Albani)'},
+        {text: 'قال رسول الله ﷺ: «أكملُ المؤمنين إيماناً أحسنُهم خُلُقاً، وخيارُكم خيارُكم لنسائِهم»', source: 'رواه الترمذي (1162) وقال: حسن صحيح', text_en:'The Messenger of Allah ﷺ said: “The most complete of the believers in faith is the one with the best character, and the best of you are those who are best to their wives.”', source_en:'Jami at-Tirmidhi 1162 (hasan sahih)'},
+        {text: 'قال رسول الله ﷺ: «استوصُوا بالنساءِ خيراً»', source: 'متفق عليه: البخاري (5186) ومسلم (1468)', text_en:'The Messenger of Allah ﷺ said: “Treat women kindly.”', source_en:'Agreed upon: Sahih al-Bukhari 5186, Sahih Muslim 1468'},
+        {text: 'قال رسول الله ﷺ: «لا يَفْرَكْ مؤمنٌ مؤمنةً، إن كرِه منها خُلُقاً رضيَ منها آخرَ»', source: 'رواه مسلم (1469)', text_en:'The Messenger of Allah ﷺ said: “A believing man should not hate a believing woman; if he dislikes one of her traits, he will be pleased with another.”', source_en:'Sahih Muslim 1469'},
+        {text: 'قال رسول الله ﷺ: «الدنيا متاعٌ، وخيرُ متاعِ الدنيا المرأةُ الصالحة»', source: 'رواه مسلم (1467)', text_en:'The Messenger of Allah ﷺ said: “This world is but provision, and the best provision of this world is a righteous woman.”', source_en:'Sahih Muslim 1467'},
+        {text: 'قال رسول الله ﷺ: «...وفي بُضْعِ أحدِكم صدقةٌ» قالوا: يا رسول الله، أيأتي أحدُنا شهوتَه ويكون له فيها أجر؟ قال: «أرأيتم لو وضعها في حرامٍ أكان عليه فيها وِزر؟ فكذلك إذا وضعها في الحلال كان له أجر»', source: 'رواه مسلم (1006)', text_en:'The Messenger of Allah ﷺ said: “…and in a man’s intimacy with his wife there is charity.” They said: “O Messenger of Allah, when one of us fulfils his desire, is he rewarded for it?” He said: “Do you not see that if he fulfilled it in a forbidden way, he would bear a sin? Likewise, if he fulfils it in a lawful way, he is rewarded.”', source_en:'Sahih Muslim 1006'},
+        {text: 'قال رسول الله ﷺ: «لو أنَّ أحدَكم إذا أراد أن يأتيَ أهلَه قال: بسمِ الله، اللهمَّ جنِّبْنا الشيطانَ، وجنِّبِ الشيطانَ ما رزقتَنا، فإنه إن يُقدَّرْ بينهما ولدٌ في ذلك لم يضرَّه شيطانٌ أبداً»', source: 'متفق عليه: البخاري (5165) ومسلم (1434)', text_en:'The Messenger of Allah ﷺ said: “If any of you, when he intends to go to his wife, says: ‘In the name of Allah. O Allah, keep Satan away from us and keep Satan away from what You grant us,’ then if a child is decreed for them, Satan will never harm it.”', source_en:'Agreed upon: Sahih al-Bukhari 5165, Sahih Muslim 1434'},
+        {text: 'قال رسول الله ﷺ: «إذا أتى أحدُكم أهلَه ثم أراد أن يعودَ فليتوضأ»', source: 'رواه مسلم (308)', text_en:'The Messenger of Allah ﷺ said: “When one of you goes to his wife and then wants to return, let him perform wudu.”', source_en:'Sahih Muslim 308'},
+        {text: 'قال رسول الله ﷺ: «...وإنك لن تُنفقَ نفقةً تبتغي بها وجهَ الله إلا أُجِرتَ عليها، حتى ما تجعلُ في فَمِ امرأتِك»', source: 'متفق عليه: البخاري (56) ومسلم (1628)', text_en:'The Messenger of Allah ﷺ said: “…You will not spend anything seeking the Face of Allah except that you will be rewarded for it, even the morsel you put in your wife’s mouth.”', source_en:'Agreed upon: Sahih al-Bukhari 56, Sahih Muslim 1628'},
+        {text: 'عن عائشة رضي الله عنها قالت: كنتُ أشربُ وأنا حائض، ثم أناولُه النبيَّ ﷺ فيضعُ فاه على موضعِ فِيَّ فيشرب', source: 'رواه مسلم (300)', text_en:'Aisha (may Allah be pleased with her) said: “I would drink while I was menstruating, then hand it to the Prophet ﷺ, and he would put his mouth where mine had been and drink.”', source_en:'Sahih Muslim 300'},
+        {text: 'عن عائشة رضي الله عنها أنها كانت مع النبي ﷺ في سفر، قالت: فسابقتُه فسبقتُه على رجليّ، فلما حملتُ اللحمَ سابقتُه فسبقني، فقال: «هذه بتلك السَّبْقة»', source: 'رواه أبو داود (2578) وصححه الألباني', text_en:'Aisha (may Allah be pleased with her) said she was with the Prophet ﷺ on a journey: “I raced him on foot and beat him. Later, when I had put on weight, I raced him again and he beat me. He said: ‘This is for that one.’”', source_en:'Sunan Abi Dawud 2578 (graded sahih by al-Albani)'},
+        {text: 'عن عائشة رضي الله عنها قالت: كنتُ أغتسلُ أنا والنبيُّ ﷺ من إناءٍ واحد', source: 'متفق عليه: البخاري (250) ومسلم (321)', text_en:'Aisha (may Allah be pleased with her) said: “The Prophet ﷺ and I used to bathe from a single vessel.”', source_en:'Agreed upon: Sahih al-Bukhari 250, Sahih Muslim 321'},
+        {text: 'عن عائشة رضي الله عنها قالت: كان النبيُّ ﷺ يُقبِّلُ ويُباشرُ وهو صائم، وكان أملكَكم لإرْبِه', source: 'متفق عليه: البخاري (1927) ومسلم (1106)', text_en:'Aisha (may Allah be pleased with her) said: “The Prophet ﷺ used to kiss and embrace while fasting, and he had the most control over his desire of all of you.”', source_en:'Agreed upon: Sahih al-Bukhari 1927, Sahih Muslim 1106'}
       ]}
     ],
-    footnote: 'للتحقق من أي حديث: موقع الدرر السنية dorar.net'
+    footnote: 'للتحقق من أي حديث: موقع الدرر السنية dorar.net',
+    footnote_en: 'To verify any hadith: sunnah.com or dorar.net'
   },
 
   health: {
     icon: '🩺',
     title: 'صحة العلاقة',
+    title_en: 'Relationship Health',
     intro: 'معلومات طبية عامة للتثقيف، وما تغني عن استشارة الطبيب',
+    intro_en: 'General medical information for awareness. It does not replace seeing a doctor',
     sections: [
       {items: [
-        {title: '💬 التواصل أولاً', text: 'الحديث بصراحة ولطف عن اللي يريحكم واللي يضايقكم من أهم أسباب الرضا في العلاقة. العلاقة الصحية قائمة على راحة الطرفين ورضاهم.'},
-        {title: '🌙 التمهيد مو رفاهية', text: 'المرأة غالباً تحتاج وقت أطول للاستثارة. التمهيد والمداعبة والكلام الحلو تقلل الألم وتزيد المتعة للاثنين.'},
-        {title: '⚠️ الألم مو طبيعي', text: 'إذا تكرر الألم أثناء العلاقة أو صعوبة الإيلاج، راجعي طبيبة نساء وولادة. أسبابه كثيرة، مثل الجفاف أو الالتهابات أو التشنج المهبلي، وأغلبها يتعالج.'},
-        {title: '💧 الجفاف', text: 'الجفاف شائع، خصوصاً مع التوتر أو الرضاعة أو بعض الأدوية. التمهيد الكافي يساعد، ويمكن استخدام مزلّق مائي مناسب.'},
-        {title: '🧼 النظافة والوقاية', text: 'غسل اليدين والنظافة الشخصية قبل العلاقة وبعدها، والتبول بعد العلاقة يساعد على تقليل التهابات المسالك البولية عند المرأة.'},
-        {title: '❤️‍🩹 ضعف الانتصاب', text: 'شائع ويتعالج، وأحياناً يكون علامة مبكرة على مشاكل في القلب أو السكر أو الضغط. راجع طبيب مسالك بولية، ولا تستخدم أدوية بدون وصفة طبية.'},
-        {title: '⏱️ سرعة القذف', text: 'من أكثر المشاكل شيوعاً عند الرجال، وتتحسن بتمارين وتغييرات سلوكية، وأحياناً بعلاج تحت إشراف طبيب.'},
-        {title: '🌸 الحيض والنفاس', text: 'الجماع ممنوع شرعاً وقت الحيض والنفاس. وبعد الولادة يُنصح بالانتظار لين يسمح الطبيب، غالباً بعد نحو ستة أسابيع.'},
-        {title: '😴 نمط الحياة يؤثر على الرغبة', text: 'قلة النوم والتوتر والتدخين وقلة الحركة كلها تضعف الرغبة والأداء. النوم الكافي والرياضة وتقليل الضغوط تفرق كثير.'},
-        {title: '⚖️ اختلاف الرغبة طبيعي', text: 'من الطبيعي إن رغبة الزوجين تختلف في الأوقات والمرات. التفاهم واللطف أفضل من الضغط، وإذا صار الموضوع مصدر خلاف، الاستشارة الزوجية تفيد.'},
-        {title: '👶 تنظيم الحمل', text: 'وسائل تنظيم الحمل كثيرة، ولكل وحدة إيجابيات وآثار جانبية. اختاروها مع الطبيب حسب حالتكم الصحية.'}
+        {title: '💬 التواصل أولاً', text: 'الحديث بصراحة ولطف عن اللي يريحكم واللي يضايقكم من أهم أسباب الرضا في العلاقة. العلاقة الصحية قائمة على راحة الطرفين ورضاهم.', title_en:'💬 Communication first', text_en:'Talking openly and kindly about what you enjoy and what bothers you is one of the biggest keys to satisfaction. A healthy relationship is built on both partners feeling comfortable and content.'},
+        {title: '🌙 التمهيد مو رفاهية', text: 'المرأة غالباً تحتاج وقت أطول للاستثارة. التمهيد والمداعبة والكلام الحلو تقلل الألم وتزيد المتعة للاثنين.', title_en:'🌙 Foreplay isn’t a luxury', text_en:'Women often need more time to become aroused. Foreplay, affection and sweet words reduce pain and increase pleasure for both of you.'},
+        {title: '⚠️ الألم مو طبيعي', text: 'إذا تكرر الألم أثناء العلاقة أو صعوبة الإيلاج، راجعي طبيبة نساء وولادة. أسبابه كثيرة، مثل الجفاف أو الالتهابات أو التشنج المهبلي، وأغلبها يتعالج.', title_en:'⚠️ Pain is not normal', text_en:'If pain during intimacy or difficulty with penetration keeps happening, see an OB-GYN. There are many possible causes, such as dryness, infections or vaginismus, and most are treatable.'},
+        {title: '💧 الجفاف', text: 'الجفاف شائع، خصوصاً مع التوتر أو الرضاعة أو بعض الأدوية. التمهيد الكافي يساعد، ويمكن استخدام مزلّق مائي مناسب.', title_en:'💧 Dryness', text_en:'Dryness is common, especially with stress, breastfeeding or some medications. Enough foreplay helps, and a suitable water-based lubricant can be used.'},
+        {title: '🧼 النظافة والوقاية', text: 'غسل اليدين والنظافة الشخصية قبل العلاقة وبعدها، والتبول بعد العلاقة يساعد على تقليل التهابات المسالك البولية عند المرأة.', title_en:'🧼 Hygiene and prevention', text_en:'Washing hands and personal hygiene before and after intimacy, and urinating afterwards, help reduce urinary tract infections in women.'},
+        {title: '❤️‍🩹 ضعف الانتصاب', text: 'شائع ويتعالج، وأحياناً يكون علامة مبكرة على مشاكل في القلب أو السكر أو الضغط. راجع طبيب مسالك بولية، ولا تستخدم أدوية بدون وصفة طبية.', title_en:'❤️‍🩹 Erectile dysfunction', text_en:'It is common and treatable, and sometimes an early sign of heart problems, diabetes or high blood pressure. See a urologist, and don’t take medication without a prescription.'},
+        {title: '⏱️ سرعة القذف', text: 'من أكثر المشاكل شيوعاً عند الرجال، وتتحسن بتمارين وتغييرات سلوكية، وأحياناً بعلاج تحت إشراف طبيب.', title_en:'⏱️ Premature ejaculation', text_en:'One of the most common problems in men. It improves with exercises and behavioral changes, and sometimes with treatment under a doctor’s supervision.'},
+        {title: '🌸 الحيض والنفاس', text: 'الجماع ممنوع شرعاً وقت الحيض والنفاس. وبعد الولادة يُنصح بالانتظار لين يسمح الطبيب، غالباً بعد نحو ستة أسابيع.', title_en:'🌸 Menstruation and postpartum bleeding', text_en:'Intercourse is forbidden in Islam during menstruation and postpartum bleeding. After childbirth, it’s advised to wait until the doctor gives the go-ahead, usually around six weeks.'},
+        {title: '😴 نمط الحياة يؤثر على الرغبة', text: 'قلة النوم والتوتر والتدخين وقلة الحركة كلها تضعف الرغبة والأداء. النوم الكافي والرياضة وتقليل الضغوط تفرق كثير.', title_en:'😴 Lifestyle affects desire', text_en:'Lack of sleep, stress, smoking and inactivity all weaken desire and performance. Enough sleep, exercise and less stress make a big difference.'},
+        {title: '⚖️ اختلاف الرغبة طبيعي', text: 'من الطبيعي إن رغبة الزوجين تختلف في الأوقات والمرات. التفاهم واللطف أفضل من الضغط، وإذا صار الموضوع مصدر خلاف، الاستشارة الزوجية تفيد.', title_en:'⚖️ Different levels of desire are normal', text_en:'It’s normal for spouses to differ in when and how often they want intimacy. Understanding and kindness work better than pressure, and if it becomes a source of conflict, marriage counseling helps.'},
+        {title: '👶 تنظيم الحمل', text: 'وسائل تنظيم الحمل كثيرة، ولكل وحدة إيجابيات وآثار جانبية. اختاروها مع الطبيب حسب حالتكم الصحية.', title_en:'👶 Family planning', text_en:'There are many contraception methods, each with pros and side effects. Choose one with your doctor based on your health.'}
       ]}
     ],
-    footnote: 'هذي معلومات عامة للتثقيف فقط، وما تغني عن استشارة طبيب مختص. إذا عندكم أي أعراض أو قلق، راجعوا الطبيب.'
+    footnote: 'هذي معلومات عامة للتثقيف فقط، وما تغني عن استشارة طبيب مختص. إذا عندكم أي أعراض أو قلق، راجعوا الطبيب.',
+    footnote_en: 'This is general information for awareness only and does not replace a specialist. If you have any symptoms or concerns, see a doctor.'
   },
 
   terms: {
     icon: '📜',
     title: 'الشروط والأحكام',
+    title_en: 'Terms & Conditions',
     intro: 'وسياسة الخصوصية',
+    intro_en: 'and Privacy Policy',
     sections: [
       {items: [
-        {title: '1. القبول', text: 'باستخدامك تطبيق "حلالي" أو إنشاء حساب فيه، فأنت توافق على هذي الشروط. إذا ما توافق عليها، فلا تستخدم التطبيق.'},
-        {title: '2. لمن التطبيق', text: 'التطبيق مخصص للأزواج المتزوجين زواجاً شرعياً، ولمن عمره 18 سنة أو أكثر. ويقر المستخدم إن الطرف الثاني في اللعبة زوجه أو زوجته.'},
-        {title: '3. طبيعة المحتوى', text: 'التطبيق لعبة ترفيهية لتقوية العلاقة بين الزوجين، وبعض المستويات فيها محتوى رومانسي للمتزوجين. كل تحدي اختياري، ويقدر أي طرف يتخطاه في أي وقت.'},
-        {title: '4. المحتوى الديني والطبي', text: 'الآيات والأحاديث والمعلومات الصحية في التطبيق للتذكير والتثقيف العام، وليست فتوى ولا استشارة طبية. ارجعوا لأهل العلم أو للطبيب المختص عند الحاجة.'},
-        {title: '5. الحساب', text: 'أنت مسؤول عن حماية بيانات دخولك وعن أي استخدام يتم من حسابك. ويحق لنا إيقاف أي حساب يخالف هذي الشروط.'},
-        {title: '6. الاشتراك المدفوع', text: 'بعض المزايا، مثل كتابة التحديات الخاصة، متاحة للمشتركين فقط. مدة الاشتراك وسعره يتم توضيحهما قبل الدفع، ويتفعّل الاشتراك بعد تأكيد الدفع.'},
-        {title: '7. الاستخدام الممنوع', text: 'يُمنع استخدام التطبيق لأي غرض مخالف للأنظمة أو للآداب العامة، أو محاولة الوصول لبيانات المستخدمين الآخرين، أو تعطيل الخدمة.'},
-        {title: '8. البيانات اللي نجمعها', text: 'عند التسجيل: الإيميل والاسم (إن وُجد) وطريقة الدخول وتاريخ التسجيل. أثناء اللعب: الاسم اللي تكتبه وبيانات الغرفة وحالتها، وتنحذف الغرفة لما يطلع الطرفين. والتحديات الخاصة للمشترك محفوظة في حسابه ولا يطلع عليها غيره. ونجمع كذلك أرقام استخدام مجهولة (مثل عدد الغرف والتحديات المكتملة) بدون أسماء ولا محتوى.'},
-        {title: '9. كيف نستخدم البيانات ونحميها', text: 'نستخدم البيانات لتشغيل اللعبة وإدارة الاشتراكات وتحسين التطبيق فقط، ولا نبيعها لأي طرف. البيانات محفوظة في خدمات Google Firebase، ومحمية بقواعد تمنع أي مستخدم من الوصول لبيانات غيره.'},
-        {title: '10. حذف الحساب', text: 'تقدر تحذف حسابك وبياناتك (نقاطك وتحدياتك الخاصة وبيانات حسابك) في أي وقت من زر "حذف حسابي وبياناتي" أسفل هذي الصفحة وأنت مسجّل دخول، أو تطلب الحذف بالتواصل معنا.'},
-        {title: '11. إخلاء المسؤولية', text: 'التطبيق مقدّم "كما هو"، ولا نضمن خلوه من الأعطال أو توفره بشكل دائم، ولا نتحمل مسؤولية أي ضرر ناتج عن سوء استخدامه.'},
-        {title: '12. التعديلات', text: 'قد نحدّث هذي الشروط من وقت لآخر، واستمرارك في استخدام التطبيق بعد التحديث يعني موافقتك على الشروط الجديدة.'},
-        {title: '13. النظام المطبق', text: 'تخضع هذي الشروط لأنظمة المملكة العربية السعودية، بما فيها نظام حماية البيانات الشخصية.'}
+        {title: '1. القبول', text: 'باستخدامك تطبيق "حلالي" أو إنشاء حساب فيه، فأنت توافق على هذي الشروط. إذا ما توافق عليها، فلا تستخدم التطبيق.', title_en:'1. Acceptance', text_en:'By using the Halalii app or creating an account in it, you agree to these terms. If you do not agree to them, do not use the app.'},
+        {title: '2. لمن التطبيق', text: 'التطبيق مخصص للأزواج المتزوجين زواجاً شرعياً، ولمن عمره 18 سنة أو أكثر. ويقر المستخدم إن الطرف الثاني في اللعبة زوجه أو زوجته.', title_en:'2. Who the app is for', text_en:'The app is intended for couples in a lawful (Islamic) marriage who are 18 years of age or older. The user confirms that the other player in the game is their husband or wife.'},
+        {title: '3. طبيعة المحتوى', text: 'التطبيق لعبة ترفيهية لتقوية العلاقة بين الزوجين، وبعض المستويات فيها محتوى رومانسي للمتزوجين. كل تحدي اختياري، ويقدر أي طرف يتخطاه في أي وقت.', title_en:'3. Nature of the content', text_en:'The app is an entertainment game to strengthen the bond between spouses, and some levels include romantic content for married couples. Every challenge is optional, and either partner can skip it at any time.'},
+        {title: '4. المحتوى الديني والطبي', text: 'الآيات والأحاديث والمعلومات الصحية في التطبيق للتذكير والتثقيف العام، وليست فتوى ولا استشارة طبية. ارجعوا لأهل العلم أو للطبيب المختص عند الحاجة.', title_en:'4. Religious and medical content', text_en:'The verses, hadiths and health information in the app are for general reminder and awareness only. They are not a fatwa or medical advice. Consult scholars or a specialist doctor when needed.'},
+        {title: '5. الحساب', text: 'أنت مسؤول عن حماية بيانات دخولك وعن أي استخدام يتم من حسابك. ويحق لنا إيقاف أي حساب يخالف هذي الشروط.', title_en:'5. Your account', text_en:'You are responsible for keeping your login details safe and for any use of your account. We may suspend any account that violates these terms.'},
+        {title: '6. الاشتراك المدفوع', text: 'بعض المزايا، مثل كتابة التحديات الخاصة، متاحة للمشتركين فقط. مدة الاشتراك وسعره يتم توضيحهما قبل الدفع، ويتفعّل الاشتراك بعد تأكيد الدفع.', title_en:'6. Paid subscription', text_en:'Some features, such as writing your own challenges, are available to subscribers only. The subscription period and price are shown before payment, and the subscription is activated once payment is confirmed.'},
+        {title: '7. الاستخدام الممنوع', text: 'يُمنع استخدام التطبيق لأي غرض مخالف للأنظمة أو للآداب العامة، أو محاولة الوصول لبيانات المستخدمين الآخرين، أو تعطيل الخدمة.', title_en:'7. Prohibited use', text_en:'You may not use the app for any purpose that breaks the law or public morals, try to access other users’ data, or disrupt the service.'},
+        {title: '8. البيانات اللي نجمعها', text: 'عند التسجيل: الإيميل والاسم (إن وُجد) وطريقة الدخول وتاريخ التسجيل. أثناء اللعب: الاسم اللي تكتبه وبيانات الغرفة وحالتها، وتنحذف الغرفة لما يطلع الطرفين. والتحديات الخاصة للمشترك محفوظة في حسابه ولا يطلع عليها غيره. ونجمع كذلك أرقام استخدام مجهولة (مثل عدد الغرف والتحديات المكتملة) بدون أسماء ولا محتوى.', title_en:'8. Data we collect', text_en:'When you sign up: your email, name (if provided), sign-in method and sign-up date. While playing: the name you enter and the room’s data and state; the room is deleted when both players leave. A subscriber’s private challenges are stored in their account and nobody else can see them. We also collect anonymous usage numbers (such as the number of rooms and completed challenges) without names or content.'},
+        {title: '9. كيف نستخدم البيانات ونحميها', text: 'نستخدم البيانات لتشغيل اللعبة وإدارة الاشتراكات وتحسين التطبيق فقط، ولا نبيعها لأي طرف. البيانات محفوظة في خدمات Google Firebase، ومحمية بقواعد تمنع أي مستخدم من الوصول لبيانات غيره.', title_en:'9. How we use and protect data', text_en:'We use data only to run the game, manage subscriptions and improve the app, and we never sell it to anyone. Data is stored in Google Firebase and protected by rules that stop any user from accessing anyone else’s data.'},
+        {title: '10. حذف الحساب', text: 'تقدر تحذف حسابك وبياناتك (نقاطك وتحدياتك الخاصة وبيانات حسابك) في أي وقت من زر "حذف حسابي وبياناتي" أسفل هذي الصفحة وأنت مسجّل دخول، أو تطلب الحذف بالتواصل معنا.', title_en:'10. Deleting your account', text_en:'You can delete your account and data (your points, private challenges and account details) at any time with the “Delete my account and data” button at the bottom of this page while signed in, or by contacting us.'},
+        {title: '11. إخلاء المسؤولية', text: 'التطبيق مقدّم "كما هو"، ولا نضمن خلوه من الأعطال أو توفره بشكل دائم، ولا نتحمل مسؤولية أي ضرر ناتج عن سوء استخدامه.', title_en:'11. Disclaimer', text_en:'The app is provided “as is”. We do not guarantee it will be free of errors or always available, and we are not responsible for any harm caused by misuse.'},
+        {title: '12. التعديلات', text: 'قد نحدّث هذي الشروط من وقت لآخر، واستمرارك في استخدام التطبيق بعد التحديث يعني موافقتك على الشروط الجديدة.', title_en:'12. Changes', text_en:'We may update these terms from time to time. Continuing to use the app after an update means you accept the new terms.'},
+        {title: '13. النظام المطبق', text: 'تخضع هذي الشروط لأنظمة المملكة العربية السعودية، بما فيها نظام حماية البيانات الشخصية.', title_en:'13. Governing law', text_en:'These terms are governed by the laws of the Kingdom of Saudi Arabia, including the Personal Data Protection Law.'}
       ]}
     ],
     footnote: ''
@@ -1081,15 +1240,15 @@ function openInfo(key){
   const page = INFO_PAGES[key];
   if(!page) return;
   document.getElementById('info-icon').textContent = page.icon;
-  document.getElementById('info-title').textContent = page.title;
-  document.getElementById('info-intro').textContent = page.intro;
+  document.getElementById('info-title').textContent = L(page.title, page.title_en);
+  document.getElementById('info-intro').textContent = L(page.intro, page.intro_en);
   const body = document.getElementById('info-body');
   body.innerHTML = '';
   page.sections.forEach(sec=>{
     if(sec.heading){
       const h = document.createElement('h2');
       h.className = 'info-heading';
-      h.textContent = sec.heading;
+      h.textContent = L(sec.heading, sec.heading_en);
       body.appendChild(h);
     }
     sec.items.forEach(item=>{
@@ -1098,27 +1257,27 @@ function openInfo(key){
       if(item.title){
         const t = document.createElement('div');
         t.className = 'info-card-title';
-        t.textContent = item.title;
+        t.textContent = L(item.title, item.title_en);
         card.appendChild(t);
       }
       const p = document.createElement('p');
       p.className = item.source ? 'info-quote' : 'info-text';
-      p.textContent = item.text;
+      p.textContent = L(item.text, item.text_en);
       card.appendChild(p);
       if(item.source){
         const src = document.createElement('div');
         src.className = 'info-source';
-        src.textContent = item.source;
+        src.textContent = L(item.source, item.source_en);
         card.appendChild(src);
       }
       body.appendChild(card);
     });
   });
-  let foot = page.footnote;
+  let foot = L(page.footnote, page.footnote_en);
   if(key === 'terms'){
     foot = CONTACT_EMAIL
-      ? `للتواصل وطلبات حذف الحساب: ${CONTACT_EMAIL}`
-      : 'للتواصل وطلبات حذف الحساب: عن طريق قنوات التطبيق الرسمية.';
+      ? L(`للتواصل وطلبات حذف الحساب: ${CONTACT_EMAIL}`, `Contact and account deletion requests: ${CONTACT_EMAIL}`)
+      : L('للتواصل وطلبات حذف الحساب: عن طريق قنوات التطبيق الرسمية.', 'Contact and account deletion requests: through the app’s official channels.');
   }
   const footEl = document.getElementById('info-footnote');
   footEl.textContent = foot;
@@ -1145,7 +1304,7 @@ function renderLevelRow(container, selectedId, onPick){
   LEVELS.forEach(lv=>{
     const el = document.createElement('div');
     el.className = 'level-opt' + (lv.id===selectedId ? ' active':'');
-    el.innerHTML = `<div class="level-flames">${lv.flames}</div><div class="level-name">${lv.name}</div>`;
+    el.innerHTML = `<div class="level-flames">${lv.flames}</div><div class="level-name">${L(lv.name, lv.name_en)}</div>`;
     el.onclick = ()=>onPick(lv.id);
     container.appendChild(el);
   });
@@ -1163,7 +1322,7 @@ function renderGenderRows(){
     GENDERS.forEach(g=>{
       const el = document.createElement('div');
       el.className = 'level-opt' + (g.id===myGender ? ' active':'');
-      el.innerHTML = `<div class="level-flames">${g.icon}</div><div class="level-name">${g.name}</div>`;
+      el.innerHTML = `<div class="level-flames">${g.icon}</div><div class="level-name">${L(g.name, g.name_en)}</div>`;
       el.onclick = ()=>{
         myGender = g.id;
         localStorage.setItem('cg_gender', g.id);
@@ -1252,7 +1411,7 @@ function roomRef(code){ return db.ref('rooms/' + code); }
 
 function playerIds(room){ return [room.hostId, room.guestId].filter(Boolean); }
 function otherId(room, id){ return playerIds(room).find(p=>p!==id) || null; }
-function playerName(room, id){ return (room.players && room.players[id] && room.players[id].name) || 'شريكك'; }
+function playerName(room, id){ return (room.players && room.players[id] && room.players[id].name) || L('شريكك', 'your partner'); }
 function playerGender(room, id){ return (room.players && room.players[id] && room.players[id].g) || 'm'; }
 function turnOf(room){ return room.turn || room.hostId; }
 
@@ -1291,7 +1450,7 @@ async function updateRoom(fn){
     return res.committed ? res.snapshot.val() : null;
   }catch(e){
     console.error('update failed', e);
-    alert('صار خلل في الاتصال، جرب مرة ثانية.');
+    alert(L('صار خلل في الاتصال، جرب مرة ثانية.', 'Connection problem, please try again.'));
     return null;
   }
 }
@@ -1315,29 +1474,29 @@ if(localStorage.getItem('cg_seen_day') !== statsDay()){
 
 /* ---------------- sign in ---------------- */
 const AUTH_ERRORS = {
-  'auth/invalid-email': 'الإيميل مكتوب غلط',
-  'auth/missing-password': 'اكتب كلمة المرور',
-  'auth/weak-password': 'كلمة المرور لازم تكون 6 أحرف أو أكثر',
-  'auth/email-already-in-use': 'هذا الإيميل مسجّل من قبل، اضغط "دخول"',
-  'auth/credential-already-in-use': 'هذا الحساب مسجّل من قبل',
-  'auth/invalid-credential': 'الإيميل أو كلمة المرور غلط',
-  'auth/invalid-login-credentials': 'الإيميل أو كلمة المرور غلط',
-  'auth/wrong-password': 'الإيميل أو كلمة المرور غلط',
-  'auth/user-not-found': 'ما فيه حساب بهذا الإيميل، اضغط "إنشاء حساب جديد"',
-  'auth/too-many-requests': 'محاولات كثيرة، انتظر شوي وجرب مرة ثانية',
-  'auth/network-request-failed': 'تأكد من اتصال الإنترنت',
-  'auth/popup-blocked': 'المتصفح منع نافذة الدخول. اسمح بالنوافذ المنبثقة وجرب مرة ثانية',
-  'auth/operation-not-allowed': 'طريقة الدخول هذي غير مفعّلة حالياً',
-  'auth/unauthorized-domain': 'طريقة الدخول هذي غير مفعّلة لهذا الموقع حالياً',
-  'auth/account-exists-with-different-credential': 'هذا الإيميل مسجّل بطريقة دخول ثانية، جرّبها',
-  'auth/web-storage-unsupported': 'افتح الرابط في Safari أو Chrome عشان تقدر تسجّل دخول',
-  'auth/operation-not-supported-in-this-environment': 'افتح الرابط في Safari أو Chrome عشان تقدر تسجّل دخول'
+  'auth/invalid-email': L('الإيميل مكتوب غلط', "That email doesn't look right"),
+  'auth/missing-password': L('اكتب كلمة المرور', "Please enter your password"),
+  'auth/weak-password': L('كلمة المرور لازم تكون 6 أحرف أو أكثر', "Password must be at least 6 characters"),
+  'auth/email-already-in-use': L('هذا الإيميل مسجّل من قبل، اضغط "دخول"', "This email is already registered. Tap \"Sign in\""),
+  'auth/credential-already-in-use': L('هذا الحساب مسجّل من قبل', "This account is already registered"),
+  'auth/invalid-credential': L('الإيميل أو كلمة المرور غلط', "Wrong email or password"),
+  'auth/invalid-login-credentials': L('الإيميل أو كلمة المرور غلط', "Wrong email or password"),
+  'auth/wrong-password': L('الإيميل أو كلمة المرور غلط', "Wrong email or password"),
+  'auth/user-not-found': L('ما فيه حساب بهذا الإيميل، اضغط "إنشاء حساب جديد"', "No account with this email. Tap \"Create a new account\""),
+  'auth/too-many-requests': L('محاولات كثيرة، انتظر شوي وجرب مرة ثانية', "Too many attempts. Wait a little and try again"),
+  'auth/network-request-failed': L('تأكد من اتصال الإنترنت', "Check your internet connection"),
+  'auth/popup-blocked': L('المتصفح منع نافذة الدخول. اسمح بالنوافذ المنبثقة وجرب مرة ثانية', "Your browser blocked the sign-in window. Allow pop-ups and try again"),
+  'auth/operation-not-allowed': L('طريقة الدخول هذي غير مفعّلة حالياً', "This sign-in method isn't available right now"),
+  'auth/unauthorized-domain': L('طريقة الدخول هذي غير مفعّلة لهذا الموقع حالياً', "This sign-in method isn't enabled for this site yet"),
+  'auth/account-exists-with-different-credential': L('هذا الإيميل مسجّل بطريقة دخول ثانية، جرّبها', "This email is registered with a different sign-in method. Try that one"),
+  'auth/web-storage-unsupported': L('افتح الرابط في Safari أو Chrome عشان تقدر تسجّل دخول', "Open the link in Safari or Chrome to sign in"),
+  'auth/operation-not-supported-in-this-environment': L('افتح الرابط في Safari أو Chrome عشان تقدر تسجّل دخول', "Open the link in Safari or Chrome to sign in")
 };
 function showAuthError(elId, e){
   if(e && (e.code === 'auth/popup-closed-by-user' || e.code === 'auth/cancelled-popup-request')) return;
   console.warn('auth error', e);
   const el = document.getElementById(elId);
-  el.textContent = (e && AUTH_ERRORS[e.code]) || ('صار خلل بالدخول، جرب مرة ثانية' + (e && e.code ? ` (${e.code})` : ''));
+  el.textContent = (e && AUTH_ERRORS[e.code]) || (L('صار خلل بالدخول، جرب مرة ثانية', 'Sign-in failed, please try again') + (e && e.code ? ` (${e.code})` : ''));
   el.classList.remove('hidden');
 }
 function hideAuthError(elId){ document.getElementById(elId).classList.add('hidden'); }
@@ -1404,10 +1563,10 @@ async function emailAuth(mode){
 async function resetPassword(){
   const email = document.getElementById('email-input').value.trim();
   const el = document.getElementById('welcome-error');
-  if(!email){ el.textContent = 'اكتب إيميلك فوق، وبعدين اضغط "نسيت كلمة المرور؟"'; el.classList.remove('hidden'); return; }
+  if(!email){ el.textContent = L('اكتب إيميلك فوق، وبعدين اضغط "نسيت كلمة المرور؟"', 'Type your email above, then tap "Forgot password?"'); el.classList.remove('hidden'); return; }
   try{
     await auth.sendPasswordResetEmail(email);
-    el.textContent = 'أرسلنا لك رابط تغيير كلمة المرور على الإيميل. شيّك الرسائل غير المرغوبة (Spam) لو ما لقيته';
+    el.textContent = L('أرسلنا لك رابط تغيير كلمة المرور على الإيميل. شيّك الرسائل غير المرغوبة (Spam) لو ما لقيته', "We've emailed you a link to reset your password. Check your spam folder if you can't find it");
     el.classList.remove('hidden');
   }catch(e){ showAuthError('welcome-error', e); }
 }
@@ -1420,7 +1579,7 @@ function enterAsGuest(){
 // حذف الحساب وبياناته (مطلوب في متاجر التطبيقات)
 async function deleteAccount(){
   if(!currentUser || isGuest()) return;
-  if(!confirm('متأكد تبي تحذف حسابك؟ بتنحذف نقاطك وتحدياتك الخاصة وبيانات حسابك نهائياً، وما نقدر نرجعها')) return;
+  if(!confirm(L('متأكد تبي تحذف حسابك؟ بتنحذف نقاطك وتحدياتك الخاصة وبيانات حسابك نهائياً، وما نقدر نرجعها', 'Delete your account? Your points, private challenges and account data will be removed permanently and can\'t be restored.'))) return;
   const user = currentUser;
   const uid = user.uid;
   if(currentRoomCode) await leaveRoom();
@@ -1429,9 +1588,9 @@ async function deleteAccount(){
     await user.delete(); // بعدها يدخل تلقائياً كزائر جديد
   }catch(e){
     if(e && e.code === 'auth/requires-recent-login'){
-      alert('لحماية حسابك: سجّل خروج وادخل من جديد، وبعدها احذف الحساب على طول');
+      alert(L('لحماية حسابك: سجّل خروج وادخل من جديد، وبعدها احذف الحساب على طول', 'For your security, sign out and sign back in, then delete your account right away'));
     } else {
-      alert('ما قدرنا نحذف الحساب. حاول مرة ثانية، أو تواصل معنا: ' + CONTACT_EMAIL);
+      alert(L('ما قدرنا نحذف الحساب. حاول مرة ثانية، أو تواصل معنا: ', "We couldn't delete your account. Try again, or contact us: ") + CONTACT_EMAIL);
     }
     return;
   }
@@ -1439,12 +1598,12 @@ async function deleteAccount(){
   EDIT_DECK = null;
   IS_ADMIN = false;
   SUB_UNTIL = 0;
-  alert('انحذف حسابك وبياناتك');
+  alert(L('انحذف حسابك وبياناتك', 'Your account and data have been deleted'));
   goTo('welcome');
 }
 
 async function signOut(){
-  if(!confirm('متأكد تبي تسجّل خروج؟')) return;
+  if(!confirm(L('متأكد تبي تسجّل خروج؟', 'Sign out?'))) return;
   if(currentRoomCode) await leaveRoom();
   localStorage.removeItem('cg_entered');
   EDIT_DECK = null;
@@ -1463,21 +1622,21 @@ function renderAccountBar(){
   const btn = document.createElement('button');
   btn.className = 'link-btn';
   if(isGuest()){
-    label.textContent = '👤 أنت داخل كزائر';
-    btn.textContent = 'سجّل دخول';
+    label.textContent = L('👤 أنت داخل كزائر', "👤 You're playing as a guest");
+    btn.textContent = L('سجّل دخول', 'Sign in');
     btn.onclick = ()=> goTo('welcome');
     who.appendChild(label);
   } else {
-    label.textContent = '✉️ ' + (currentUser.displayName || currentUser.email || 'حسابي');
+    label.textContent = '✉️ ' + (currentUser.displayName || currentUser.email || L('حسابي', 'My account'));
     who.appendChild(label);
-    const badgeText = IS_ADMIN ? '👑 مدير' : (isSubscriber() ? '⭐ مشترك' : '');
+    const badgeText = IS_ADMIN ? L('👑 مدير', '👑 Admin') : (isSubscriber() ? L('⭐ مشترك', '⭐ Subscriber') : '');
     if(badgeText){
       const badge = document.createElement('span');
       badge.className = 'badge';
       badge.textContent = badgeText;
       who.appendChild(badge);
     }
-    btn.textContent = 'خروج';
+    btn.textContent = L('خروج', 'Sign out');
     btn.onclick = signOut;
   }
   bar.appendChild(who);
@@ -1523,15 +1682,15 @@ async function shareInvite(){
   const code = currentRoomCode;
   if(!code) return;
   const url = inviteUrl(code);
-  const text = `تعال نلعب حلالي 💞\nافتح الرابط واضغط "انضم الآن"، الكود: ${code}`;
+  const text = L(`تعال نلعب حلالي 💞\nافتح الرابط واضغط "انضم الآن"، الكود: ${code}`, `Come play Halalii with me 💞\nOpen the link and tap "Join now". Code: ${code}`);
   const note = document.getElementById('share-note');
   if(navigator.share){
-    try{ await navigator.share({title:'حلالي', text, url}); return; }
+    try{ await navigator.share({title:L('حلالي', 'Halalii'), text, url}); return; }
     catch(e){ if(e && e.name === 'AbortError') return; }
   }
   try{
     await navigator.clipboard.writeText(text + '\n' + url);
-    note.textContent = '✅ نسخنا الرابط، الصقه لشريكك في الواتساب';
+    note.textContent = L('✅ نسخنا الرابط، الصقه لشريكك في الواتساب', '✅ Link copied. Paste it to your partner on WhatsApp');
   }catch(e){
     note.textContent = url;
   }
@@ -1600,7 +1759,7 @@ async function persistEditDeck(){
     return true;
   }catch(e){
     console.error('deck save failed', e);
-    alert('صار خلل بالحفظ، جرب مرة ثانية');
+    alert(L('صار خلل بالحفظ، جرب مرة ثانية', "Couldn't save, please try again"));
     return false;
   }
 }
@@ -1623,15 +1782,15 @@ async function openAdmin(){
   const title = document.getElementById('admin-title');
   const subtitle = document.getElementById('admin-subtitle');
   if(!canEditDecks()){
-    title.textContent = 'إدارة التحديات';
+    title.textContent = L('إدارة التحديات', 'Manage challenges');
     subtitle.textContent = '';
     const lockedText = document.getElementById('admin-locked-text');
     const loginBtn = document.getElementById('admin-locked-login');
     if(isGuest()){
-      lockedText.textContent = 'تعديل التحديات وإضافة تحدياتك الخاصة ميزة للمشتركين. سجّل دخولك أول، وبعدها تقدر تشترك.';
+      lockedText.textContent = L('تعديل التحديات وإضافة تحدياتك الخاصة ميزة للمشتركين. سجّل دخولك أول، وبعدها تقدر تشترك.', 'Editing challenges and adding your own is a subscriber feature. Sign in first, then you can subscribe.');
       loginBtn.classList.remove('hidden');
     } else {
-      lockedText.textContent = `تعديل التحديات وإضافة تحدياتك الخاصة ميزة للمشتركين. لتفعيل الاشتراك تواصل مع الإدارة وأرسل لهم إيميلك: ${currentUser.email || ''}`;
+      lockedText.textContent = L(`تعديل التحديات وإضافة تحدياتك الخاصة ميزة للمشتركين. لتفعيل الاشتراك تواصل مع الإدارة وأرسل لهم إيميلك: ${currentUser.email || ''}`, `Editing challenges and adding your own is a subscriber feature. To subscribe, contact us and send your email: ${currentUser.email || ''}`);
       loginBtn.classList.add('hidden');
     }
     locked.classList.remove('hidden');
@@ -1639,18 +1798,18 @@ async function openAdmin(){
   }
 
   if(IS_ADMIN){
-    title.textContent = 'التحديات الرسمية';
-    subtitle.textContent = 'أنت المدير 👑 أي تعديل هنا يظهر لكل اللاعبين في الألعاب الجديدة';
+    title.textContent = L('التحديات الرسمية', 'Official challenges');
+    subtitle.textContent = L('أنت المدير 👑 أي تعديل هنا يظهر لكل اللاعبين في الألعاب الجديدة', "You're the admin 👑 Any change here appears for all players in new games");
   } else {
-    title.textContent = 'تحدياتي الخاصة';
-    const until = new Date(SUB_UNTIL).toLocaleDateString('ar-SA-u-ca-gregory', {year:'numeric', month:'long', day:'numeric'});
-    subtitle.textContent = `أضف وعدّل تحدياتك، وتنطبق على الألعاب اللي تبدأها أنت. اشتراكك فعّال لين ${until}`;
+    title.textContent = L('تحدياتي الخاصة', 'My challenges');
+    const until = new Date(SUB_UNTIL).toLocaleDateString(IS_EN ? 'en-US' : 'ar-SA-u-ca-gregory', {year:'numeric', month:'long', day:'numeric'});
+    subtitle.textContent = L(`أضف وعدّل تحدياتك، وتنطبق على الألعاب اللي تبدأها أنت. اشتراكك فعّال لين ${until}`, `Add and edit your challenges. They apply to the games you start. Your subscription is active until ${until}`);
   }
   editor.classList.remove('hidden');
   renderAdminLevelRow();
   renderNewTypeRow();
   const list = document.getElementById('admin-cards-list');
-  list.innerHTML = '<p class="hint-text">جاري التحميل...</p>';
+  list.innerHTML = `<p class="hint-text">${L('جاري التحميل...', 'Loading...')}</p>`;
   await loadEditDeck();
   renderAdminCards();
   if(IS_ADMIN){
@@ -1707,7 +1866,7 @@ async function openLeaderboard(){
 function renderLbTabs(){
   const row = document.getElementById('lb-tabs');
   row.innerHTML = '';
-  [['week', '📅 هذا الأسبوع'], ['all', '🏅 كل الأوقات']].forEach(([id, name])=>{
+  [['week', L('📅 هذا الأسبوع', '📅 This week')], ['all', L('🏅 كل الأوقات', '🏅 All time')]].forEach(([id, name])=>{
     const el = document.createElement('div');
     el.className = 'level-opt' + (id === lbTab ? ' active' : '');
     el.innerHTML = `<div class="level-name">${name}</div>`;
@@ -1717,25 +1876,25 @@ function renderLbTabs(){
 }
 function renderLbHideBtn(){
   const hidden = !!(MY_POINTS && MY_POINTS.hidden);
-  document.getElementById('lb-hide-btn').textContent = hidden ? '👁️ أظهرني في الترتيب' : '🙈 أخفني من الترتيب';
+  document.getElementById('lb-hide-btn').textContent = hidden ? L('👁️ أظهرني في الترتيب', '👁️ Show me on the leaderboard') : L('🙈 أخفني من الترتيب', '🙈 Hide me from the leaderboard');
 }
 async function renderLeaderboard(){
   const list = document.getElementById('lb-list');
   const me = document.getElementById('lb-me');
-  list.innerHTML = '<p class="hint-text">جاري التحميل...</p>';
+  list.innerHTML = `<p class="hint-text">${L('جاري التحميل...', 'Loading...')}</p>`;
   const field = lbTab === 'week' ? 'weekPts' : 'total';
   let rows = [];
   try{
     const snap = await db.ref('leaderboard').orderByChild(field).limitToLast(100).once('value');
     snap.forEach(c=>{ rows.push([c.key, c.val()]); });
   }catch(e){
-    list.innerHTML = '<p class="hint-text error-text">ما قدرنا نحمّل الترتيب. تأكد إن قواعد الأمان محدّثة.</p>';
+    list.innerHTML = `<p class="hint-text error-text">${L('ما قدرنا نحمّل الترتيب. تأكد إن قواعد الأمان محدّثة.', "Couldn't load the leaderboard. Please try again later.")}</p>`;
     return;
   }
   const score = e=> lbTab === 'week' ? weekPtsOf(e) : (e.total || 0);
   rows = rows.filter(([, e])=> !e.hidden && score(e) > 0).sort((a, b)=> score(b[1]) - score(a[1])).slice(0, 50);
   list.innerHTML = '';
-  if(rows.length === 0) list.innerHTML = '<p class="hint-text">ما فيه نقاط للحين. كن أول واحد في الترتيب! 🔥</p>';
+  if(rows.length === 0) list.innerHTML = `<p class="hint-text">${L('ما فيه نقاط للحين. كن أول واحد في الترتيب! 🔥', 'No points yet. Be the first on the leaderboard! 🔥')}</p>`;
   const medals = ['🥇', '🥈', '🥉'];
   let myRank = 0;
   rows.forEach(([uid, e], i)=>{
@@ -1747,7 +1906,7 @@ async function renderLeaderboard(){
     rank.textContent = medals[i] || `${i + 1}`;
     const name = document.createElement('div');
     name.className = 'lb-name';
-    name.textContent = (e.name || 'لاعب') + (uid === myId ? ' (أنت)' : '');
+    name.textContent = (e.name || L('لاعب', 'Player')) + (uid === myId ? L(' (أنت)', ' (you)') : '');
     const pts = document.createElement('div');
     pts.className = 'lb-pts';
     pts.textContent = `⭐ ${score(e)}`;
@@ -1759,11 +1918,11 @@ async function renderLeaderboard(){
   const total = (MY_POINTS && MY_POINTS.total) || 0;
   const week = weekPtsOf(MY_POINTS);
   me.innerHTML = '';
-  me.append(`نقاطك هذا الأسبوع: `, Object.assign(document.createElement('b'), {textContent: week}),
-    ` · المجموع: `, Object.assign(document.createElement('b'), {textContent: total}));
+  me.append(L(`نقاطك هذا الأسبوع: `, `Your points this week: `), Object.assign(document.createElement('b'), {textContent: week}),
+    L(` · المجموع: `, ` · Total: `), Object.assign(document.createElement('b'), {textContent: total}));
   me.appendChild(document.createElement('br'));
-  me.append(MY_POINTS && MY_POINTS.hidden ? '🙈 أنت مخفي من الترتيب'
-    : (myRank ? `ترتيبك: #${myRank}` : (total ? 'العب أكثر عشان تدخل أول 50 🔥' : 'خلّص تحدي واحد عشان تدخل الترتيب')));
+  me.append(MY_POINTS && MY_POINTS.hidden ? L('🙈 أنت مخفي من الترتيب', "🙈 You're hidden from the leaderboard")
+    : (myRank ? L(`ترتيبك: #${myRank}`, `Your rank: #${myRank}`) : (total ? L('العب أكثر عشان تدخل أول 50 🔥', 'Play more to reach the top 50 🔥') : L('خلّص تحدي واحد عشان تدخل الترتيب', 'Finish one challenge to join the leaderboard'))));
 }
 // إنشاء سجل بدون نقاط (لما يغيّر الاسم أو الإخفاء قبل ما يلعب)
 function emptyLbEntry(name, hidden){
@@ -1773,79 +1932,79 @@ async function saveLeaderboardName(){
   const errEl = document.getElementById('lb-error');
   errEl.classList.add('hidden');
   const name = document.getElementById('lb-name').value.trim().slice(0, 30);
-  if(!name){ errEl.textContent = 'اكتب اسم أول'; errEl.classList.remove('hidden'); return; }
+  if(!name){ errEl.textContent = L('اكتب اسم أول', 'Enter a name first'); errEl.classList.remove('hidden'); return; }
   try{
     if(MY_POINTS) await myLbRef().update({name});
     else await myLbRef().set(emptyLbEntry(name, false));
     await loadMyPoints();
     renderLeaderboard();
-  }catch(e){ errEl.textContent = 'صار خلل بالحفظ، جرب مرة ثانية'; errEl.classList.remove('hidden'); }
+  }catch(e){ errEl.textContent = L('صار خلل بالحفظ، جرب مرة ثانية', "Couldn't save, please try again"); errEl.classList.remove('hidden'); }
 }
 async function toggleLeaderboardHidden(){
   const hidden = !(MY_POINTS && MY_POINTS.hidden);
   try{
     if(MY_POINTS) await myLbRef().update({hidden});
-    else await myLbRef().set(emptyLbEntry(document.getElementById('lb-name').value.trim().slice(0, 30) || 'لاعب', hidden));
+    else await myLbRef().set(emptyLbEntry(document.getElementById('lb-name').value.trim().slice(0, 30) || L('لاعب', 'Player'), hidden));
     await loadMyPoints();
     renderLbHideBtn();
     renderLeaderboard();
-  }catch(e){ alert('صار خلل، جرب مرة ثانية'); }
+  }catch(e){ alert(L('صار خلل، جرب مرة ثانية', 'Something went wrong, please try again')); }
 }
 
 /* ---------------- mini games: كم تعرفني؟ و لو خيّروك ---------------- */
 // q: السؤال للي يجاوب عن نفسه، about: نفس السؤال للي يخمّن ({name} اسم اللي يجاوب)
 // {أ|ب} تتغير حسب اللي يجاوب: أ للزوج، ب للزوجة
 const KNOW_QUESTIONS = [
-  {q:'وش أكلتك المفضلة؟', about:'وش أكلة {name} المفضلة؟', options:['كبسة أو مندي', 'مشويات', 'بيتزا وباستا', 'سوشي وأكل آسيوي']},
-  {q:'وش أكثر مشروب تحب{|ين}ه؟', about:'وش أكثر مشروب {يحبه|تحبه} {name}؟', options:['قهوة عربية', 'قهوة مختصة', 'شاي', 'عصير']},
-  {q:'وين تفضّل{|ين} نسافر؟', about:'وين {يفضّل|تفضّل} {name} تسافرون؟', options:['بحر وجزر', 'جبال وطبيعة', 'مدينة وتسوق', 'رحلة داخلية']},
-  {q:'وش تحب{|ين} نسوي في الويكند؟', about:'وش {يحب|تحب} {name} تسوون في الويكند؟', options:['نطلع مطعم', 'نجلس بالبيت', 'زيارة الأهل', 'طلعة بر أو بحر']},
-  {q:'وش أكثر شي يزعجك؟', about:'وش أكثر شي يزعج {name}؟', options:['التأخير', 'الفوضى', 'التجاهل', 'الإزعاج والصوت العالي']},
-  {q:'وش أحلى هدية تفرحك؟', about:'وش أحلى هدية تفرّح {name}؟', options:['عطر', 'ورد وكلمة حلوة', 'طلعة مفاجأة', 'شي مسوّى باليد']},
-  {q:'لو عندك يوم فاضي كامل، وش تسوي{|ن}؟', about:'لو عند {name} يوم فاضي كامل، وش {يسوي|تسوي}؟', options:['نوم وراحة', 'طلعة وتسوق', 'رياضة', 'جلسة مع الأهل']},
-  {q:'وش أكثر وقت تحب{|ين}ه في اليوم؟', about:'وش أكثر وقت {يحبه|تحبه} {name} في اليوم؟', options:['الصباح', 'العصر', 'المغرب', 'الليل']},
-  {q:'وش نوع الأفلام اللي تحب{|ين}ها؟', about:'وش نوع الأفلام اللي {يحبها|تحبها} {name}؟', options:['أكشن', 'كوميدي', 'رومانسي', 'رعب وغموض']},
-  {q:'وش أكثر شي يريحك لما تكون{|ين} {متضايق|متضايقة}؟', about:'وش أكثر شي يريّح {name} لما {يكون متضايق|تكون متضايقة}؟', options:['الفضفضة', 'الهدوء والسكوت', 'الحضن', 'الطلعة']},
-  {q:'كيف تحب{|ين} نحتفل بذكرى زواجنا؟', about:'كيف {يحب|تحب} {name} تحتفلون بذكرى زواجكم؟', options:['عشاء رومانسي', 'سفرة', 'هدية مفاجأة', 'جلسة هادية بالبيت']},
-  {q:'وش أكثر صفة تحب{|ين}ها في نفسك؟', about:'وش أكثر صفة {يحبها|تحبها} {name} في {نفسه|نفسها}؟', options:['الطيبة', 'الصبر', 'المرح', 'الطموح']},
-  {q:'وش أكثر شي يوصّل لك الحب؟', about:'وش أكثر شي يوصّل الحب لـ{name}؟', options:['الكلام الحلو', 'الهدايا', 'الوقت مع بعض', 'اللمسة والحضن']},
-  {q:'وش الحلى اللي تحب{|ين}ه أكثر؟', about:'وش الحلى اللي {يحبه|تحبه} {name} أكثر؟', options:['تشيز كيك', 'كنافة', 'آيس كريم', 'شوكولاتة']},
-  {q:'إذا زعلت{|ي}، وش يرضيك أسرع؟', about:'إذا {زعل|زعلت} {name}، وش {يرضيه|يرضيها} أسرع؟', options:['اعتذار صريح', 'هدية', 'ضحكة ونكتة', 'حضن']},
-  {q:'وش أكثر فصل تحب{|ين}ه؟', about:'وش أكثر فصل {يحبه|تحبه} {name}؟', options:['الصيف', 'الشتاء', 'الربيع', 'الخريف']},
-  {q:'وش أول شي تسوي{|ن}ه أول ما تصح{ى|ين}؟', about:'وش أول شي {يسويه|تسويه} {name} أول ما {يصحى|تصحى}؟', options:['الجوال', 'القهوة', 'الصلاة', 'غفوة ثانية 😄']},
-  {q:'وش أكثر شي تحب{|ين}ه فيني؟', about:'وش أكثر شي {يحبه|تحبه} {name} فيك؟', options:['الاهتمام', 'الضحكة', 'الحنية', 'الشكل']},
-  {q:'لو تقدر{|ين} تغيّر{|ين} شي في روتيننا، وش يكون؟', about:'لو {يقدر|تقدر} {name} {يغيّر|تغيّر} شي في روتينكم، وش يكون؟', options:['طلعات أكثر', 'نوم أبكر', 'رياضة مع بعض', 'سوالف أكثر']},
-  {q:'وش أكثر لون تحب{|ين}ه؟', about:'وش أكثر لون {يحبه|تحبه} {name}؟', options:['الأسود', 'الأبيض', 'الأزرق', 'الوردي أو الأحمر']}
+  {q:'وش أكلتك المفضلة؟', about:'وش أكلة {name} المفضلة؟', options:['كبسة أو مندي', 'مشويات', 'بيتزا وباستا', 'سوشي وأكل آسيوي'], en:{q:'What\'s your favourite food?', about:'What\'s {name}\'s favourite food?', options:['Kabsa or mandi', 'Grills', 'Pizza and pasta', 'Sushi and Asian food']}},
+  {q:'وش أكثر مشروب تحب{|ين}ه؟', about:'وش أكثر مشروب {يحبه|تحبه} {name}؟', options:['قهوة عربية', 'قهوة مختصة', 'شاي', 'عصير'], en:{q:'What drink do you love the most?', about:'What drink does {name} love the most?', options:['Arabic coffee', 'Specialty coffee', 'Tea', 'Juice']}},
+  {q:'وين تفضّل{|ين} نسافر؟', about:'وين {يفضّل|تفضّل} {name} تسافرون؟', options:['بحر وجزر', 'جبال وطبيعة', 'مدينة وتسوق', 'رحلة داخلية'], en:{q:'Where would you rather we travel?', about:'Where would {name} rather you travel?', options:['Beaches and islands', 'Mountains and nature', 'A city and shopping', 'A trip at home']}},
+  {q:'وش تحب{|ين} نسوي في الويكند؟', about:'وش {يحب|تحب} {name} تسوون في الويكند؟', options:['نطلع مطعم', 'نجلس بالبيت', 'زيارة الأهل', 'طلعة بر أو بحر'], en:{q:'What do you like us to do on the weekend?', about:'What does {name} like you two to do on the weekend?', options:['Eat out', 'Stay home', 'Visit family', 'A desert or beach trip']}},
+  {q:'وش أكثر شي يزعجك؟', about:'وش أكثر شي يزعج {name}؟', options:['التأخير', 'الفوضى', 'التجاهل', 'الإزعاج والصوت العالي'], en:{q:'What annoys you the most?', about:'What annoys {name} the most?', options:['Lateness', 'Mess', 'Being ignored', 'Noise and shouting']}},
+  {q:'وش أحلى هدية تفرحك؟', about:'وش أحلى هدية تفرّح {name}؟', options:['عطر', 'ورد وكلمة حلوة', 'طلعة مفاجأة', 'شي مسوّى باليد'], en:{q:'What gift makes you happiest?', about:'What gift makes {name} happiest?', options:['Perfume', 'Flowers and a sweet note', 'A surprise outing', 'Something handmade']}},
+  {q:'لو عندك يوم فاضي كامل، وش تسوي{|ن}؟', about:'لو عند {name} يوم فاضي كامل، وش {يسوي|تسوي}؟', options:['نوم وراحة', 'طلعة وتسوق', 'رياضة', 'جلسة مع الأهل'], en:{q:'If you had a whole free day, what would you do?', about:'If {name} had a whole free day, what would {he|she} do?', options:['Sleep and rest', 'Go out and shop', 'Exercise', 'Time with family']}},
+  {q:'وش أكثر وقت تحب{|ين}ه في اليوم؟', about:'وش أكثر وقت {يحبه|تحبه} {name} في اليوم؟', options:['الصباح', 'العصر', 'المغرب', 'الليل'], en:{q:'What\'s your favourite time of day?', about:'What\'s {name}\'s favourite time of day?', options:['Morning', 'Afternoon', 'Sunset', 'Night']}},
+  {q:'وش نوع الأفلام اللي تحب{|ين}ها؟', about:'وش نوع الأفلام اللي {يحبها|تحبها} {name}؟', options:['أكشن', 'كوميدي', 'رومانسي', 'رعب وغموض'], en:{q:'What kind of movies do you love?', about:'What kind of movies does {name} love?', options:['Action', 'Comedy', 'Romance', 'Horror and mystery']}},
+  {q:'وش أكثر شي يريحك لما تكون{|ين} {متضايق|متضايقة}؟', about:'وش أكثر شي يريّح {name} لما {يكون متضايق|تكون متضايقة}؟', options:['الفضفضة', 'الهدوء والسكوت', 'الحضن', 'الطلعة'], en:{q:'What comforts you most when you\'re upset?', about:'What comforts {name} most when {he\'s|she\'s} upset?', options:['Talking it out', 'Peace and quiet', 'A hug', 'Going out']}},
+  {q:'كيف تحب{|ين} نحتفل بذكرى زواجنا؟', about:'كيف {يحب|تحب} {name} تحتفلون بذكرى زواجكم؟', options:['عشاء رومانسي', 'سفرة', 'هدية مفاجأة', 'جلسة هادية بالبيت'], en:{q:'How would you like us to celebrate our anniversary?', about:'How would {name} like you to celebrate your anniversary?', options:['A romantic dinner', 'A trip', 'A surprise gift', 'A quiet night in']}},
+  {q:'وش أكثر صفة تحب{|ين}ها في نفسك؟', about:'وش أكثر صفة {يحبها|تحبها} {name} في {نفسه|نفسها}؟', options:['الطيبة', 'الصبر', 'المرح', 'الطموح'], en:{q:'Which of your own qualities do you like most?', about:'Which of {his|her} own qualities does {name} like most?', options:['Kindness', 'Patience', 'Humour', 'Ambition']}},
+  {q:'وش أكثر شي يوصّل لك الحب؟', about:'وش أكثر شي يوصّل الحب لـ{name}؟', options:['الكلام الحلو', 'الهدايا', 'الوقت مع بعض', 'اللمسة والحضن'], en:{q:'What makes you feel loved the most?', about:'What makes {name} feel loved the most?', options:['Sweet words', 'Gifts', 'Time together', 'Touch and hugs']}},
+  {q:'وش الحلى اللي تحب{|ين}ه أكثر؟', about:'وش الحلى اللي {يحبه|تحبه} {name} أكثر؟', options:['تشيز كيك', 'كنافة', 'آيس كريم', 'شوكولاتة'], en:{q:'Which dessert do you love the most?', about:'Which dessert does {name} love the most?', options:['Cheesecake', 'Kunafa', 'Ice cream', 'Chocolate']}},
+  {q:'إذا زعلت{|ي}، وش يرضيك أسرع؟', about:'إذا {زعل|زعلت} {name}، وش {يرضيه|يرضيها} أسرع؟', options:['اعتذار صريح', 'هدية', 'ضحكة ونكتة', 'حضن'], en:{q:'When you\'re upset, what wins you back fastest?', about:'When {name} is upset, what wins {him|her} back fastest?', options:['A sincere apology', 'A gift', 'A laugh and a joke', 'A hug']}},
+  {q:'وش أكثر فصل تحب{|ين}ه؟', about:'وش أكثر فصل {يحبه|تحبه} {name}؟', options:['الصيف', 'الشتاء', 'الربيع', 'الخريف'], en:{q:'Which season do you love most?', about:'Which season does {name} love most?', options:['Summer', 'Winter', 'Spring', 'Autumn']}},
+  {q:'وش أول شي تسوي{|ن}ه أول ما تصح{ى|ين}؟', about:'وش أول شي {يسويه|تسويه} {name} أول ما {يصحى|تصحى}؟', options:['الجوال', 'القهوة', 'الصلاة', 'غفوة ثانية 😄'], en:{q:'What\'s the first thing you do when you wake up?', about:'What\'s the first thing {name} does on waking up?', options:['Phone', 'Coffee', 'Prayer', 'Snooze again 😄']}},
+  {q:'وش أكثر شي تحب{|ين}ه فيني؟', about:'وش أكثر شي {يحبه|تحبه} {name} فيك؟', options:['الاهتمام', 'الضحكة', 'الحنية', 'الشكل'], en:{q:'What do you love most about me?', about:'What does {name} love most about you?', options:['How caring you are', 'Your laugh', 'Your tenderness', 'Your looks']}},
+  {q:'لو تقدر{|ين} تغيّر{|ين} شي في روتيننا، وش يكون؟', about:'لو {يقدر|تقدر} {name} {يغيّر|تغيّر} شي في روتينكم، وش يكون؟', options:['طلعات أكثر', 'نوم أبكر', 'رياضة مع بعض', 'سوالف أكثر'], en:{q:'If you could change one thing in our routine, what would it be?', about:'If {name} could change one thing in your routine, what would it be?', options:['More outings', 'Earlier nights', 'Exercising together', 'More chats']}},
+  {q:'وش أكثر لون تحب{|ين}ه؟', about:'وش أكثر لون {يحبه|تحبه} {name}؟', options:['الأسود', 'الأبيض', 'الأزرق', 'الوردي أو الأحمر'], en:{q:'What\'s your favourite colour?', about:'What\'s {name}\'s favourite colour?', options:['Black', 'White', 'Blue', 'Pink or red']}}
 ];
 
 const WYR_QUESTIONS = [
-  {a:'سفرة لجزيرة هادية', b:'سفرة لمدينة مليانة أنشطة'},
-  {a:'عشاء رومانسي بالبيت', b:'عشاء فخم في مطعم'},
-  {a:'هدية غالية مرة بالسنة', b:'هدايا بسيطة كل أسبوع'},
-  {a:'نصحى بدري ونطلع', b:'ننام لين الظهر ونرتاح'},
-  {a:'فيلم رعب مع بعض', b:'فيلم رومانسي مع بعض'},
-  {a:'نطبخ مع بعض', b:'نطلب أكل من برا'},
-  {a:'كشتة بر', b:'شاليه على البحر'},
-  {a:'رسالة حب مكتوبة', b:'كلمة حلوة بالصوت'},
-  {a:'تعرف كل أفكار شريكك', b:'شريكك يعرف كل أفكارك'},
-  {a:'يوم كامل بدون جوالات', b:'يوم كامل نلعب ألعاب مع بعض'},
-  {a:'نرجع لأول يوم تعارفنا', b:'نشوف حياتنا بعد 10 سنين'},
-  {a:'مفاجأة مخططة بالتفصيل', b:'مفاجأة عفوية بدون تخطيط'},
-  {a:'صيف على طول', b:'شتاء على طول'},
-  {a:'حفلة كبيرة لذكرى زواجنا', b:'احتفال خاص بيننا بس'},
-  {a:'بيت هادي برا المدينة', b:'شقة في قلب المدينة'},
-  {a:'هدية عطر', b:'هدية ذهب'},
-  {a:'سهرة سوالف لين الفجر', b:'نوم بدري وفطور برا الصبح'},
-  {a:'كل سنة نسافر لمكان جديد', b:'نرجع لنفس المكان اللي نحبه'},
-  {a:'حضن طويل', b:'بوسة سريعة'},
-  {a:'رقصة هادية بالبيت', b:'تمشية تحت المطر'}
+  {a:'سفرة لجزيرة هادية', b:'سفرة لمدينة مليانة أنشطة', a_en:'A trip to a quiet island', b_en:'A trip to a city full of activities'},
+  {a:'عشاء رومانسي بالبيت', b:'عشاء فخم في مطعم', a_en:'A romantic dinner at home', b_en:'A fancy dinner at a restaurant'},
+  {a:'هدية غالية مرة بالسنة', b:'هدايا بسيطة كل أسبوع', a_en:'An expensive gift once a year', b_en:'Small gifts every week'},
+  {a:'نصحى بدري ونطلع', b:'ننام لين الظهر ونرتاح', a_en:'Wake up early and head out', b_en:'Sleep in till noon and relax'},
+  {a:'فيلم رعب مع بعض', b:'فيلم رومانسي مع بعض', a_en:'A horror movie together', b_en:'A romantic movie together'},
+  {a:'نطبخ مع بعض', b:'نطلب أكل من برا', a_en:'Cook together', b_en:'Order food in'},
+  {a:'كشتة بر', b:'شاليه على البحر', a_en:'A desert camping trip', b_en:'A beach chalet'},
+  {a:'رسالة حب مكتوبة', b:'كلمة حلوة بالصوت', a_en:'A handwritten love letter', b_en:'A sweet voice note'},
+  {a:'تعرف كل أفكار شريكك', b:'شريكك يعرف كل أفكارك', a_en:'Know all your partner\'s thoughts', b_en:'Your partner knows all your thoughts'},
+  {a:'يوم كامل بدون جوالات', b:'يوم كامل نلعب ألعاب مع بعض', a_en:'A whole day with no phones', b_en:'A whole day playing games together'},
+  {a:'نرجع لأول يوم تعارفنا', b:'نشوف حياتنا بعد 10 سنين', a_en:'Go back to the day we met', b_en:'See our life 10 years from now'},
+  {a:'مفاجأة مخططة بالتفصيل', b:'مفاجأة عفوية بدون تخطيط', a_en:'A surprise planned in detail', b_en:'A spontaneous, unplanned surprise'},
+  {a:'صيف على طول', b:'شتاء على طول', a_en:'Summer forever', b_en:'Winter forever'},
+  {a:'حفلة كبيرة لذكرى زواجنا', b:'احتفال خاص بيننا بس', a_en:'A big party for our anniversary', b_en:'A private celebration, just us'},
+  {a:'بيت هادي برا المدينة', b:'شقة في قلب المدينة', a_en:'A quiet house outside the city', b_en:'A flat in the heart of the city'},
+  {a:'هدية عطر', b:'هدية ذهب', a_en:'A gift of perfume', b_en:'A gift of gold'},
+  {a:'سهرة سوالف لين الفجر', b:'نوم بدري وفطور برا الصبح', a_en:'Chatting until dawn', b_en:'An early night and breakfast out'},
+  {a:'كل سنة نسافر لمكان جديد', b:'نرجع لنفس المكان اللي نحبه', a_en:'Travel somewhere new every year', b_en:'Go back to the same place we love'},
+  {a:'حضن طويل', b:'بوسة سريعة', a_en:'A long hug', b_en:'A quick kiss'},
+  {a:'رقصة هادية بالبيت', b:'تمشية تحت المطر', a_en:'A slow dance at home', b_en:'A walk in the rain'}
 ];
 
 const MODES = [
-  {id:'cards', name:'🎴 تحديات'},
-  {id:'know', name:'💭 كم تعرفني؟'},
-  {id:'wyr', name:'🤔 لو خيّروك'},
-  {id:'wheel', name:'🎡 عجلة الحظ'}
+  {id:'cards', name:'🎴 تحديات', name_en:'🎴 Cards'},
+  {id:'know', name:'💭 كم تعرفني؟', name_en:'💭 Know Me?'},
+  {id:'wyr', name:'🤔 لو خيّروك', name_en:'🤔 Would You Rather'},
+  {id:'wheel', name:'🎡 عجلة الحظ', name_en:'🎡 Lucky Wheel'}
 ];
 const KNOW_POINTS = 10;
 const WYR_POINTS = 5;
@@ -1856,7 +2015,7 @@ function renderModeRow(mode){
   MODES.forEach(m=>{
     const el = document.createElement('div');
     el.className = 'level-opt' + (m.id === mode ? ' active' : '');
-    el.innerHTML = `<div class="level-name">${m.name}</div>`;
+    el.innerHTML = `<div class="level-name">${L(m.name, m.name_en)}</div>`;
     el.onclick = ()=> setMode(m.id);
     row.appendChild(el);
   });
@@ -1947,59 +2106,65 @@ function renderKnow(room, stage, banner){
   const guesserName = playerName(room, otherId(room, subjectId));
   const card = el('div', 'mini-card');
   stage.appendChild(card);
-  card.appendChild(el('div', 'card-type-tag', '💭 كم تعرفني؟'));
+  card.appendChild(el('div', 'card-type-tag', L('💭 كم تعرفني؟', '💭 How well do you know me?')));
 
   if(!m){
-    banner.textContent = isSubject ? '💭 دورك تجاوب عن نفسك' : personalize(`💭 دور ${subjName} {يجاوب|تجاوب}`, subjG);
-    card.appendChild(miniSteps([
+    banner.textContent = isSubject ? L('💭 دورك تجاوب عن نفسك', "💭 Your turn to answer about yourself") : personalize(L(`💭 دور ${subjName} {يجاوب|تجاوب}`, `💭 ${subjName}'s turn to answer`), subjG);
+    card.appendChild(miniSteps(IS_EN ? [
+      "A question about the player whose turn it is, like: What's your favourite food? with 4 options",
+      'They pick their answer on their phone, without their partner seeing',
+      'The partner sees the same options and guesses what they picked',
+      'Both answers are revealed, then you swap roles'
+    ] : [
       'يطلع سؤال عن اللي عليه الدور، مثل: وش أكلتك المفضلة؟ ومعه 4 خيارات',
       'يختار إجابته من جواله، وشريكه ما يشوفها',
       'الشريك يشوف نفس الخيارات ويخمّن وش اختار',
       'تنكشف الإجابتين، وبعدها تتبادلون الأدوار'
     ]));
-    card.appendChild(el('div', 'mini-hint', `التخمين الصح = ${KNOW_POINTS} نقاط ⭐`));
-    if(isSubject) stage.appendChild(miniButton('🎴 اسحب سؤال', 'btn-primary', startKnow));
-    else stage.appendChild(el('p', 'hint-text', personalize(`بانتظار ${subjName} {يسحب|تسحب} سؤال...`, subjG)));
+    card.appendChild(el('div', 'mini-hint', L(`التخمين الصح = ${KNOW_POINTS} نقاط ⭐`, `A correct guess = ${KNOW_POINTS} points ⭐`)));
+    if(isSubject) stage.appendChild(miniButton(L('🎴 اسحب سؤال', '🎴 Draw a question'), 'btn-primary', startKnow));
+    else stage.appendChild(el('p', 'hint-text', personalize(L(`بانتظار ${subjName} {يسحب|تسحب} سؤال...`, `Waiting for ${subjName} to draw a question...`), subjG)));
     return;
   }
 
-  const Q = KNOW_QUESTIONS[m.q] || KNOW_QUESTIONS[0];
+  const Q0 = KNOW_QUESTIONS[m.q] || KNOW_QUESTIONS[0];
+  const Q = IS_EN && Q0.en ? Q0.en : Q0;
   const asked = personalize(Q.q, subjG);
   const about = personalize(Q.about, subjG).replace('{name}', subjName);
   if(m.answer < 0){
     if(isSubject){
-      banner.textContent = '🤫 جاوب بصراحة، شريكك ما يشوف إجابتك';
+      banner.textContent = L('🤫 جاوب بصراحة، شريكك ما يشوف إجابتك', "🤫 Be honest, your partner can't see your answer");
       card.appendChild(el('div', 'mini-text', asked));
-      card.appendChild(el('div', 'mini-hint', personalize('اختار{|ي} إجابتك من الخيارات تحت 👇', myGender)));
+      card.appendChild(el('div', 'mini-hint', personalize(L('اختار{|ي} إجابتك من الخيارات تحت 👇', 'Pick your answer below 👇'), myGender)));
       Q.options.forEach((o, i)=> stage.appendChild(miniButton(o, 'btn-ghost opt-btn', ()=> knowAnswer(i))));
     } else {
-      banner.textContent = personalize(`⏳ ${subjName} {يجاوب|تجاوب} بالسر...`, subjG);
+      banner.textContent = personalize(L(`⏳ ${subjName} {يجاوب|تجاوب} بالسر...`, `⏳ ${subjName} is answering in secret...`), subjG);
       card.appendChild(el('div', 'mini-text', about));
-      card.appendChild(el('div', 'mini-hint', personalize(`بعد ما {يجاوب|تجاوب} بتخمّن إجابت{ه|ها}`, subjG)));
+      card.appendChild(el('div', 'mini-hint', personalize(L(`بعد ما {يجاوب|تجاوب} بتخمّن إجابت{ه|ها}`, `Once {he answers|she answers}, you'll guess {his|her} answer`), subjG)));
     }
     return;
   }
   if(!m.revealed){
     if(!isSubject){
-      banner.textContent = personalize(`🎯 خمّن{|ي} إجابة ${subjName}`, myGender);
+      banner.textContent = personalize(L(`🎯 خمّن{|ي} إجابة ${subjName}`, `🎯 Guess ${subjName}'s answer`), myGender);
       card.appendChild(el('div', 'mini-text', about));
-      card.appendChild(el('div', 'mini-hint', personalize(`وش تتوقع{|ين} ${subjName} ${personalize('{اختار|اختارت}', subjG)}؟ اختار{|ي} من تحت 👇`, myGender)));
+      card.appendChild(el('div', 'mini-hint', IS_EN ? `What do you think ${subjName} picked? Choose below 👇` : personalize(`وش تتوقع{|ين} ${subjName} ${personalize('{اختار|اختارت}', subjG)}؟ اختار{|ي} من تحت 👇`, myGender)));
       Q.options.forEach((o, i)=> stage.appendChild(miniButton(o, 'btn-ghost opt-btn', ()=> knowGuess(i))));
     } else {
-      banner.textContent = personalize(`⏳ بانتظار تخمين ${playerName(room, partnerId)}`, myGender);
+      banner.textContent = personalize(L(`⏳ بانتظار تخمين ${playerName(room, partnerId)}`, `⏳ Waiting for ${playerName(room, partnerId)} to guess`), myGender);
       card.appendChild(el('div', 'mini-text', asked));
-      card.appendChild(el('div', 'mini-hint', `إجابتك: ${Q.options[m.answer]}`));
+      card.appendChild(el('div', 'mini-hint', L(`إجابتك: ${Q.options[m.answer]}`, `Your answer: ${Q.options[m.answer]}`)));
     }
     return;
   }
-  banner.textContent = m.correct ? '🎉 تخمين صحيح!' : '😅 قريب، المرة الجاية!';
+  banner.textContent = m.correct ? L('🎉 تخمين صحيح!', '🎉 Spot on!') : L('😅 قريب، المرة الجاية!', '😅 So close, next time!');
   card.appendChild(el('div', 'mini-text', about));
   const res = el('div', 'mini-result');
-  res.appendChild(el('div', '', `إجابة ${subjName}: ${Q.options[m.answer]}`));
-  res.appendChild(el('div', '', `تخمين ${guesserName}: ${Q.options[m.guess]} ${m.correct ? '✅' : '❌'}`));
-  if(m.correct) res.appendChild(el('div', 'mini-points', `+${KNOW_POINTS} ⭐ لـ ${guesserName}`));
+  res.appendChild(el('div', '', L(`إجابة ${subjName}: ${Q.options[m.answer]}`, `${subjName}'s answer: ${Q.options[m.answer]}`)));
+  res.appendChild(el('div', '', L(`تخمين ${guesserName}: ${Q.options[m.guess]} ${m.correct ? '✅' : '❌'}`, `${guesserName}'s guess: ${Q.options[m.guess]} ${m.correct ? '✅' : '❌'}`)));
+  if(m.correct) res.appendChild(el('div', 'mini-points', L(`+${KNOW_POINTS} ⭐ لـ ${guesserName}`, `+${KNOW_POINTS} ⭐ for ${guesserName}`)));
   card.appendChild(res);
-  stage.appendChild(miniButton('التالي ⬅️', 'btn-primary', knowNext));
+  stage.appendChild(miniButton(L('التالي ⬅️', 'Next ➡️'), 'btn-primary', knowNext));
 }
 
 /* ----- لو خيّروك ----- */
@@ -2035,63 +2200,67 @@ function renderWyr(room, stage, banner){
   const partnerName = playerName(room, partnerId);
   const card = el('div', 'mini-card');
   stage.appendChild(card);
-  card.appendChild(el('div', 'card-type-tag', '🤔 لو خيّروك'));
+  card.appendChild(el('div', 'card-type-tag', L('🤔 لو خيّروك', '🤔 Would You Rather')));
 
   if(!m){
-    banner.textContent = '🤔 لو خيّروك';
-    card.appendChild(miniSteps([
+    banner.textContent = L('🤔 لو خيّروك', '🤔 Would You Rather');
+    card.appendChild(miniSteps(IS_EN ? [
+      'A question with two options, like: a desert camping trip or a beach chalet',
+      "Each of you taps your pick on your own phone, without seeing the other's",
+      "Once you've both picked, the choices are revealed"
+    ] : [
       'يطلع سؤال فيه خيارين، مثل: كشتة بر أو شاليه على البحر',
       'كل واحد يضغط الخيار اللي يفضّله من جواله، بدون ما يشوف اختيار الثاني',
       'لما تختارون الاثنين، ينكشف اختيار كل واحد'
     ]));
-    card.appendChild(el('div', 'mini-hint', `إذا اخترتوا نفس الشي: +${WYR_POINTS} ⭐ لكل واحد`));
-    stage.appendChild(miniButton('🎴 سؤال جديد', 'btn-primary', startWyr));
+    card.appendChild(el('div', 'mini-hint', L(`إذا اخترتوا نفس الشي: +${WYR_POINTS} ⭐ لكل واحد`, `Pick the same thing: +${WYR_POINTS} ⭐ each`)));
+    stage.appendChild(miniButton(L('🎴 سؤال جديد', '🎴 New question'), 'btn-primary', startWyr));
     return;
   }
   const Q = WYR_QUESTIONS[m.q] || WYR_QUESTIONS[0];
-  const opts = [Q.a, Q.b];
+  const opts = [L(Q.a, Q.a_en), L(Q.b, Q.b_en)];
   const picks = m.picks || {};
   const mine = picks[myId];
-  card.appendChild(el('div', 'mini-text', personalize('لو خيّروك بين هذول، وش تختار{|ين}؟', myGender)));
+  card.appendChild(el('div', 'mini-text', personalize(L('لو خيّروك بين هذول، وش تختار{|ين}؟', 'Would you rather...'), myGender)));
   const vs = el('div', 'wyr-vs');
   opts.forEach((o, i)=>{
-    if(i) vs.appendChild(el('div', 'wyr-or', 'أو'));
+    if(i) vs.appendChild(el('div', 'wyr-or', L('أو', 'or')));
     vs.appendChild(el('div', 'wyr-opt' + (mine === i ? ' picked' : ''), o));
   });
   card.appendChild(vs);
   if(!m.revealed){
     if(mine === undefined){
-      banner.textContent = personalize('🤫 اختار{|ي} بالسر', myGender);
-      card.appendChild(el('div', 'mini-hint', personalize('اضغط{|ي} اختيارك تحت 👇', myGender) + ' ' + personalize(`و${partnerName} ما {يشوفه|تشوفه} لين {يختار|تختار}`, playerGender(room, partnerId))));
-      opts.forEach((o, i)=> stage.appendChild(miniButton('أختار: ' + o, i === 0 ? 'btn-gold opt-btn' : 'btn-primary opt-btn', ()=> wyrPick(i))));
+      banner.textContent = personalize(L('🤫 اختار{|ي} بالسر', '🤫 Pick in secret'), myGender);
+      card.appendChild(el('div', 'mini-hint', IS_EN ? personalize(`Tap your pick below 👇 ${partnerName} won't see it until {he picks|she picks}`, playerGender(room, partnerId)) : personalize('اضغط{|ي} اختيارك تحت 👇', myGender) + ' ' + personalize(`و${partnerName} ما {يشوفه|تشوفه} لين {يختار|تختار}`, playerGender(room, partnerId))));
+      opts.forEach((o, i)=> stage.appendChild(miniButton(L('أختار: ', 'I pick: ') + o, i === 0 ? 'btn-gold opt-btn' : 'btn-primary opt-btn', ()=> wyrPick(i))));
     } else {
-      banner.textContent = personalize(`⏳ بانتظار ${partnerName} {يختار|تختار}`, playerGender(room, partnerId));
-      card.appendChild(el('div', 'mini-hint', personalize(`اخترت{|ي}: ${opts[mine]}`, myGender)));
+      banner.textContent = personalize(L(`⏳ بانتظار ${partnerName} {يختار|تختار}`, `⏳ Waiting for ${partnerName} to pick`), playerGender(room, partnerId));
+      card.appendChild(el('div', 'mini-hint', personalize(L(`اخترت{|ي}: ${opts[mine]}`, `You picked: ${opts[mine]}`), myGender)));
     }
     return;
   }
-  banner.textContent = m.match ? '🎉 نفس الاختيار!' : '😄 اختلفتوا!';
+  banner.textContent = m.match ? L('🎉 نفس الاختيار!', '🎉 Same pick!') : L('😄 اختلفتوا!', '😄 You picked differently!');
   const res = el('div', 'mini-result');
   playerIds(room).forEach(id=>{
     res.appendChild(el('div', '', `${playerName(room, id)}: ${opts[picks[id]]}`));
   });
-  res.appendChild(el('div', 'mini-points', m.match ? `+${WYR_POINTS} ⭐ لكل واحد` : 'وهذا اللي يحلّي السوالف، تناقشوا ليش اخترتوا كذا 😉'));
+  res.appendChild(el('div', 'mini-points', m.match ? L(`+${WYR_POINTS} ⭐ لكل واحد`, `+${WYR_POINTS} ⭐ each`) : L('وهذا اللي يحلّي السوالف، تناقشوا ليش اخترتوا كذا 😉', "That's what makes it fun, talk about why you each chose that 😉")));
   card.appendChild(res);
-  stage.appendChild(miniButton('سؤال جديد ⬅️', 'btn-primary', startWyr));
+  stage.appendChild(miniButton(L('سؤال جديد ⬅️', 'New question ➡️'), 'btn-primary', startWyr));
 }
 
 /* ----- عجلة الحظ ----- */
 // اللي عليه الدور يدوّر، والنص يتغير حسب جنسه: {للزوج|للزوجة}
 // lucky: النقاط تنضاف على طول بدون تحدي
 const WHEEL_SEGMENTS = [
-  {emoji:'🤗', name:'حضن', text:'{احضن|احضني} {زوجتك|زوجك} حضن طويل لين تعدّون للعشرة', points:10, color:'#f3a6b8'},
-  {emoji:'💬', name:'كلمة حلوة', text:'{قول|قولي} 3 أشياء تحب{|ين}ها في {زوجتك|زوجك}', points:10, color:'#f7d6a0'},
-  {emoji:'💆', name:'مساج', text:'{سوّ|سوّي} مساج لكتوف {زوجتك|زوجك} لمدة دقيقتين', points:15, color:'#c9b3e6'},
-  {emoji:'⭐', name:'ضربة حظ', text:'ضربة حظ! تاخذ{|ين} النقاط بدون أي تحدي 🎉', points:20, color:'#ffd66b', lucky:true},
-  {emoji:'💋', name:'بوسة', text:'{بوس|بوسي} {زوجتك|زوجك} على جبين{ها|ه}', points:10, color:'#f08aa4'},
-  {emoji:'📸', name:'ذكرى', text:'احك{|ي} أحلى ذكرى لك مع {زوجتك|زوجك}، وليش ما تنساها', points:10, color:'#a9d3e8'},
-  {emoji:'🎁', name:'طلب', text:'{زوجتك تطلب|زوجك يطلب} منك طلب بسيط، و{تنفذه|تنفذينه} الحين', points:15, color:'#b9e3c6'},
-  {emoji:'😂', name:'تقليد', text:'{قلّد|قلّدي} {زوجتك|زوجك} في شي {تسويه|يسويه} دايم، لين {تضحك|يضحك}', points:10, color:'#f5c0a0'}
+  {emoji:'🤗', name:'حضن', text:'{احضن|احضني} {زوجتك|زوجك} حضن طويل لين تعدّون للعشرة', points:10, color:'#f3a6b8', name_en:'Hug', text_en:'Hug {your wife|your husband} until you both count to ten'},
+  {emoji:'💬', name:'كلمة حلوة', text:'{قول|قولي} 3 أشياء تحب{|ين}ها في {زوجتك|زوجك}', points:10, color:'#f7d6a0', name_en:'Sweet words', text_en:'Tell {your wife|your husband} 3 things you love about {her|him}'},
+  {emoji:'💆', name:'مساج', text:'{سوّ|سوّي} مساج لكتوف {زوجتك|زوجك} لمدة دقيقتين', points:15, color:'#c9b3e6', name_en:'Massage', text_en:'Give {your wife|your husband} a two-minute shoulder massage'},
+  {emoji:'⭐', name:'ضربة حظ', text:'ضربة حظ! تاخذ{|ين} النقاط بدون أي تحدي 🎉', points:20, color:'#ffd66b', lucky:true, name_en:'Lucky spin', text_en:'Lucky spin! You get the points with no dare 🎉'},
+  {emoji:'💋', name:'بوسة', text:'{بوس|بوسي} {زوجتك|زوجك} على جبين{ها|ه}', points:10, color:'#f08aa4', name_en:'Kiss', text_en:'Kiss {your wife|your husband} on the forehead'},
+  {emoji:'📸', name:'ذكرى', text:'احك{|ي} أحلى ذكرى لك مع {زوجتك|زوجك}، وليش ما تنساها', points:10, color:'#a9d3e8', name_en:'Memory', text_en:'Share your favourite memory with {your wife|your husband}, and why you never forget it'},
+  {emoji:'🎁', name:'طلب', text:'{زوجتك تطلب|زوجك يطلب} منك طلب بسيط، و{تنفذه|تنفذينه} الحين', points:15, color:'#b9e3c6', name_en:'Request', text_en:'{Your wife|Your husband} asks you for one small thing, and you do it right now'},
+  {emoji:'😂', name:'تقليد', text:'{قلّد|قلّدي} {زوجتك|زوجك} في شي {تسويه|يسويه} دايم، لين {تضحك|يضحك}', points:10, color:'#f5c0a0', name_en:'Impression', text_en:'Imitate something {your wife|your husband} always does until {she laughs|he laughs}'}
 ];
 const WHEEL_SPIN_MS = 4200;
 const SEG_DEG = 360 / WHEEL_SEGMENTS.length;
@@ -2158,19 +2327,23 @@ function renderWheel(room, stage, banner){
   const spinG = playerGender(room, spinnerId);
   const card = el('div', 'mini-card');
   stage.appendChild(card);
-  card.appendChild(el('div', 'card-type-tag', '🎡 عجلة الحظ'));
+  card.appendChild(el('div', 'card-type-tag', L('🎡 عجلة الحظ', '🎡 Lucky Wheel')));
   const {wrap, wheel} = buildWheel();
   card.appendChild(wrap);
 
   if(!m){
-    banner.textContent = isSpinner ? '🎡 دورك تدوّر العجلة' : personalize(`🎡 دور ${spinName} {يدوّر|تدوّر}`, spinG);
-    card.appendChild(miniSteps([
+    banner.textContent = isSpinner ? L('🎡 دورك تدوّر العجلة', '🎡 Your turn to spin the wheel') : personalize(L(`🎡 دور ${spinName} {يدوّر|تدوّر}`, `🎡 ${spinName}'s turn to spin`), spinG);
+    card.appendChild(miniSteps(IS_EN ? [
+      'Whoever has the turn spins the wheel',
+      'They do the dare the wheel lands on',
+      'Their partner confirms it was done, and they earn the points ⭐'
+    ] : [
       'اللي عليه الدور يدوّر العجلة',
       'يسوي التحدي اللي توقف عليه العجلة',
       'شريكه يأكّد إنه نفّذه، ويحصل على النقاط ⭐'
     ]));
-    if(isSpinner) stage.appendChild(miniButton('🎡 دوّر العجلة', 'btn-primary', spinWheel));
-    else stage.appendChild(el('p', 'hint-text', personalize(`بانتظار ${spinName} {يدوّر|تدوّر} العجلة...`, spinG)));
+    if(isSpinner) stage.appendChild(miniButton(L('🎡 دوّر العجلة', '🎡 Spin the wheel'), 'btn-primary', spinWheel));
+    else stage.appendChild(el('p', 'hint-text', personalize(L(`بانتظار ${spinName} {يدوّر|تدوّر} العجلة...`, `Waiting for ${spinName} to spin the wheel...`), spinG)));
     return;
   }
 
@@ -2182,37 +2355,37 @@ function renderWheel(room, stage, banner){
     const anim = wheel.animate([{transform:'rotate(0deg)'}, {transform:`rotate(${finalDeg}deg)`}],
       {duration:WHEEL_SPIN_MS, easing:'cubic-bezier(0.17, 0.67, 0.12, 1)', fill:'forwards'});
     anim.currentTime = elapsed;
-    banner.textContent = '🎡 العجلة تدور...';
-    card.appendChild(el('div', 'mini-hint', personalize(`${spinName} {دوّر|دوّرت} العجلة`, spinG)));
+    banner.textContent = L('🎡 العجلة تدور...', '🎡 The wheel is spinning...');
+    card.appendChild(el('div', 'mini-hint', personalize(L(`${spinName} {دوّر|دوّرت} العجلة`, `${spinName} spun the wheel`), spinG)));
     // نرسم النتيجة لما توقف العجلة
     setTimeout(()=>{ if(lastRoom && lastRoom.mini && lastRoom.mini.ts === m.ts) renderRoom(lastRoom); }, WHEEL_SPIN_MS - elapsed + 30);
     return;
   }
   wheel.style.transform = `rotate(${finalDeg}deg)`;
 
-  card.appendChild(el('div', 'mini-hint', `${seg.emoji} ${seg.name} · ${seg.points} نقاط ⭐`));
-  card.appendChild(el('div', 'mini-text', personalize(seg.text, spinG)));
+  card.appendChild(el('div', 'mini-hint', `${seg.emoji} ${L(seg.name, seg.name_en)} · ${seg.points} ${L('نقاط', 'points')} ⭐`));
+  card.appendChild(el('div', 'mini-text', personalize(L(seg.text, seg.text_en), spinG)));
   if(m.status === 'pending'){
     if(isSpinner){
-      banner.textContent = personalize('🎯 نفّذ{|ي} التحدي', myGender);
+      banner.textContent = personalize(L('🎯 نفّذ{|ي} التحدي', '🎯 Do the dare'), myGender);
       const partnerId = otherId(room, myId);
-      card.appendChild(el('div', 'mini-hint', personalize(`بعد ما تخلص{|ين}، ${playerName(room, partnerId)} ${personalize('{يأكّد|تأكّد}', playerGender(room, partnerId))} وتاخذ{|ين} النقاط`, myGender)));
-      stage.appendChild(miniButton('⏭️ تخطّي', 'btn-ghost opt-btn', wheelSkip));
+      card.appendChild(el('div', 'mini-hint', IS_EN ? `When you're done, ${playerName(room, partnerId)} confirms it and you get the points` : personalize(`بعد ما تخلص{|ين}، ${playerName(room, partnerId)} ${personalize('{يأكّد|تأكّد}', playerGender(room, partnerId))} وتاخذ{|ين} النقاط`, myGender)));
+      stage.appendChild(miniButton(L('⏭️ تخطّي', '⏭️ Skip'), 'btn-ghost opt-btn', wheelSkip));
     } else {
-      banner.textContent = personalize(`⏳ ${spinName} {ينفّذ|تنفّذ} التحدي`, spinG);
-      stage.appendChild(miniButton(personalize(`✅ ${spinName} {نفّذه|نفّذته}`, spinG), 'btn-primary opt-btn', wheelDone));
-      stage.appendChild(miniButton('⏭️ تخطّي', 'btn-ghost opt-btn', wheelSkip));
+      banner.textContent = personalize(L(`⏳ ${spinName} {ينفّذ|تنفّذ} التحدي`, `⏳ ${spinName} is doing the dare`), spinG);
+      stage.appendChild(miniButton(personalize(L(`✅ ${spinName} {نفّذه|نفّذته}`, `✅ ${spinName} did it`), spinG), 'btn-primary opt-btn', wheelDone));
+      stage.appendChild(miniButton(L('⏭️ تخطّي', '⏭️ Skip'), 'btn-ghost opt-btn', wheelSkip));
     }
     return;
   }
   if(m.status === 'done'){
-    banner.textContent = seg.lucky ? '🍀 ضربة حظ!' : '🎉 كفو!';
-    card.appendChild(el('div', 'mini-points', `+${seg.points} ⭐ لـ ${spinName}`));
+    banner.textContent = seg.lucky ? L('🍀 ضربة حظ!', '🍀 Lucky spin!') : L('🎉 كفو!', '🎉 Well done!');
+    card.appendChild(el('div', 'mini-points', L(`+${seg.points} ⭐ لـ ${spinName}`, `+${seg.points} ⭐ for ${spinName}`)));
   } else {
-    banner.textContent = '⏭️ انتخطى التحدي';
-    card.appendChild(el('div', 'mini-hint', 'بدون نقاط هالمرة'));
+    banner.textContent = L('⏭️ انتخطى التحدي', '⏭️ Dare skipped');
+    card.appendChild(el('div', 'mini-hint', L('بدون نقاط هالمرة', 'No points this time')));
   }
-  stage.appendChild(miniButton('التالي ⬅️', 'btn-primary', wheelNext));
+  stage.appendChild(miniButton(L('التالي ⬅️', 'Next ➡️'), 'btn-primary', wheelNext));
 }
 
 /* ----- النقاط: نرسل نقاط الغرفة للترتيب، 25 نقطة كحد أقصى كل 15 ثانية ----- */
@@ -2231,7 +2404,7 @@ async function flushPoints(room){
     const cur = (await myLbRef().once('value')).val();
     const wk = weekKey();
     const next = {
-      name: (cur && cur.name) || playerName(room, myId).slice(0, 30) || 'لاعب',
+      name: (cur && cur.name) || playerName(room, myId).slice(0, 30) || L('لاعب', 'Player'),
       total: (cur ? cur.total : 0) + pts,
       weekPts: (cur && cur.week === wk ? cur.weekPts : 0) + pts,
       week: wk,
@@ -2260,9 +2433,9 @@ async function flushPoints(room){
 
 /* ---------------- feedback (اقتراحات وتواصل) ---------------- */
 const FEEDBACK_TYPES = [
-  {id:'suggestion', name:'💡 اقتراح'},
-  {id:'problem', name:'🛠️ مشكلة'},
-  {id:'question', name:'❓ استفسار'}
+  {id:'suggestion', name:'💡 اقتراح', name_en:'💡 Suggestion'},
+  {id:'problem', name:'🛠️ مشكلة', name_en:'🛠️ Problem'},
+  {id:'question', name:'❓ استفسار', name_en:'❓ Question'}
 ];
 let feedbackType = 'suggestion';
 
@@ -2272,7 +2445,7 @@ function renderFeedbackTypes(){
   FEEDBACK_TYPES.forEach(t=>{
     const el = document.createElement('div');
     el.className = 'level-opt' + (t.id === feedbackType ? ' active' : '');
-    el.innerHTML = `<div class="level-name">${t.name}</div>`;
+    el.innerHTML = `<div class="level-name">${L(t.name, t.name_en)}</div>`;
     el.onclick = ()=>{ feedbackType = t.id; renderFeedbackTypes(); };
     row.appendChild(el);
   });
@@ -2286,7 +2459,7 @@ function openFeedback(){
   if(!emailEl.value && currentUser && currentUser.email) emailEl.value = currentUser.email;
   const mail = document.getElementById('feedback-mailto');
   mail.textContent = CONTACT_EMAIL;
-  mail.href = 'mailto:' + CONTACT_EMAIL + '?subject=' + encodeURIComponent('حلالي - اقتراح');
+  mail.href = 'mailto:' + CONTACT_EMAIL + '?subject=' + encodeURIComponent(L('حلالي - اقتراح', 'Halalii - Suggestion'));
   renderFeedbackTypes();
   goTo('feedback');
 }
@@ -2299,7 +2472,7 @@ async function sendFeedback(){
   const email = document.getElementById('feedback-email').value.trim();
   errEl.classList.add('hidden');
   if(message.length < 3){
-    errEl.textContent = 'اكتب رسالتك أول';
+    errEl.textContent = L('اكتب رسالتك أول', 'Please write your message first');
     errEl.classList.remove('hidden');
     return;
   }
@@ -2319,7 +2492,7 @@ async function sendFeedback(){
     document.getElementById('feedback-thanks').classList.remove('hidden');
   }catch(e){
     console.error('feedback failed', e);
-    errEl.textContent = `ما قدرنا نرسل رسالتك. جرّب مرة ثانية، أو راسلنا على ${CONTACT_EMAIL}`;
+    errEl.textContent = L(`ما قدرنا نرسل رسالتك. جرّب مرة ثانية، أو راسلنا على ${CONTACT_EMAIL}`, `We couldn't send your message. Please try again, or email us at ${CONTACT_EMAIL}`);
     errEl.classList.remove('hidden');
   }finally{
     btn.disabled = false;
@@ -2340,7 +2513,7 @@ async function refreshUnreadBadge(){
 }
 async function loadInbox(){
   const list = document.getElementById('admin-inbox-list');
-  list.innerHTML = '<p class="hint-text">جاري التحميل...</p>';
+  list.innerHTML = `<p class="hint-text">${L('جاري التحميل...', 'Loading...')}</p>`;
   await refreshUnreadBadge();
   renderInbox();
 }
@@ -2349,17 +2522,17 @@ function renderInbox(){
   list.innerHTML = '';
   const rows = Object.entries(INBOX).sort((a, b)=> (b[1].createdAt || 0) - (a[1].createdAt || 0));
   if(rows.length === 0){
-    list.innerHTML = '<p class="hint-text">ما فيه رسائل للحين.</p>';
+    list.innerHTML = `<p class="hint-text">${L('ما فيه رسائل للحين.', 'No messages yet.')}</p>`;
     return;
   }
-  const typeName = id=> (FEEDBACK_TYPES.find(t=> t.id === id) || {name:'✉️ رسالة'}).name;
+  const typeName = id=>{ const t = FEEDBACK_TYPES.find(t=> t.id === id) || {name:'✉️ رسالة', name_en:'✉️ Message'}; return L(t.name, t.name_en); };
   rows.forEach(([key, m])=>{
     const row = document.createElement('div');
     row.className = 'fb-row' + (m.read ? '' : ' unread');
     const meta = document.createElement('div');
     meta.className = 'fb-meta';
-    const when = new Date(m.createdAt || 0).toLocaleString('ar-SA-u-ca-gregory', {year:'numeric', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'});
-    meta.textContent = `${m.read ? '' : '🔴 جديدة · '}${typeName(m.type)} · ${when}${m.email ? ' · ' + m.email : ''}`;
+    const when = new Date(m.createdAt || 0).toLocaleString(IS_EN ? 'en-US' : 'ar-SA-u-ca-gregory', {year:'numeric', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'});
+    meta.textContent = `${m.read ? '' : L('🔴 جديدة · ', '🔴 New · ')}${typeName(m.type)} · ${when}${m.email ? ' · ' + m.email : ''}`;
     const msg = document.createElement('div');
     msg.className = 'fb-msg';
     msg.textContent = m.message || '';
@@ -2370,13 +2543,13 @@ function renderInbox(){
       reply.className = 'btn btn-gold btn-sm';
       reply.style.textAlign = 'center';
       reply.style.textDecoration = 'none';
-      reply.textContent = '↩️ رد';
-      reply.href = 'mailto:' + m.email + '?subject=' + encodeURIComponent('رد من حلالي');
+      reply.textContent = L('↩️ رد', '↩️ Reply');
+      reply.href = 'mailto:' + m.email + '?subject=' + encodeURIComponent(L('رد من حلالي', 'Reply from Halalii'));
       btns.appendChild(reply);
     }
     const toggle = document.createElement('button');
     toggle.className = 'btn btn-ghost btn-sm';
-    toggle.textContent = m.read ? 'علّمها جديدة' : '✓ قرأتها';
+    toggle.textContent = m.read ? L('علّمها جديدة', 'Mark as new') : L('✓ قرأتها', '✓ Mark as read');
     toggle.onclick = ()=> setFeedbackRead(key, !m.read);
     btns.appendChild(toggle);
     const del = document.createElement('button');
@@ -2396,16 +2569,16 @@ async function setFeedbackRead(key, read){
     INBOX[key].read = read;
     renderInbox();
     refreshUnreadBadge();
-  }catch(e){ alert('صار خلل، جرب مرة ثانية'); }
+  }catch(e){ alert(L('صار خلل، جرب مرة ثانية', 'Something went wrong, please try again')); }
 }
 async function deleteFeedback(key){
-  if(!confirm('تحذف هذي الرسالة؟')) return;
+  if(!confirm(L('تحذف هذي الرسالة؟', 'Delete this message?'))) return;
   try{
     await db.ref('feedback/' + key).remove();
     delete INBOX[key];
     renderInbox();
     refreshUnreadBadge();
-  }catch(e){ alert('صار خلل بالحذف، جرب مرة ثانية'); }
+  }catch(e){ alert(L('صار خلل بالحذف، جرب مرة ثانية', "Couldn't delete it, please try again")); }
 }
 
 /* ---------------- subscribers (للمدير) ---------------- */
@@ -2413,14 +2586,14 @@ let SUBS_USERS = {};
 let SUBS = {};
 async function loadSubscribers(){
   const list = document.getElementById('admin-subs-list');
-  list.innerHTML = '<p class="hint-text">جاري التحميل...</p>';
+  list.innerHTML = `<p class="hint-text">${L('جاري التحميل...', 'Loading...')}</p>`;
   try{
     const [u, s] = await Promise.all([db.ref('users').once('value'), db.ref('subscribers').once('value')]);
     SUBS_USERS = u.val() || {};
     SUBS = s.val() || {};
   }catch(e){
     console.error('subscribers load failed', e);
-    list.innerHTML = '<p class="hint-text error-text">ما قدرنا نحمّل الحسابات. تأكد إن قواعد الأمان محدّثة.</p>';
+    list.innerHTML = `<p class="hint-text error-text">${L('ما قدرنا نحمّل الحسابات. تأكد إن قواعد الأمان محدّثة.', "Couldn't load the accounts. Make sure the security rules are up to date.")}</p>`;
     return;
   }
   renderSubscribers();
@@ -2429,13 +2602,13 @@ function renderSubscribers(){
   const list = document.getElementById('admin-subs-list');
   list.innerHTML = '';
   const q = document.getElementById('subs-filter').value.trim().toLowerCase();
-  const fmt = ms=> new Date(ms).toLocaleDateString('ar-SA-u-ca-gregory', {year:'numeric', month:'short', day:'numeric'});
+  const fmt = ms=> new Date(ms).toLocaleDateString(IS_EN ? 'en-US' : 'ar-SA-u-ca-gregory', {year:'numeric', month:'short', day:'numeric'});
   const rows = Object.entries(SUBS_USERS)
     .filter(([, u])=> !q || (u.email || '').toLowerCase().includes(q) || (u.name || '').toLowerCase().includes(q))
     .sort((a, b)=> (b[1].createdAt || 0) - (a[1].createdAt || 0))
     .slice(0, 50);
   if(rows.length === 0){
-    list.innerHTML = '<p class="hint-text">ما فيه حسابات مسجّلة للحين.</p>';
+    list.innerHTML = `<p class="hint-text">${L('ما فيه حسابات مسجّلة للحين.', 'No registered accounts yet.')}</p>`;
     return;
   }
   rows.forEach(([uid, u])=>{
@@ -2448,10 +2621,10 @@ function renderSubscribers(){
     const until = (SUBS[uid] && SUBS[uid].until) || 0;
     const active = until > Date.now();
     status.className = 'status' + (active ? ' on' : '');
-    status.textContent = (u.name ? u.name + ' · ' : '') + (active ? `⭐ مشترك لين ${fmt(until)}` : 'غير مشترك') + (u.createdAt ? ` · سجّل ${fmt(u.createdAt)}` : '');
+    status.textContent = (u.name ? u.name + ' · ' : '') + (active ? L(`⭐ مشترك لين ${fmt(until)}`, `⭐ Subscribed until ${fmt(until)}`) : L('غير مشترك', 'Not subscribed')) + (u.createdAt ? L(` · سجّل ${fmt(u.createdAt)}`, ` · Joined ${fmt(u.createdAt)}`) : '');
     const btns = document.createElement('div');
     btns.className = 'btn-row';
-    [['+ شهر', 30], ['+ سنة', 365]].forEach(([label, days])=>{
+    [[L('+ شهر', '+ Month'), 30], [L('+ سنة', '+ Year'), 365]].forEach(([label, days])=>{
       const b = document.createElement('button');
       b.className = 'btn btn-gold btn-sm';
       b.textContent = label;
@@ -2461,7 +2634,7 @@ function renderSubscribers(){
     if(active){
       const b = document.createElement('button');
       b.className = 'btn btn-danger btn-sm';
-      b.textContent = 'إلغاء';
+      b.textContent = L('إلغاء', 'Cancel');
       b.onclick = ()=> revokeSubscription(uid);
       btns.appendChild(b);
     }
@@ -2479,15 +2652,15 @@ async function grantSubscription(uid, days){
     });
     SUBS[uid] = res.snapshot.val();
     renderSubscribers();
-  }catch(e){ console.error(e); alert('صار خلل بتفعيل الاشتراك، جرب مرة ثانية'); }
+  }catch(e){ console.error(e); alert(L('صار خلل بتفعيل الاشتراك، جرب مرة ثانية', "Couldn't activate the subscription, please try again")); }
 }
 async function revokeSubscription(uid){
-  if(!confirm('متأكد تبي تلغي اشتراك هذا الحساب؟')) return;
+  if(!confirm(L('متأكد تبي تلغي اشتراك هذا الحساب؟', "Cancel this account's subscription?"))) return;
   try{
     await db.ref('subscribers/' + uid).remove();
     delete SUBS[uid];
     renderSubscribers();
-  }catch(e){ console.error(e); alert('صار خلل بالإلغاء، جرب مرة ثانية'); }
+  }catch(e){ console.error(e); alert(L('صار خلل بالإلغاء، جرب مرة ثانية', "Couldn't cancel it, please try again")); }
 }
 function renderAdminLevelRow(){
   renderLevelRow(document.getElementById('admin-level-row'), adminLevel, (id)=>{
@@ -2502,7 +2675,7 @@ function renderNewTypeRow(){
   CARD_TYPES.forEach(t=>{
     const el = document.createElement('div');
     el.className = 'level-opt' + (t===newCardType ? ' active':'');
-    el.innerHTML = `<div class="level-name">${t}</div>`;
+    el.innerHTML = `<div class="level-name">${cardType(t)}</div>`;
     el.onclick = ()=>{ newCardType = t; renderNewTypeRow(); };
     row.appendChild(el);
   });
@@ -2515,7 +2688,7 @@ function renderAdminCards(){
   if(entries.length === 0){
     const p = document.createElement('p');
     p.className = 'hint-text';
-    p.textContent = 'ما فيه تحديات بهالمستوى، أضف أول واحد تحت 👇';
+    p.textContent = L('ما فيه تحديات بهالمستوى، أضف أول واحد تحت 👇', 'No challenges at this level yet. Add the first one below 👇');
     list.appendChild(p);
     return;
   }
@@ -2526,7 +2699,7 @@ function renderAdminCards(){
     const typeSelect = document.createElement('select');
     CARD_TYPES.forEach(t=>{
       const opt = document.createElement('option');
-      opt.value = t; opt.textContent = t;
+      opt.value = t; opt.textContent = cardType(t);
       if(t===card.type) opt.selected = true;
       typeSelect.appendChild(opt);
     });
@@ -2547,17 +2720,17 @@ function renderAdminCards(){
     btnRow.className = 'btn-row';
 
     const saveBtn = document.createElement('button');
-    saveBtn.textContent = '💾 حفظ';
+    saveBtn.textContent = L('💾 حفظ', '💾 Save');
     saveBtn.className = 'btn btn-gold btn-sm';
     saveBtn.onclick = async ()=>{
       if(await saveCardEdit(adminLevel, key, typeSelect.value, textarea.value)){
-        saveBtn.textContent = '✓ انحفظ';
-        setTimeout(()=>{ saveBtn.textContent = '💾 حفظ'; }, 1500);
+        saveBtn.textContent = L('✓ انحفظ', '✓ Saved');
+        setTimeout(()=>{ saveBtn.textContent = L('💾 حفظ', '💾 Save'); }, 1500);
       }
     };
 
     const delBtn = document.createElement('button');
-    delBtn.textContent = '🗑️ حذف';
+    delBtn.textContent = L('🗑️ حذف', '🗑️ Delete');
     delBtn.className = 'btn btn-danger btn-sm';
     delBtn.onclick = ()=>deleteCard(adminLevel, key);
 
@@ -2572,13 +2745,13 @@ function renderAdminCards(){
 }
 async function saveCardEdit(level, key, type, text){
   text = text.trim();
-  if(!text){ alert('لا تسيب النص فاضي'); return false; }
+  if(!text){ alert(L('لا تسيب النص فاضي', "The text can't be empty")); return false; }
   EDIT_DECK[level] = EDIT_DECK[level] || {};
   EDIT_DECK[level][key] = {type, text};
   return persistEditDeck();
 }
 async function deleteCard(level, key){
-  if(!confirm('متأكد تبي تحذف هذا التحدي؟')) return;
+  if(!confirm(L('متأكد تبي تحذف هذا التحدي؟', 'Delete this challenge?'))) return;
   delete EDIT_DECK[level][key];
   await persistEditDeck();
   renderAdminCards();
@@ -2586,7 +2759,7 @@ async function deleteCard(level, key){
 async function addNewCard(){
   const textEl = document.getElementById('admin-new-text');
   const text = textEl.value.trim();
-  if(!text){ alert('اكتب نص التحدي أولاً'); return; }
+  if(!text){ alert(L('اكتب نص التحدي أولاً', 'Write the challenge text first')); return; }
   await loadEditDeck();
   EDIT_DECK[adminLevel] = EDIT_DECK[adminLevel] || {};
   EDIT_DECK[adminLevel][db.ref().push().key] = {type:newCardType, text};
@@ -2594,7 +2767,7 @@ async function addNewCard(){
   renderAdminCards();
 }
 async function resetMyDeck(){
-  if(!confirm('بترجع التحديات الأصلية وتنحذف كل تعديلاتك. متأكد؟')) return;
+  if(!confirm(L('بترجع التحديات الأصلية وتنحذف كل تعديلاتك. متأكد؟', 'This restores the original challenges and deletes all your edits. Are you sure?'))) return;
   // المدير يرجع للتحديات الأصلية في اللعبة، والمشترك يرجع لنسخة التحديات الرسمية
   EDIT_DECK = IS_ADMIN ? defaultDeck() : await loadOfficialDeck();
   await persistEditDeck();
@@ -2604,7 +2777,7 @@ async function resetMyDeck(){
 /* ---------------- create / join ---------------- */
 async function createRoom(){
   await authReady;
-  const name = document.getElementById('create-name').value.trim() || 'أنا';
+  const name = document.getElementById('create-name').value.trim() || L('أنا', 'Me');
   const myDeck = await deckForNewRoom();
   const deck = {};
   LEVELS.forEach(lv=>{ deck[lv.id] = myDeck[lv.id] || {}; });
@@ -2632,7 +2805,7 @@ async function createRoom(){
       console.warn('code taken or write failed', code, e);
     }
   }
-  alert('صار خلل بإنشاء الغرفة، تأكد إن الاتصال شغال وجرب مرة ثانية.');
+  alert(L('صار خلل بإنشاء الغرفة، تأكد إن الاتصال شغال وجرب مرة ثانية.', "Couldn't create the room. Check your connection and try again."));
 }
 
 function showWaiting(code){
@@ -2649,17 +2822,17 @@ function showWaiting(code){
 
 async function joinRoom(){
   await authReady;
-  const name = document.getElementById('join-name').value.trim() || 'أنا';
+  const name = document.getElementById('join-name').value.trim() || L('أنا', 'Me');
   const code = document.getElementById('join-code').value.trim();
   const errEl = document.getElementById('join-error');
   const showErr = (msg)=>{ errEl.textContent = msg; errEl.classList.remove('hidden'); };
   errEl.classList.add('hidden');
 
   if(!/^\d{6}$/.test(code)){
-    showErr('أدخل كود صحيح مكوّن من 6 أرقام');
+    showErr(L('أدخل كود صحيح مكوّن من 6 أرقام', 'Enter a valid 6-digit code'));
     return;
   }
-  showErr('جاري البحث عن الغرفة...');
+  showErr(L('جاري البحث عن الغرفة...', 'Looking for the room...'));
   const me = {name, g: myGender};
 
   let room = null;
@@ -2676,7 +2849,7 @@ async function joinRoom(){
       r.updatedAt = Date.now();
       return r;
     });
-    if(!res.committed){ showErr('هذي الغرفة مكتملة'); return; }
+    if(!res.committed){ showErr(L('هذي الغرفة مكتملة', 'This room is already full')); return; }
     room = res.snapshot.val();
   }catch(e){
     // مع قواعد الأمان: ما تقدر تقرأ الغرفة قبل ما تنضم، فنحجز مكانك أول ثم نكمل
@@ -2687,12 +2860,12 @@ async function joinRoom(){
       room = await getRoom(code);
     }catch(e2){
       console.warn('join refused', e2);
-      showErr('ما قدرنا ندخل الغرفة. تأكد من الكود، أو يمكن الغرفة مكتملة');
+      showErr(L('ما قدرنا ندخل الغرفة. تأكد من الكود، أو يمكن الغرفة مكتملة', "Couldn't join the room. Check the code, or the room may be full"));
       return;
     }
   }
   if(!room){
-    showErr('ما لقينا غرفة بهذا الكود. تأكد إن الكود مكتوب صح (6 أرقام)');
+    showErr(L('ما لقينا غرفة بهذا الكود. تأكد إن الكود مكتوب صح (6 أرقام)', 'No room found with this code. Make sure it\'s typed correctly (6 digits)'));
     return;
   }
   errEl.classList.add('hidden');
@@ -2702,7 +2875,7 @@ async function joinRoom(){
 }
 
 function confirmLeave(){
-  if(confirm('متأكد تبي تطلع من اللعبة؟ بيوصل لشريكك إنك طلعت')) leaveRoom();
+  if(confirm(L('متأكد تبي تطلع من اللعبة؟ بيوصل لشريكك إنك طلعت', 'Leave the game? Your partner will be told you left'))) leaveRoom();
 }
 
 async function leaveRoom(){
@@ -2734,7 +2907,7 @@ function roomGone(){
   document.getElementById('level-modal-backdrop').classList.add('hidden');
   if(!isVisible('home')){
     goTo('home');
-    alert('انتهت اللعبة');
+    alert(L('انتهت اللعبة', 'The game has ended'));
   }
 }
 
@@ -2744,7 +2917,7 @@ function enterGame(room){
   currentRoomCode = room.code;
   saveSession(room.code);
   goTo('game');
-  document.getElementById('game-code-tag').textContent = 'كود: ' + room.code;
+  document.getElementById('game-code-tag').textContent = L('كود: ', 'Code: ') + room.code;
   renderRoom(room);
   attachLive(room.code, renderRoom);
 }
@@ -2756,7 +2929,7 @@ function renderRoom(room){
   playRoomSounds(room);
   flushPoints(room);
   const lv = levelInfo(room.level);
-  document.getElementById('level-badge').textContent = `${lv.flames} المستوى: ${lv.name}`;
+  document.getElementById('level-badge').textContent = `${lv.flames} ${L('المستوى', 'Level')}: ${L(lv.name, lv.name_en)}`;
 
   const banner = document.getElementById('turn-banner');
   const reactionNote = document.getElementById('reaction-note');
@@ -2774,7 +2947,7 @@ function renderRoom(room){
 
   const ids = playerIds(room);
   if(!ids.includes(myId)){
-    banner.textContent = '⚠️ ما قدرنا نتعرف عليك بهذي الغرفة. سوّوا غرفة جديدة من الصفحة الرئيسية.';
+    banner.textContent = L('⚠️ ما قدرنا نتعرف عليك بهذي الغرفة. سوّوا غرفة جديدة من الصفحة الرئيسية.', "⚠️ We couldn't recognize you in this room. Start a new room from the home screen.");
     btnHome.classList.remove('hidden');
     return;
   }
@@ -2796,10 +2969,10 @@ function renderRoom(room){
   });
 
   if(room.leftBy && room.leftBy !== myId){
-    banner.textContent = personalize(`👋 ${playerName(room, room.leftBy)} طلع{|ت} من اللعبة`, playerGender(room, room.leftBy));
+    banner.textContent = personalize(L(`👋 ${playerName(room, room.leftBy)} طلع{|ت} من اللعبة`, `👋 ${playerName(room, room.leftBy)} left the game`), playerGender(room, room.leftBy));
     card3d.classList.add('hidden');
     emptyStage.classList.remove('hidden');
-    emptyStage.textContent = 'تقدر ترجع للرئيسية وتبدأ لعبة جديدة';
+    emptyStage.textContent = L('تقدر ترجع للرئيسية وتبدأ لعبة جديدة', 'You can go back home and start a new game');
     btnHome.classList.remove('hidden');
     return;
   }
@@ -2814,7 +2987,7 @@ function renderRoom(room){
     emptyStage.classList.add('hidden');
     miniStage.innerHTML = '';
     miniStage.classList.remove('hidden');
-    if(!partnerId){ banner.textContent = 'بانتظار انضمام شريكك...'; return; }
+    if(!partnerId){ banner.textContent = L('بانتظار انضمام شريكك...', 'Waiting for your partner to join...'); return; }
     if(mode === 'know') renderKnow(room, miniStage, banner);
     else if(mode === 'wheel') renderWheel(room, miniStage, banner);
     else renderWyr(room, miniStage, banner);
@@ -2823,20 +2996,20 @@ function renderRoom(room){
 
   if(!room.currentCard){
     banner.textContent = !partnerId
-      ? 'بانتظار انضمام شريكك...'
-      : (isMyTurn ? '🎯 دورك أنت الحين' : `⏳ دور ${turnName}`);
+      ? L('بانتظار انضمام شريكك...', 'Waiting for your partner to join...')
+      : (isMyTurn ? L('🎯 دورك أنت الحين', "🎯 It's your turn") : L(`⏳ دور ${turnName}`, `⏳ ${turnName}'s turn`));
     if(room.lastReaction){
       const r = room.lastReaction;
       const ptsTxt = r.points ? ` · +${r.points} ⭐` : '';
       reactionNote.textContent = (r.to === myId
-        ? personalize(`${playerName(room, r.from)} تفاعل{|ت} مع تحديك: ${r.emoji}`, playerGender(room, r.from))
-        : personalize(`تفاعلت{|ي} مع تحدي ${playerName(room, r.to)}: ${r.emoji}`, myGender)) + ptsTxt;
+        ? personalize(L(`${playerName(room, r.from)} تفاعل{|ت} مع تحديك: ${r.emoji}`, `${playerName(room, r.from)} reacted to your challenge: ${r.emoji}`), playerGender(room, r.from))
+        : personalize(L(`تفاعلت{|ي} مع تحدي ${playerName(room, r.to)}: ${r.emoji}`, `You reacted to ${playerName(room, r.to)}'s challenge: ${r.emoji}`), myGender)) + ptsTxt;
       reactionNote.classList.remove('hidden');
     }
     card3d.classList.add('hidden');
     card3d.classList.remove('flipped');
     emptyStage.classList.remove('hidden');
-    emptyStage.textContent = isMyTurn ? 'دورك! اسحب بطاقة' : personalize(`بانتظار ${turnName} {يسحب|تسحب} بطاقة...`, playerGender(room, turnId));
+    emptyStage.textContent = isMyTurn ? L('دورك! اسحب بطاقة', 'Your turn! Draw a card') : personalize(L(`بانتظار ${turnName} {يسحب|تسحب} بطاقة...`, `Waiting for ${turnName} to draw a card...`), playerGender(room, turnId));
     btnDraw.classList.toggle('hidden', !isMyTurn || !partnerId);
     return;
   }
@@ -2844,8 +3017,8 @@ function renderRoom(room){
   // card is active
   card3d.classList.remove('hidden');
   emptyStage.classList.add('hidden');
-  document.getElementById('card-type-tag').textContent = `${room.currentCard.type} · لـ ${turnName}`;
-  document.getElementById('card-text-el').textContent = personalize(room.currentCard.text, playerGender(room, turnId));
+  document.getElementById('card-type-tag').textContent = `${cardType(room.currentCard.type)} · ${L('لـ', 'for')} ${turnName}`;
+  document.getElementById('card-text-el').textContent = personalize(cardText(room.currentCard), playerGender(room, turnId));
   if(lastCardTimestamp !== room.currentCard.ts){
     card3d.classList.remove('flipped');
     requestAnimationFrame(()=> requestAnimationFrame(()=> card3d.classList.add('flipped')));
@@ -2854,14 +3027,16 @@ function renderRoom(room){
 
   if(room.awaitingRating){
     if(!isMyTurn){
-      banner.textContent = `💬 وش رأيك بتحدي ${turnName}؟`;
-      document.getElementById('rating-prompt').textContent = personalize(`تفاعل{|ي} مع `, myGender) + personalize(`اللي {سواه|سوّته} ${turnName}`, playerGender(room, turnId));
+      banner.textContent = L(`💬 وش رأيك بتحدي ${turnName}؟`, `💬 How did ${turnName} do?`);
+      document.getElementById('rating-prompt').textContent = IS_EN
+        ? `React to what ${turnName} did`
+        : personalize(`تفاعل{|ي} مع `, myGender) + personalize(`اللي {سواه|سوّته} ${turnName}`, playerGender(room, turnId));
       ratingPanel.classList.remove('hidden');
     } else {
-      banner.textContent = `⏳ بانتظار تفاعل ${playerName(room, partnerId)}`;
+      banner.textContent = L(`⏳ بانتظار تفاعل ${playerName(room, partnerId)}`, `⏳ Waiting for ${playerName(room, partnerId)} to react`);
     }
   } else {
-    banner.textContent = isMyTurn ? '🎯 دورك أنت الحين' : `⏳ دور ${turnName}`;
+    banner.textContent = isMyTurn ? L('🎯 دورك أنت الحين', "🎯 It's your turn") : L(`⏳ دور ${turnName}`, `⏳ ${turnName}'s turn`);
     btnDone.classList.toggle('hidden', !isMyTurn);
     btnSkip.classList.remove('hidden'); // أي واحد منكم يقدر يتخطى بدون إحراج
   }
@@ -2891,6 +3066,7 @@ function pickCard(room){
   used.push(key);
   room.usedIds[room.level] = used;
   room.currentCard = {key, type: deck[key].type, text: deck[key].text, ts: Date.now()};
+  if(deck[key].en) room.currentCard.en = deck[key].en;
   room.awaitingRating = false;
   room.updatedAt = Date.now();
   return true;
@@ -2899,7 +3075,7 @@ function pickCard(room){
 function levelIsEmpty(){
   const r = lastRoom;
   if(r && !(r.deck && r.deck[r.level] && Object.keys(r.deck[r.level]).length)){
-    alert('ما فيه تحديات بهذا المستوى. غيّروا المستوى، أو أضيفوا تحديات من "إدارة التحديات" وابدأوا لعبة جديدة.');
+    alert(L('ما فيه تحديات بهذا المستوى. غيّروا المستوى، أو أضيفوا تحديات من "إدارة التحديات" وابدأوا لعبة جديدة.', 'There are no challenges at this level. Change the level, or add challenges from "Manage challenges" and start a new game.'));
     return true;
   }
   return false;
