@@ -11,6 +11,15 @@
 <meta name="apple-mobile-web-app-title" content="حلالي">
 <link rel="apple-touch-icon" href="icon-192.png">
 <script>
+// اللغة: المحفوظة، أو لغة الجوال (عربي لو الجوال عربي، وإلا إنجليزي)
+(function(){
+  var l = 'ar';
+  try{ l = localStorage.getItem('cg_lang') || ((navigator.language || '').toLowerCase().indexOf('ar') === 0 ? 'ar' : 'en'); }catch(e){}
+  window.APP_LANG = l === 'en' ? 'en' : 'ar';
+  if(window.APP_LANG === 'en'){ document.documentElement.lang = 'en'; document.documentElement.dir = 'ltr'; document.title = 'Halalii'; }
+})();
+</script>
+<script>
 // نطبّق الثيم المحفوظ قبل ما تنرسم الصفحة
 (function(){
   var t = localStorage.getItem('cg_theme');
@@ -432,6 +441,7 @@ a.link-btn{text-decoration:underline;}
 }
 .sound-toggle{width:30px; height:30px; border-radius:50%; border:1px solid var(--border); background:var(--surface);
   font-size:14px; line-height:1; padding:0; cursor:pointer; display:inline-flex; align-items:center; justify-content:center;}
+.lang-toggle{font-family:'Tajawal',sans-serif; font-size:13px; font-weight:800; color:var(--text); width:auto; padding:0 10px; border-radius:999px;}
 .icon-btn.sound-toggle{width:auto; height:auto; border-radius:999px; padding:7px 12px;}
 .theme-dot.active{border-color:var(--text); transform:scale(1.12);}
 .theme-dot[data-t="rose"]{background:linear-gradient(135deg, #3a1838 50%, #ec8aa0 50%);}
@@ -520,6 +530,7 @@ a.link-btn{text-decoration:underline;}
       <div class="theme-dot" data-t="blush" title="ورد وكريمي"></div>
       <div class="theme-dot" data-t="midnight" title="ليل وذهب"></div>
       <button class="sound-toggle" onclick="setSound(!soundOn)" data-sfx-none>🔊</button>
+      <button class="sound-toggle lang-toggle" id="lang-toggle" onclick="setLang(IS_EN ? 'ar' : 'en')"></button>
     </div>
   </div>
 
@@ -745,6 +756,16 @@ a.link-btn{text-decoration:underline;}
 </div>
 
 <script>
+/* ---------------- اللغة ---------------- */
+const LANG = window.APP_LANG || 'ar';
+const IS_EN = LANG === 'en';
+// L('نص عربي', 'English text'): يرجع النص حسب لغة التطبيق
+function L(ar, en){ return IS_EN && en != null ? en : ar; }
+function setLang(l){
+  try{ localStorage.setItem('cg_lang', l); }catch(e){}
+  location.reload();
+}
+
 /* ---------------- content ---------------- */
 const LEVELS = [
   {id:'light', name:'خفيف', flames:'🔥'},
@@ -830,6 +851,40 @@ const DEFAULT_DECKS = {
 function personalize(text, gender){
   return String(text || '').replace(/\{([^{}|]*)\|([^{}]*)\}/g, (_, m, f)=> gender==='f' ? f : m);
 }
+
+// نص البطاقة ونوعها حسب اللغة (البطاقات اللي كتبها المدير أو المشترك بدون ترجمة تطلع بالعربي)
+const EN_CARD_BY_AR = {};
+Object.values(DEFAULT_DECKS).forEach(list=> list.forEach(c=>{ if(c.en) EN_CARD_BY_AR[c.text] = c.en; }));
+function cardText(card){ return L(card.text, card.en || EN_CARD_BY_AR[card.text]); }
+const CARD_TYPE_EN = {'سؤال':'Question', 'تحدي':'Dare'};
+function cardType(type){ return L(type, CARD_TYPE_EN[type]); }
+
+/* ---------------- الواجهة بالإنجليزي: نترجم النصوص الثابتة في الصفحة ---------------- */
+// المفتاح = النص العربي كما هو في الصفحة (بدون المسافات اللي حوله)
+const STATIC_EN = {
+  /*STATIC_EN_ENTRIES*/
+};
+function applyStaticLang(){
+  if(!IS_EN) return;
+  const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
+    acceptNode: n=> n.parentElement && !/^(SCRIPT|STYLE)$/.test(n.parentElement.tagName) && n.nodeValue.trim()
+      ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT
+  });
+  const nodes = [];
+  while(walker.nextNode()) nodes.push(walker.currentNode);
+  nodes.forEach(n=>{
+    const key = n.nodeValue.trim().replace(/\s+/g, ' ');
+    if(STATIC_EN[key] != null) n.nodeValue = n.nodeValue.replace(n.nodeValue.trim(), STATIC_EN[key]);
+  });
+  document.querySelectorAll('[placeholder],[title],[aria-label]').forEach(e=>{
+    ['placeholder', 'title', 'aria-label'].forEach(attr=>{
+      const v = e.getAttribute(attr);
+      if(v && STATIC_EN[v.trim()] != null) e.setAttribute(attr, STATIC_EN[v.trim()]);
+    });
+  });
+}
+applyStaticLang();
+document.getElementById('lang-toggle').textContent = IS_EN ? 'عربي' : 'EN';
 
 /* ---------------- state ---------------- */
 function getOrCreateDeviceId(){
