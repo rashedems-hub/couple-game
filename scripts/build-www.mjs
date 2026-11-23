@@ -10,6 +10,7 @@ const FILES = [
   'icon-512.png',
   'icon-maskable-512.png',
   'stats.html',
+  'privacy.html',
 ];
 
 rmSync('www', { recursive: true, force: true });
