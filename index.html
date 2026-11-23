@@ -392,6 +392,12 @@ label.field-label{display:block; width:100%; text-align:start; font-size:12.5px;
 .wheel-label span{position:absolute; left:-16px; top:-104px; width:32px; text-align:center; font-size:24px;}
 .wheel-hub{position:absolute; top:50%; left:50%; width:46px; height:46px; margin:-23px 0 0 -23px; border-radius:50%; z-index:1;
   background:var(--card-1); border:3px solid var(--tag-ink); display:flex; align-items:center; justify-content:center; font-size:20px;}
+.handoff{position:fixed; inset:0; z-index:30; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; padding:30px;
+  background:linear-gradient(180deg, var(--bg-1), var(--bg-2)); text-align:center;}
+.handoff .btn{max-width:320px;}
+.handoff-icon{font-size:64px;}
+.handoff-title{font-family:var(--title-font); font-size:28px; font-weight:700; color:var(--text);}
+.handoff-sub{font-size:15px; color:var(--text-dim);}
 .wyr-or{font-size:13px; font-weight:900; color:var(--tag-ink);}
 
 /* points & leaderboard */
@@ -517,7 +523,7 @@ a.link-btn{text-decoration:underline;}
       <button class="btn btn-primary" onclick="goTo('create')">✨ ابدأ لعبة جديدة</button>
       <button class="btn btn-ghost" onclick="goTo('join')">🔗 عندي كود، بانضم للعبة</button>
       <button class="btn btn-gold" onclick="openLeaderboard()">🏆 ترتيب اللاعبين <span id="my-points"></span></button>
-      <button class="btn btn-ghost" onclick="openAdmin()">⚙️ إدارة التحديات<span class="count-badge hidden" id="admin-unread-badge"></span></button>
+      <button class="btn btn-ghost" id="btn-admin-home" onclick="openAdmin()">⚙️ إدارة التحديات<span class="count-badge hidden" id="admin-unread-badge"></span></button>
     </div>
     <div class="links-row">
       <button class="link-pill" onclick="openInfo('sunnah')">📖 من الكتاب والسنة</button>
@@ -547,6 +553,13 @@ a.link-btn{text-decoration:underline;}
 
       <label class="field-label">أنا</label>
       <div class="level-row" id="create-gender-row"></div>
+
+      <label class="field-label" id="create-device-label"></label>
+      <div class="level-row" id="create-device-row"></div>
+      <div id="create-partner-box" class="hidden" style="width:100%;">
+        <label class="field-label" id="create-partner-label"></label>
+        <input type="text" id="create-partner-name" maxlength="16">
+      </div>
 
       <label class="field-label">مستوى اللعبة</label>
       <div class="level-row" id="create-level-row"></div>
@@ -855,7 +868,30 @@ function personalize(text, gender){
 // نص البطاقة ونوعها حسب اللغة (البطاقات اللي كتبها المدير أو المشترك بدون ترجمة تطلع بالعربي)
 const EN_CARD_BY_AR = {};
 Object.values(DEFAULT_DECKS).forEach(list=> list.forEach(c=>{ if(c.en) EN_CARD_BY_AR[c.text] = c.en; }));
-function cardText(card){ return L(card.text, card.en || EN_CARD_BY_AR[card.text]); }
+// نسخة التطبيق (المتاجر): صياغة أخف لبعض تحديات المستوى الحماسي
+const STORE_SOFT = {
+  'قبّل{|ي} رقبة {زوجتك|زوجك} بهدوء نص دقيقة':
+    ['قبّل{|ي} يد {زوجتك|زوجك} وقول{|ي} {لها|له} شكراً على شي {سوّته|سوّاه} لك', 'Kiss {your wife|your husband}\'s hand and thank {her|him} for something {she|he} did for you'],
+  'وش تتمن{ى|ين} يصير بينكم الليلة؟ قول{ه|يه} بصراحة':
+    ['وش أحلى سهرة تتمن{ى|ين} تكون بينكم؟ قول{ه|يه} بصراحة', 'What would your dream evening together look like? Be honest'],
+  'وش أكثر ذكرى حميمية بينكم تحب{|ين} إنها تتكرر؟':
+    ['وش أكثر ذكرى رومانسية بينكم تحب{|ين} إنها تتكرر؟', 'Which romantic memory of ours would you love to relive?'],
+  'بوس{|ي} {زوجتك|زوجك} من رقبت{ها|ه} لين أذن{ها|ه} بهدوء':
+    ['بوس{|ي} {زوجتك|زوجك} على خد{ها|ه} وهمس{|ي} {لها|له} بكلمة حلوة', 'Kiss {your wife|your husband} on the cheek and whisper something sweet'],
+  'وش الشي اللي ودك تجربونه مع بعض وما قلت{ه|يه} من قبل؟':
+    ['وش المكان اللي ودك تسافرون له مع بعض وما قلت{ه|يه} من قبل؟', "Where would you love to travel together that you've never mentioned?"],
+  'غمّض{|ي} عيون {زوجتك|زوجك} وفاجئ{ها|يه} بثلاث بوسات في أماكن مختلفة':
+    ['غمّض{|ي} عيون {زوجتك|زوجك} وفاجئ{ها|يه} ببوسة على الجبين وكلمة حلوة', 'Cover {your wife|your husband}\'s eyes and surprise {her|him} with a kiss on the forehead and a sweet word'],
+  'فك{|ي} أول زرار في قميص {زوجتك|زوجك} بهدوء وأنت{|ي} تطالع{|ين} في عيون{ها|ه}':
+    ['امسك{|ي} يدين {زوجتك|زوجك} وطالع{|ي} في عيون{ها|ه} وقول{|ي} {لها|له} وش تحس{|ين} الحين', "Hold {your wife|your husband}'s hands, look into {her|his} eyes and say how you feel right now"],
+  'قول{|ي} {لزوجتك|لزوجك} بصوت هادي وش تبي{|ن} تسوي{|ن} {لها|له} الليلة':
+    ['قول{|ي} {لزوجتك|لزوجك} بصوت هادي وش ودك تسوون مع بعض الويكند الجاي', 'Tell {your wife|your husband} softly what you\'d love to do together next weekend']
+};
+function cardText(card){
+  const soft = IS_NATIVE && STORE_SOFT[card.text];
+  if(soft) return L(soft[0], soft[1]);
+  return L(card.text, card.en || EN_CARD_BY_AR[card.text]);
+}
 const CARD_TYPE_EN = {'سؤال':'Question', 'تحدي':'Dare'};
 function cardType(type){ return L(type, CARD_TYPE_EN[type]); }
 
@@ -992,6 +1028,8 @@ function getOrCreateDeviceId(){
   return id;
 }
 let myId = getOrCreateDeviceId();
+// صاحب الجهاز. myId نفسه يتغير في وضع الجوال الواحد للاعب اللي عليه الدور
+let REAL_ID = myId;
 let myGender = localStorage.getItem('cg_gender') === 'f' ? 'f' : 'm';
 let currentRoomCode = null;
 let lastRoom = null;
@@ -1222,7 +1260,7 @@ const INFO_PAGES = {
         {title: '3. طبيعة المحتوى', text: 'التطبيق لعبة ترفيهية لتقوية العلاقة بين الزوجين، وبعض المستويات فيها محتوى رومانسي للمتزوجين. كل تحدي اختياري، ويقدر أي طرف يتخطاه في أي وقت.', title_en:'3. Nature of the content', text_en:'The app is an entertainment game to strengthen the bond between spouses, and some levels include romantic content for married couples. Every challenge is optional, and either partner can skip it at any time.'},
         {title: '4. المحتوى الديني والطبي', text: 'الآيات والأحاديث والمعلومات الصحية في التطبيق للتذكير والتثقيف العام، وليست فتوى ولا استشارة طبية. ارجعوا لأهل العلم أو للطبيب المختص عند الحاجة.', title_en:'4. Religious and medical content', text_en:'The verses, hadiths and health information in the app are for general reminder and awareness only. They are not a fatwa or medical advice. Consult scholars or a specialist doctor when needed.'},
         {title: '5. الحساب', text: 'أنت مسؤول عن حماية بيانات دخولك وعن أي استخدام يتم من حسابك. ويحق لنا إيقاف أي حساب يخالف هذي الشروط.', title_en:'5. Your account', text_en:'You are responsible for keeping your login details safe and for any use of your account. We may suspend any account that violates these terms.'},
-        {title: '6. الاشتراك المدفوع', text: 'بعض المزايا، مثل كتابة التحديات الخاصة، متاحة للمشتركين فقط. مدة الاشتراك وسعره يتم توضيحهما قبل الدفع، ويتفعّل الاشتراك بعد تأكيد الدفع.', title_en:'6. Paid subscription', text_en:'Some features, such as writing your own challenges, are available to subscribers only. The subscription period and price are shown before payment, and the subscription is activated once payment is confirmed.'},
+        {webOnly: true, title: '6. الاشتراك المدفوع', text: 'بعض المزايا، مثل كتابة التحديات الخاصة، متاحة للمشتركين فقط. مدة الاشتراك وسعره يتم توضيحهما قبل الدفع، ويتفعّل الاشتراك بعد تأكيد الدفع.', title_en:'6. Paid subscription', text_en:'Some features, such as writing your own challenges, are available to subscribers only. The subscription period and price are shown before payment, and the subscription is activated once payment is confirmed.'},
         {title: '7. الاستخدام الممنوع', text: 'يُمنع استخدام التطبيق لأي غرض مخالف للأنظمة أو للآداب العامة، أو محاولة الوصول لبيانات المستخدمين الآخرين، أو تعطيل الخدمة.', title_en:'7. Prohibited use', text_en:'You may not use the app for any purpose that breaks the law or public morals, try to access other users’ data, or disrupt the service.'},
         {title: '8. البيانات اللي نجمعها', text: 'عند التسجيل: الإيميل والاسم (إن وُجد) وطريقة الدخول وتاريخ التسجيل. أثناء اللعب: الاسم اللي تكتبه وبيانات الغرفة وحالتها، وتنحذف الغرفة لما يطلع الطرفين. والتحديات الخاصة للمشترك محفوظة في حسابه ولا يطلع عليها غيره. ونجمع كذلك أرقام استخدام مجهولة (مثل عدد الغرف والتحديات المكتملة) بدون أسماء ولا محتوى.', title_en:'8. Data we collect', text_en:'When you sign up: your email, name (if provided), sign-in method and sign-up date. While playing: the name you enter and the room’s data and state; the room is deleted when both players leave. A subscriber’s private challenges are stored in their account and nobody else can see them. We also collect anonymous usage numbers (such as the number of rooms and completed challenges) without names or content.'},
         {title: '9. كيف نستخدم البيانات ونحميها', text: 'نستخدم البيانات لتشغيل اللعبة وإدارة الاشتراكات وتحسين التطبيق فقط، ولا نبيعها لأي طرف. البيانات محفوظة في خدمات Google Firebase، ومحمية بقواعد تمنع أي مستخدم من الوصول لبيانات غيره.', title_en:'9. How we use and protect data', text_en:'We use data only to run the game, manage subscriptions and improve the app, and we never sell it to anyone. Data is stored in Google Firebase and protected by rules that stop any user from accessing anyone else’s data.'},
@@ -1244,6 +1282,7 @@ function openInfo(key){
   document.getElementById('info-intro').textContent = L(page.intro, page.intro_en);
   const body = document.getElementById('info-body');
   body.innerHTML = '';
+  let num = 0;
   page.sections.forEach(sec=>{
     if(sec.heading){
       const h = document.createElement('h2');
@@ -1252,12 +1291,14 @@ function openInfo(key){
       body.appendChild(h);
     }
     sec.items.forEach(item=>{
+      if(item.webOnly && IS_NATIVE) return;
       const card = document.createElement('div');
       card.className = 'info-card';
       if(item.title){
         const t = document.createElement('div');
         t.className = 'info-card-title';
-        t.textContent = L(item.title, item.title_en);
+        // نعيد الترقيم لأن نسخة التطبيق تخفي بند الاشتراك
+        t.textContent = L(item.title, item.title_en).replace(/^\d+\./, m=> /^\d+\./.test(item.title) ? (++num) + '.' : m);
         card.appendChild(t);
       }
       const p = document.createElement('p');
@@ -1327,12 +1368,33 @@ function renderGenderRows(){
         myGender = g.id;
         localStorage.setItem('cg_gender', g.id);
         renderGenderRows();
+        if(typeof renderDeviceRow === 'function') renderDeviceRow();
       };
       row.appendChild(el);
     });
   });
 }
 renderGenderRows();
+
+// جوالين (كل واحد من جواله) أو جوال واحد يتناقلونه
+let createOnePhone = false;
+function renderDeviceRow(){
+  document.getElementById('create-device-label').textContent = L('كيف بتلعبون؟', 'How will you play?');
+  const row = document.getElementById('create-device-row');
+  row.innerHTML = '';
+  [{one:false, icon:'📱📱', ar:'كل واحد من جواله', en:'Each on our own phone'},
+   {one:true, icon:'📱', ar:'جوال واحد', en:'One phone'}].forEach(o=>{
+    const el = document.createElement('div');
+    el.className = 'level-opt' + (o.one === createOnePhone ? ' active' : '');
+    el.innerHTML = `<div class="level-flames">${o.icon}</div><div class="level-name">${L(o.ar, o.en)}</div>`;
+    el.onclick = ()=>{ createOnePhone = o.one; renderDeviceRow(); };
+    row.appendChild(el);
+  });
+  document.getElementById('create-partner-box').classList.toggle('hidden', !createOnePhone);
+  document.getElementById('create-partner-label').textContent = myGender === 'f' ? L('اسم زوجك', "Your husband's name") : L('اسم زوجتك', "Your wife's name");
+  document.getElementById('create-partner-name').placeholder = myGender === 'f' ? L('مثلاً: محمد', 'e.g. Mohammed') : L('مثلاً: سارة', 'e.g. Sarah');
+}
+renderDeviceRow();
 
 /* ---------------- firebase ---------------- */
 const firebaseConfig = {
@@ -1362,6 +1424,12 @@ function isSubscriber(){ return SUB_UNTIL > Date.now(); }
 function canEditDecks(){ return IS_ADMIN || isSubscriber(); }
 function isGuest(){ return !currentUser || currentUser.isAnonymous; }
 
+// نسخة التطبيق: ما نعرض الاشتراك المدفوع (المتاجر تشترط الدفع عن طريقها)، فتعديل التحديات يظهر للمدير والمشتركين بس
+function applyStoreVisibility(){
+  if(!IS_NATIVE) return;
+  document.getElementById('btn-admin-home').classList.toggle('hidden', !(IS_ADMIN || isSubscriber()));
+}
+
 async function loadRoles(){
   // المدير يتحدد في قواعد الأمان بس: قائمة المشتركين ما يقدر يقرأها غيره
   try{
@@ -1369,9 +1437,10 @@ async function loadRoles(){
     IS_ADMIN = true;
   }catch(e){ IS_ADMIN = false; }
   SUB_UNTIL = 0;
-  try{ SUB_UNTIL = (await db.ref('subscribers/' + myId + '/until').once('value')).val() || 0; }catch(e){}
+  try{ SUB_UNTIL = (await db.ref('subscribers/' + REAL_ID + '/until').once('value')).val() || 0; }catch(e){}
   renderAccountBar();
   loadMyPoints();
+  applyStoreVisibility();
   if(IS_ADMIN) refreshUnreadBadge();
   else document.getElementById('admin-unread-badge').classList.add('hidden');
 }
@@ -1388,7 +1457,7 @@ const authReady = new Promise(resolve=>{
       return; // بيرجع يتنادى مع المستخدم الجديد
     }
     currentUser = user;
-    myId = user.uid;
+    myId = REAL_ID = user.uid;
     if(!user.isAnonymous) saveProfile(user);
     await loadRoles();
     done();
@@ -1505,7 +1574,7 @@ function hideAuthError(elId){ document.getElementById(elId).classList.add('hidde
 async function afterLogin(){
   const prevId = myId;
   currentUser = auth.currentUser;
-  myId = currentUser.uid;
+  myId = REAL_ID = currentUser.uid;
   if(prevId !== myId){
     detachLive();
     currentRoomCode = null;
@@ -1649,6 +1718,7 @@ if(IS_NATIVE){
   document.getElementById('btn-google').classList.add('hidden');
   if(!FACEBOOK_ENABLED) document.getElementById('social-divider').classList.add('hidden');
 }
+applyStoreVisibility();
 // متصفحات داخل التطبيقات (إنستقرام، فيسبوك، سناب...) ما تسمح بالدخول بحساب Google
 if(/FBAN|FBAV|Instagram|Snapchat|Line\/|TikTok|musical_ly|Twitter/i.test(navigator.userAgent)){
   document.getElementById('inapp-notice').classList.remove('hidden');
@@ -1710,7 +1780,7 @@ function openInviteLink(){
 /* ---------------- decks ---------------- */
 // المدير يعدّل التحديات الرسمية اللي يلعب فيها الكل، والمشترك يعدّل نسخته الخاصة
 let EDIT_DECK = null;
-function editDeckRef(){ return IS_ADMIN ? db.ref('officialDeck') : db.ref('userDecks/' + myId); }
+function editDeckRef(){ return IS_ADMIN ? db.ref('officialDeck') : db.ref('userDecks/' + REAL_ID); }
 
 function defaultDeck(){
   const out = {};
@@ -1735,7 +1805,7 @@ async function deckForNewRoom(){
   await authReady;
   if(isSubscriber() && !IS_ADMIN){
     try{
-      const snap = await db.ref('userDecks/' + myId).once('value');
+      const snap = await db.ref('userDecks/' + REAL_ID).once('value');
       if(snap.exists()) return snap.val();
     }catch(e){ console.error('deck read failed', e); }
   }
@@ -1834,7 +1904,7 @@ function weekKey(d = new Date()){
   return `${y}-W${String(w).padStart(2, '0')}`;
 }
 let MY_POINTS = null;
-function myLbRef(){ return db.ref('leaderboard/' + myId); }
+function myLbRef(){ return db.ref('leaderboard/' + REAL_ID); }
 function weekPtsOf(e){ return e && e.week === weekKey() ? (e.weekPts || 0) : 0; }
 async function loadMyPoints(){
   try{ MY_POINTS = (await myLbRef().once('value')).val(); }catch(e){ MY_POINTS = null; }
@@ -2395,7 +2465,7 @@ let flushTimer = null;
 let flushFails = 0;
 async function flushPoints(room){
   if(!room || flushing || !room.code) return;
-  const earned = (room.score && room.score[myId]) || 0;
+  const earned = (room.score && room.score[REAL_ID]) || 0;
   const sent = Number(localStorage.getItem(sentKey(room)) || 0);
   if(earned - sent <= 0) return;
   flushing = true;
@@ -2404,7 +2474,7 @@ async function flushPoints(room){
     const cur = (await myLbRef().once('value')).val();
     const wk = weekKey();
     const next = {
-      name: (cur && cur.name) || playerName(room, myId).slice(0, 30) || L('لاعب', 'Player'),
+      name: (cur && cur.name) || playerName(room, REAL_ID).slice(0, 30) || L('لاعب', 'Player'),
       total: (cur ? cur.total : 0) + pts,
       weekPts: (cur && cur.week === wk ? cur.weekPts : 0) + pts,
       week: wk,
@@ -2480,7 +2550,7 @@ async function sendFeedback(){
   try{
     await authReady;
     await db.ref('feedback').push({
-      uid: myId,
+      uid: REAL_ID,
       type: feedbackType,
       message: message.slice(0, 2000),
       email: email.slice(0, 200),
@@ -2794,11 +2864,20 @@ async function createRoom(){
       deck,
       updatedAt: Date.now()
     };
+    if(createOnePhone){
+      // الشريك على نفس الجوال: له معرّف محلي، وهذا الجهاز يلعب عن الاثنين
+      const partnerId = 'local_' + Math.random().toString(36).slice(2, 10);
+      const partnerName = document.getElementById('create-partner-name').value.trim() || (myGender === 'f' ? L('زوجي', 'My husband') : L('زوجتي', 'My wife'));
+      room.guestId = partnerId;
+      room.players[partnerId] = {name: partnerName, g: myGender === 'f' ? 'm' : 'f'};
+      room.local = true;
+    }
     try{
       const res = await roomRef(code).transaction(cur=> cur ? undefined : room);
       if(res.committed){
         track('roomsCreated');
-        showWaiting(code);
+        if(room.local) enterGame(room);
+        else showWaiting(code);
         return;
       }
     }catch(e){
@@ -2879,6 +2958,8 @@ function confirmLeave(){
 }
 
 async function leaveRoom(){
+  myId = REAL_ID;
+  hideHandoff();
   const code = currentRoomCode;
   detachLive();
   currentRoomCode = null;
@@ -2891,7 +2972,7 @@ async function leaveRoom(){
     await roomRef(code).transaction(r=>{
       if(!r) return r;
       // لو ما انضم أحد، أو شريكك طالع قبلك: نحذف الغرفة
-      if(!r.guestId || (r.leftBy && r.leftBy !== myId)) return null;
+      if(r.local || !r.guestId || (r.leftBy && r.leftBy !== myId)) return null;
       r.leftBy = myId;
       r.updatedAt = Date.now();
       return r;
@@ -2900,6 +2981,8 @@ async function leaveRoom(){
 }
 
 function roomGone(){
+  myId = REAL_ID;
+  hideHandoff();
   detachLive();
   currentRoomCode = null;
   lastRoom = null;
@@ -2924,7 +3007,83 @@ function enterGame(room){
 
 function levelInfo(id){ return LEVELS.find(l=>l.id===id) || LEVELS[0]; }
 
+/* ----- وضع الجوال الواحد: الشاشة تنعرض من جهة اللاعب اللي عليه يتصرف ----- */
+function localPerspective(room){
+  const ids = playerIds(room);
+  const m = room.mini;
+  const mode = room.mode || 'cards';
+  if(mode === 'cards') return room.currentCard && room.awaitingRating ? otherId(room, turnOf(room)) : turnOf(room);
+  if(mode === 'know'){
+    if(!m || m.kind !== 'know') return turnOf(room);
+    if(m.answer < 0) return m.subject;
+    if(!m.revealed) return otherId(room, m.subject);
+    return myId;
+  }
+  if(mode === 'wyr'){
+    if(!m || m.kind !== 'wyr' || m.revealed) return myId;
+    const picks = m.picks || {};
+    if(picks[myId] === undefined) return myId;
+    return ids.find(id=> picks[id] === undefined) || myId;
+  }
+  if(mode === 'wheel'){
+    if(!m || m.kind !== 'wheel') return turnOf(room);
+    if(m.status === 'pending') return otherId(room, m.spinner);
+    return myId;
+  }
+  return myId;
+}
+// الأسئلة السرية: نطلب تمرير الجوال قبل ما نكشف شاشة اللاعب الثاني
+function isSecretPhase(room){
+  const m = room.mini;
+  return !!(m && !m.revealed && (m.kind === 'wyr' || (m.kind === 'know' && m.answer >= 0)));
+}
+let handoffTo = null;
+function showHandoff(room, id){
+  handoffTo = id;
+  let ov = document.getElementById('handoff');
+  if(!ov){
+    ov = document.createElement('div');
+    ov.id = 'handoff';
+    ov.className = 'handoff';
+    document.body.appendChild(ov);
+  }
+  const name = playerName(room, id);
+  ov.innerHTML = '';
+  ov.appendChild(el('div', 'handoff-icon', '📱'));
+  ov.appendChild(el('div', 'handoff-title', L(`مرّر الجوال لـ ${name}`, `Pass the phone to ${name}`)));
+  ov.appendChild(el('div', 'handoff-sub', L('بدون ما تشوف شاشته 🤫', 'No peeking 🤫')));
+  const b = el('button', 'btn btn-primary', L(`أنا ${name}، كمّل`, `I'm ${name}, continue`));
+  b.onclick = ()=>{ myId = handoffTo; hideHandoff(); if(lastRoom) renderRoom(lastRoom); };
+  ov.appendChild(b);
+  ov.classList.remove('hidden');
+}
+function hideHandoff(){
+  handoffTo = null;
+  const ov = document.getElementById('handoff');
+  if(ov) ov.classList.add('hidden');
+}
 function renderRoom(room){
+  if(room.local){
+    const want = localPerspective(room);
+    if(want && want !== myId){
+      if(isSecretPhase(room)){
+        lastRoom = room;
+        playRoomSounds(room);
+        showHandoff(room, want);
+        return;
+      }
+      myId = want;
+    }
+    hideHandoff();
+  }
+  renderRoomView(room);
+  if(room.local){
+    const banner = document.getElementById('turn-banner');
+    banner.textContent = `👤 ${playerName(room, myId)} · ${banner.textContent}`;
+  }
+}
+
+function renderRoomView(room){
   lastRoom = room;
   playRoomSounds(room);
   flushPoints(room);
