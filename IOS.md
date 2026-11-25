@@ -11,7 +11,13 @@
 - حساب [Apple Developer](https://developer.apple.com/programs/) (‏99$ بالسنة) — مطلوب للنشر في App Store.
   للتجربة على جوالك بس يكفي Apple ID مجاني.
 
-## التشغيل على الآيفون
+## البناء والرفع بدون ماك (GitHub Actions)
+
+1. في GitHub افتح **Actions ← iOS app ← Run workflow**، واكتب رقم الإصدار (مثلاً `1.0`).
+2. الـ workflow يبني التطبيق على ماك سحابي ويرفعه لـ **App Store Connect**، وبعد 10 إلى 30 دقيقة يطلع في **TestFlight**.
+3. يحتاج 3 Secrets: `ASC_ISSUER_ID` و`ASC_KEY_ID` و`ASC_KEY_P8` (مفتاح App Store Connect API بصلاحية Admin).
+
+## التشغيل على الآيفون (لو عندك ماك)
 
 ```bash
 npm install
