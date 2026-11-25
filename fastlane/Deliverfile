@@ -1,0 +1,4 @@
+# Settings for fastlane deliver (used by .github/workflows/ios-screenshots.yml).
+# Having this file stops deliver from asking to set itself up, which fails in CI.
+app_identifier "com.halalii.app"
+platform "ios"
