@@ -1138,7 +1138,7 @@ function sfx(name){
   }catch(e){ console.warn('sound failed', e); }
 }
 function renderSoundToggles(){
-  document.querySelectorAll('.sound-toggle').forEach(b=>{
+  document.querySelectorAll('.sound-toggle:not(.lang-toggle)').forEach(b=>{
     b.textContent = soundOn ? '🔊' : '🔇';
     b.title = soundOn ? L('كتم الصوت', 'Mute') : L('تشغيل الصوت', 'Unmute');
   });
