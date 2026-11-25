@@ -14,7 +14,11 @@
 // اللغة: المحفوظة، أو لغة الجوال (عربي لو الجوال عربي، وإلا إنجليزي)
 (function(){
   var l = 'ar';
-  try{ l = localStorage.getItem('cg_lang') || ((navigator.language || '').toLowerCase().indexOf('ar') === 0 ? 'ar' : 'en'); }catch(e){}
+  // نشوف كل لغات الجوال، مو بس الأولى (في تطبيق الآيفون أحياناً الأولى إنجليزي)
+  try{
+    var langs = [].concat(navigator.languages || [], navigator.language || []).map(function(x){ return String(x).toLowerCase(); });
+    l = localStorage.getItem('cg_lang') || (langs.some(function(x){ return x.indexOf('ar') === 0; }) ? 'ar' : 'en');
+  }catch(e){}
   window.APP_LANG = l === 'en' ? 'en' : 'ar';
   if(window.APP_LANG === 'en'){ document.documentElement.lang = 'en'; document.documentElement.dir = 'ltr'; document.title = 'Halalii'; }
 })();
