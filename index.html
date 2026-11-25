@@ -1397,6 +1397,9 @@ function renderDeviceRow(){
   document.getElementById('create-partner-box').classList.toggle('hidden', !createOnePhone);
   document.getElementById('create-partner-label').textContent = myGender === 'f' ? L('اسم زوجك', "Your husband's name") : L('اسم زوجتك', "Your wife's name");
   document.getElementById('create-partner-name').placeholder = myGender === 'f' ? L('مثلاً: محمد', 'e.g. Mohammed') : L('مثلاً: سارة', 'e.g. Sarah');
+  // مثال اسم اللاعب نفسه يتبع اختيار زوج أو زوجة
+  const ownExample = myGender === 'f' ? L('مثلاً: سارة', 'e.g. Sarah') : L('مثلاً: محمد', 'e.g. Mohammed');
+  ['create-name', 'join-name'].forEach(id=> document.getElementById(id).placeholder = ownExample);
 }
 renderDeviceRow();
 
