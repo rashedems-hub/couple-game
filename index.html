@@ -344,6 +344,7 @@ label.field-label{display:block; width:100%; text-align:start; font-size:12.5px;
 .small-close{margin-top:12px; font-size:13px; color:var(--text-dim); text-decoration:underline; cursor:pointer; background:none; border:none; font-family:'Tajawal',sans-serif;}
 
 .top-actions{display:flex; justify-content:space-between; align-items:center; width:100%; margin-bottom:12px;}
+.screen-top-back{width:100%; display:flex; justify-content:flex-start; margin-bottom:4px;}
 .icon-btn{background:var(--surface); border:1px solid var(--border); border-radius:999px; padding:7px 14px; color:var(--text-dim); font-size:13px; font-family:'Tajawal',sans-serif; cursor:pointer;}
 
 /* admin */
@@ -728,6 +729,7 @@ a.link-btn{text-decoration:underline;}
 
   <!-- SCREEN: ADMIN -->
   <div class="screen hidden" id="screen-admin">
+    <div class="screen-top-back"><button class="icon-btn" onclick="goTo('home')">→ رجوع</button></div>
     <div class="brand">
       <span class="brand-icon">⚙️</span>
       <h1 class="title" id="admin-title">إدارة التحديات</h1>
@@ -986,6 +988,7 @@ const STATIC_EN = {
   'وصلتنا رسالتك، شكراً لك! نقرأ كل الرسائل، وإذا كتبت إيميلك بنرد عليك.': 'We got your message, thank you! We read every message, and if you left your email we\'ll reply.',
   'رسالة ثانية': 'Another message',
   'رجوع للرئيسية': 'Back to home',
+  '→ رجوع': '← Back',
   'إدارة التحديات': 'Manage challenges',
   'سجّل دخولك': 'Sign in',
   'اختر المستوى': 'Choose a level',
