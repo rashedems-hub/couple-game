@@ -24,7 +24,7 @@ Halalii is a fun, light game for married couples (adults 18+) who want to spend 
 4. Tap "Create room". The game starts right away and the turn passes between the two players on the same phone.
 5. Use the four tabs at the top: Cards, Know Me?, Would You Rather and Lucky Wheel. In Know Me? and Would You Rather a "Pass the phone" screen keeps the second player's answer secret; tap the button to continue.
 Two-phone mode: one player creates a room and shares the code; the other taps "I have a code, join a game" and enters it.
-Accounts are optional. To test them, tap "Create a new account" on the welcome screen and use any email and password; no demo account is needed. To delete the account: Terms & Conditions → "Delete my account and data".
+Accounts are optional. A demo account is in the Sign-In Information fields (tap "Sign in" on the welcome screen), or tap "Create a new account" and use any email and password. To delete the account: Terms & Conditions → "Delete my account and data".
 The language follows the device (Arabic or English) and can be switched with the EN / عربي button on the home screen.
 
 4. EXTERNAL SERVICES
