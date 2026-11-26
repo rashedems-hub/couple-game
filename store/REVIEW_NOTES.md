@@ -9,7 +9,7 @@ or **App access** (Play Console). Replace `VIDEO_LINK` with the link to the scre
 
 1. SCREEN RECORDING
 Recorded on a physical iPhone running the latest iOS, starting from launching the app:
-VIDEO_LINK
+https://youtu.be/3qbwDu94YDI
 It shows: launch, account registration (email and password), sign-in, starting a game in one-phone mode, all four games, switching the language, and account deletion (Terms & Conditions → "Delete my account and data").
 - User-generated content: the app has no public content. Player names are only seen by the two players in the same private room, and the "Feedback & contact" form sends a private message to the developer only, so there is nothing other users can see to report or block.
 - Paid content: none. The app has no ads and no in-app purchases.
