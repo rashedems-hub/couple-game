@@ -17,7 +17,7 @@ It shows: launch, account registration (email and password), sign-in, starting a
 2. PURPOSE AND AUDIENCE
 Halalii is a fun, light game for married couples (adults 18+) who want to spend quality time together. It gives them conversation cards, "Know me?" questions, "Would you rather" questions and a lucky wheel, so they talk more, learn about each other and laugh together. Content is romantic but not explicit.
 
-3. HOW TO USE THE APP (no sign-in needed)
+3. HOW TO USE THE APP (sign-in is optional)
 1. Open the app. On the welcome screen tap "Try as a guest".
 2. Tap "Start a new game".
 3. Enter any name, pick Husband or Wife, then under "How will you play?" choose "One phone" and enter a partner name.
