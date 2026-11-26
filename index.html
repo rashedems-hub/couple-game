@@ -215,6 +215,11 @@ input[type=text], input[type=email], input[type=password], textarea, select{
 }
 input[type=text], input[type=email], input[type=password]{margin-top:10px; text-align:center;}
 input[type=email], input[type=password]{direction:ltr;}
+.pass-wrap{position:relative;}
+.pass-wrap input{padding-left:52px; padding-right:52px;}
+.pass-eye{position:absolute; left:6px; top:calc(50% + 5px); transform:translateY(-50%); width:42px; height:42px; display:flex; align-items:center; justify-content:center; border:0; border-radius:12px; background:transparent; color:var(--text-dim); cursor:pointer;}
+.pass-eye:focus-visible{outline:2px solid var(--border-strong);}
+.pass-eye[aria-pressed="true"] .eye-slash{display:none;}
 textarea{font-size:14.5px; line-height:1.7; resize:vertical; min-height:70px; margin-top:10px;}
 select{width:auto; padding:6px 12px; font-size:12.5px; border-radius:10px; color:var(--accent);}
 input::placeholder, textarea::placeholder{color:var(--text-faint);}
@@ -489,12 +494,20 @@ a.link-btn{text-decoration:underline;}
       <p class="subtitle">سجّل دخولك عشان تحفظ حسابك وتقدر تشترك،<br>أو جرّب اللعبة كزائر</p>
     </div>
     <div class="card-panel">
-      <label class="field-label">الإيميل</label>
-      <input type="email" id="email-input" placeholder="name@example.com" autocomplete="email" inputmode="email">
-      <label class="field-label">كلمة المرور</label>
-      <input type="password" id="pass-input" placeholder="6 أحرف أو أكثر" autocomplete="current-password">
-      <button class="btn btn-primary" onclick="emailAuth('signin')">دخول</button>
-      <button class="btn btn-gold" onclick="emailAuth('signup')">إنشاء حساب جديد</button>
+      <!-- نموذج حقيقي عشان الجوال يقترح الإيميلات وكلمات المرور المحفوظة ويعرض حفظها -->
+      <form id="login-form" onsubmit="event.preventDefault(); emailAuth('signin')">
+        <label class="field-label" for="email-input">الإيميل</label>
+        <input type="email" id="email-input" name="email" placeholder="name@example.com" autocomplete="username" inputmode="email" autocapitalize="none" spellcheck="false">
+        <label class="field-label" for="pass-input">كلمة المرور</label>
+        <div class="pass-wrap">
+          <input type="password" id="pass-input" name="password" placeholder="6 أحرف أو أكثر" autocomplete="current-password">
+          <button type="button" class="pass-eye" id="pass-eye" onclick="togglePassword()" aria-label="إظهار كلمة المرور" aria-pressed="false">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/><path class="eye-slash" d="M4 4l16 16"/></svg>
+          </button>
+        </div>
+        <button type="submit" class="btn btn-primary">دخول</button>
+        <button type="button" class="btn btn-gold" onclick="emailAuth('signup')">إنشاء حساب جديد</button>
+      </form>
       <p class="terms-note">بإنشاء حساب أو استخدام التطبيق أنت توافق على <button class="link-btn" onclick="openInfo('terms')">الشروط والأحكام</button>، وتقر إن التطبيق للأزواج المتزوجين فوق 18 سنة.</p>
       <button class="small-close" onclick="resetPassword()">نسيت كلمة المرور؟</button>
       <p class="hint-text error-text hidden" id="welcome-error"></p>
@@ -908,6 +921,8 @@ const STATIC_EN = {
   'سجّل دخولك عشان تحفظ حسابك وتقدر تشترك،': 'Sign in to save your account and subscribe,',
   'أو جرّب اللعبة كزائر': 'or try the game as a guest',
   'الإيميل': 'Email',
+  'إظهار كلمة المرور': 'Show password',
+  'إخفاء كلمة المرور': 'Hide password',
   'كلمة المرور': 'Password',
   '6 أحرف أو أكثر': '6 characters or more',
   'دخول': 'Sign in',
@@ -1642,9 +1657,32 @@ async function emailAuth(mode){
     } else {
       await auth.signInWithEmailAndPassword(email, pass);
     }
+    rememberEmail(email);
     document.getElementById('pass-input').value = '';
+    setPasswordVisible(false);
     await afterLogin();
   }catch(e){ showAuthError('welcome-error', e); }
+}
+
+// زر العين: يعرض كلمة المرور أو يخفيها
+function setPasswordVisible(show){
+  document.getElementById('pass-input').type = show ? 'text' : 'password';
+  const eye = document.getElementById('pass-eye');
+  eye.setAttribute('aria-pressed', show ? 'true' : 'false');
+  eye.setAttribute('aria-label', show ? L('إخفاء كلمة المرور', 'Hide password') : L('إظهار كلمة المرور', 'Show password'));
+}
+function togglePassword(){
+  setPasswordVisible(document.getElementById('pass-input').type === 'password');
+}
+
+// نحفظ آخر إيميل دخل فيه على هذا الجهاز، ونكتبه في الخانة بعد تسجيل الخروج
+function rememberEmail(email){
+  try{ email ? localStorage.setItem('cg_last_email', email) : localStorage.removeItem('cg_last_email'); }catch(e){}
+}
+function fillRememberedEmail(){
+  const input = document.getElementById('email-input');
+  if(input.value) return;
+  try{ input.value = localStorage.getItem('cg_last_email') || ''; }catch(e){}
 }
 
 async function resetPassword(){
@@ -1682,6 +1720,8 @@ async function deleteAccount(){
     return;
   }
   localStorage.removeItem('cg_entered');
+  rememberEmail(''); // الحساب انحذف، فما نقترح إيميله بعد
+  document.getElementById('email-input').value = '';
   EDIT_DECK = null;
   IS_ADMIN = false;
   SUB_UNTIL = 0;
@@ -1697,6 +1737,7 @@ async function signOut(){
   IS_ADMIN = false;
   SUB_UNTIL = 0;
   await auth.signOut(); // بيدخل تلقائياً كزائر جديد
+  fillRememberedEmail();
   goTo('welcome');
 }
 
@@ -1742,6 +1783,7 @@ if(/FBAN|FBAV|Instagram|Snapchat|Line\/|TikTok|musical_ly|Twitter/i.test(navigat
   document.getElementById('inapp-notice').classList.remove('hidden');
 }
 // أول مرة: نعرض شاشة الترحيب
+fillRememberedEmail();
 if(!localStorage.getItem('cg_entered')) goTo('welcome');
 renderAccountBar();
 
