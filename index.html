@@ -1554,6 +1554,7 @@ if(localStorage.getItem('cg_seen_day') !== statsDay()){
 /* ---------------- sign in ---------------- */
 const AUTH_ERRORS = {
   'auth/invalid-email': L('الإيميل مكتوب غلط', "That email doesn't look right"),
+  'auth/missing-email': L('اكتب إيميلك', "Please enter your email"),
   'auth/missing-password': L('اكتب كلمة المرور', "Please enter your password"),
   'auth/weak-password': L('كلمة المرور لازم تكون 6 أحرف أو أكثر', "Password must be at least 6 characters"),
   'auth/email-already-in-use': L('هذا الإيميل مسجّل من قبل، اضغط "دخول"', "This email is already registered. Tap \"Sign in\""),
@@ -1621,10 +1622,17 @@ async function signInWith(name){
 }
 
 async function emailAuth(mode){
-  await authReady;
   hideAuthError('welcome-error');
   const email = document.getElementById('email-input').value.trim();
   const pass = document.getElementById('pass-input').value;
+  // نتأكد من الخانات قبل ما نرسل لـ Firebase، عشان تطلع رسالة واضحة بدل رمز الخطأ
+  const missing = !email ? 'auth/missing-email' : !pass ? 'auth/missing-password' : null;
+  if(missing){
+    showAuthError('welcome-error', {code: missing});
+    document.getElementById(!email ? 'email-input' : 'pass-input').focus();
+    return;
+  }
+  await authReady;
   try{
     if(mode === 'signup'){
       const u = auth.currentUser;
