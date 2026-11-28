@@ -1,0 +1,38 @@
+name: Firebase functions
+
+# Deploys functions/ (the RevenueCat webhook) to the couple-game-95ed7 Firebase project.
+# Run it from the Actions tab ("Run workflow"). Needs these repository secrets:
+#   FIREBASE_SERVICE_ACCOUNT  JSON key of a Google Cloud service account with the
+#                             "Firebase Admin" and "Cloud Functions Admin" roles
+#   REVENUECAT_WEBHOOK_AUTH   the Authorization header value set on the webhook in RevenueCat
+#   REVENUECAT_SECRET_KEY     a RevenueCat secret API key (v1, starts with sk_)
+# The project must be on the Blaze plan for Cloud Functions.
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci --prefix functions
+      - name: Write service account key
+        env:
+          KEY: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          if [ -z "$KEY" ]; then echo "::error::Add the FIREBASE_SERVICE_ACCOUNT secret first"; exit 1; fi
+          printf '%s' "$KEY" > "$RUNNER_TEMP/sa.json"
+          echo "GOOGLE_APPLICATION_CREDENTIALS=$RUNNER_TEMP/sa.json" >> "$GITHUB_ENV"
+      - name: Store RevenueCat secrets in Secret Manager
+        env:
+          WEBHOOK_AUTH: ${{ secrets.REVENUECAT_WEBHOOK_AUTH }}
+          SECRET_KEY: ${{ secrets.REVENUECAT_SECRET_KEY }}
+        run: |
+          if [ -z "$WEBHOOK_AUTH" ] || [ -z "$SECRET_KEY" ]; then echo "::error::Add the REVENUECAT_WEBHOOK_AUTH and REVENUECAT_SECRET_KEY secrets first"; exit 1; fi
+          printf '%s' "$WEBHOOK_AUTH" | npx --yes firebase-tools@15.36.0 functions:secrets:set REVENUECAT_WEBHOOK_AUTH --data-file=- --project couple-game-95ed7 --force --non-interactive
+          printf '%s' "$SECRET_KEY" | npx --yes firebase-tools@15.36.0 functions:secrets:set REVENUECAT_SECRET_KEY --data-file=- --project couple-game-95ed7 --force --non-interactive
+      - name: Deploy
+        run: npx --yes firebase-tools@15.36.0 deploy --only functions --project couple-game-95ed7 --non-interactive --force

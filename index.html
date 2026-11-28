@@ -372,6 +372,9 @@ label.field-label{display:block; width:100%; text-align:start; font-size:12.5px;
 .btn-icon svg{width:20px; height:20px; flex:none;}
 .notice{width:100%; padding:12px 14px; border-radius:16px; background:var(--tag-bg); color:var(--text); font-size:13px; line-height:1.8; margin-top:12px;}
 .locked-icon{font-size:40px; margin-bottom:6px;}
+.paywall-features{list-style:none; padding:0; margin:6px 0 14px; text-align:start; font-size:14px; line-height:2; color:var(--text);}
+.paywall-legal{font-size:12px; line-height:1.8; color:var(--text-faint); margin-top:14px;}
+.paywall-legal a, .paywall-legal button{color:var(--accent); text-decoration:underline; background:none; border:0; padding:0; font:inherit; cursor:pointer;}
 .sub-row{display:flex; flex-direction:column; gap:6px; background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:12px; text-align:start;}
 .sub-row .who{font-weight:800; color:var(--text); font-size:14px; word-break:break-all;}
 .sub-row .status{font-size:12.5px; color:var(--text-dim);}
@@ -752,6 +755,7 @@ a.link-btn{text-decoration:underline;}
     <div class="card-panel hidden" id="admin-locked">
       <div class="locked-icon">🔒</div>
       <p class="hint-text" id="admin-locked-text"></p>
+      <div id="admin-paywall" class="hidden"></div>
       <button class="btn btn-primary hidden" id="admin-locked-login" onclick="goTo('welcome')">سجّل دخولك</button>
       <button class="btn btn-ghost" onclick="goTo('home')">رجوع للرئيسية</button>
     </div>
@@ -1282,6 +1286,7 @@ const INFO_PAGES = {
         {title: '3. طبيعة المحتوى', text: 'التطبيق لعبة ترفيهية لتقوية العلاقة بين الزوجين، وبعض المستويات فيها محتوى رومانسي للمتزوجين. كل تحدي اختياري، ويقدر أي طرف يتخطاه في أي وقت.', title_en:'3. Nature of the content', text_en:'The app is an entertainment game to strengthen the bond between spouses, and some levels include romantic content for married couples. Every challenge is optional, and either partner can skip it at any time.'},
         {title: '4. المحتوى الديني والطبي', text: 'الآيات والأحاديث والمعلومات الصحية في التطبيق للتذكير والتثقيف العام، وليست فتوى ولا استشارة طبية. ارجعوا لأهل العلم أو للطبيب المختص عند الحاجة.', title_en:'4. Religious and medical content', text_en:'The verses, hadiths and health information in the app are for general reminder and awareness only. They are not a fatwa or medical advice. Consult scholars or a specialist doctor when needed.'},
         {title: '5. الحساب', text: 'أنت مسؤول عن حماية بيانات دخولك وعن أي استخدام يتم من حسابك. ويحق لنا إيقاف أي حساب يخالف هذي الشروط.', title_en:'5. Your account', text_en:'You are responsible for keeping your login details safe and for any use of your account. We may suspend any account that violates these terms.'},
+        {nativeOnly: true, title: '6. الاشتراك المدفوع', text: 'بعض المزايا، مثل كتابة التحديات الخاصة، متاحة للمشتركين. الاشتراك يندفع عن طريق حسابك في App Store أو Google Play، ويظهر السعر والمدة قبل الدفع. يتجدد الاشتراك تلقائياً في نهاية كل فترة، إلا إذا ألغيته قبل نهايتها بـ 24 ساعة على الأقل من إعدادات الاشتراكات في جوالك، ويبقى فعّال لين نهاية الفترة المدفوعة.', title_en:'6. Paid subscription', text_en:'Some features, such as writing your own challenges, are available to subscribers. The subscription is paid through your App Store or Google Play account, and the price and period are shown before payment. It renews automatically at the end of each period unless you cancel it at least 24 hours before the period ends in your phone\'s subscription settings, and it stays active until the end of the paid period.'},
         {webOnly: true, title: '6. الاشتراك المدفوع', text: 'بعض المزايا، مثل كتابة التحديات الخاصة، متاحة للمشتركين فقط. مدة الاشتراك وسعره يتم توضيحهما قبل الدفع، ويتفعّل الاشتراك بعد تأكيد الدفع.', title_en:'6. Paid subscription', text_en:'Some features, such as writing your own challenges, are available to subscribers only. The subscription period and price are shown before payment, and the subscription is activated once payment is confirmed.'},
         {title: '7. الاستخدام الممنوع', text: 'يُمنع استخدام التطبيق لأي غرض مخالف للأنظمة أو للآداب العامة، أو محاولة الوصول لبيانات المستخدمين الآخرين، أو تعطيل الخدمة.', title_en:'7. Prohibited use', text_en:'You may not use the app for any purpose that breaks the law or public morals, try to access other users’ data, or disrupt the service.'},
         {title: '8. البيانات اللي نجمعها', text: 'عند التسجيل: الإيميل والاسم (إن وُجد) وطريقة الدخول وتاريخ التسجيل. أثناء اللعب: الاسم اللي تكتبه وبيانات الغرفة وحالتها، وتنحذف الغرفة لما يطلع الطرفين. والتحديات الخاصة للمشترك محفوظة في حسابه ولا يطلع عليها غيره. ونجمع كذلك أرقام استخدام مجهولة (مثل عدد الغرف والتحديات المكتملة) بدون أسماء ولا محتوى.', title_en:'8. Data we collect', text_en:'When you sign up: your email, name (if provided), sign-in method and sign-up date. While playing: the name you enter and the room’s data and state; the room is deleted when both players leave. A subscriber’s private challenges are stored in their account and nobody else can see them. We also collect anonymous usage numbers (such as the number of rooms and completed challenges) without names or content.'},
@@ -1314,6 +1319,7 @@ function openInfo(key){
     }
     sec.items.forEach(item=>{
       if(item.webOnly && IS_NATIVE) return;
+      if(item.nativeOnly && !purchasesEnabled()) return;
       const card = document.createElement('div');
       card.className = 'info-card';
       if(item.title){
@@ -1441,6 +1447,44 @@ const FACEBOOK_ENABLED = false;
 const IS_NATIVE = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
 const PUBLIC_URL = 'https://rashedems-hub.github.io/couple-game/';
 
+/* ---------------- اشتراكات المتجر (RevenueCat) ----------------
+   تشتغل في نسخة التطبيق بس، ولما تنحط مفاتيح RevenueCat العامة هنا (مفاتيح العميل، مو السرية).
+   الدفع يتأكد منه خادم RevenueCat، والـ webhook في functions/ يكتب subscribers/{uid}/until،
+   فقواعد الأمان تبقى هي اللي تقرر مين يقدر يحفظ تحدياته الخاصة. الخطوات في store/SUBSCRIPTIONS.md */
+const REVENUECAT_KEYS = { ios: '', android: '' };
+const PREMIUM_ENTITLEMENT = 'premium';
+const RC = IS_NATIVE && window.Capacitor.Plugins ? window.Capacitor.Plugins.Purchases : null;
+function purchasesEnabled(){ return !!(RC && REVENUECAT_KEYS[window.Capacitor.getPlatform()]); }
+let purchasesReady = null;
+let purchasesUser = null;
+function initPurchases(){
+  if(!purchasesEnabled()) return Promise.resolve(false);
+  if(!purchasesReady){
+    purchasesReady = RC.configure({apiKey: REVENUECAT_KEYS[window.Capacitor.getPlatform()]})
+      .then(()=> true)
+      .catch(e=>{ console.warn('purchases configure failed', e); purchasesReady = null; return false; });
+  }
+  return purchasesReady;
+}
+// نربط مشتريات المتجر بحساب Firebase، عشان الاشتراك يمشي معه على أي جهاز
+async function syncPurchasesUser(){
+  if(!await initPurchases()) return false;
+  const uid = currentUser && !currentUser.isAnonymous ? currentUser.uid : null;
+  if(uid === purchasesUser) return true;
+  try{
+    if(uid) await RC.logIn({appUserID: uid});
+    else await RC.logOut();
+  }catch(e){
+    console.warn('purchases identify failed', e);
+    if(uid) return false;
+  }
+  purchasesUser = uid;
+  return true;
+}
+function hasPremium(customerInfo){
+  return !!(customerInfo && customerInfo.entitlements && customerInfo.entitlements.active && customerInfo.entitlements.active[PREMIUM_ENTITLEMENT]);
+}
+
 const auth = firebase.auth ? firebase.auth() : null;
 let currentUser = null;
 let IS_ADMIN = false;
@@ -1452,7 +1496,7 @@ function isGuest(){ return !currentUser || currentUser.isAnonymous; }
 // نسخة التطبيق: ما نعرض الاشتراك المدفوع (المتاجر تشترط الدفع عن طريقها)، فتعديل التحديات يظهر للمدير والمشتركين بس
 function applyStoreVisibility(){
   if(!IS_NATIVE) return;
-  document.getElementById('btn-admin-home').classList.toggle('hidden', !(IS_ADMIN || isSubscriber()));
+  document.getElementById('btn-admin-home').classList.toggle('hidden', !(IS_ADMIN || isSubscriber() || purchasesEnabled()));
 }
 
 async function loadRoles(){
@@ -1466,6 +1510,7 @@ async function loadRoles(){
   renderAccountBar();
   loadMyPoints();
   applyStoreVisibility();
+  syncPurchasesUser();
   if(IS_ADMIN) refreshUnreadBadge();
   else document.getElementById('admin-unread-badge').classList.add('hidden');
 }
@@ -1894,6 +1939,134 @@ async function persistEditDeck(){
   }
 }
 
+/* ---------------- شاشة الاشتراك (نسخة التطبيق) ---------------- */
+const PAYWALL_PERIODS = {
+  MONTHLY: ['شهري', 'Monthly'], ANNUAL: ['سنوي', 'Yearly'], SIX_MONTH: ['6 شهور', '6 months'],
+  THREE_MONTH: ['3 شهور', '3 months'], TWO_MONTH: ['شهرين', '2 months'], WEEKLY: ['أسبوعي', 'Weekly']
+};
+let paywallBusy = false;
+
+function paywallEl(tag, cls, text){
+  const el = document.createElement(tag);
+  if(cls) el.className = cls;
+  if(text != null) el.textContent = text;
+  return el;
+}
+
+async function renderPaywall(){
+  const box = document.getElementById('admin-paywall');
+  box.innerHTML = '';
+  box.classList.remove('hidden');
+  box.appendChild(paywallEl('h2', 'info-heading', L('اشتراك حلالي ⭐', 'Halalii subscription ⭐')));
+  const features = paywallEl('ul', 'paywall-features');
+  [
+    ['✍️ اكتب تحدياتك وأسئلتك الخاصة', '✍️ Write your own challenges and questions'],
+    ['✏️ عدّل البطاقات واحذف اللي ما يناسبكم', "✏️ Edit cards and remove the ones that don't suit you"],
+    ['🎮 تحدياتك تطلع في كل لعبة تبدأها أنت', '🎮 Your challenges appear in every game you start']
+  ].forEach(([ar, en])=> features.appendChild(paywallEl('li', '', L(ar, en))));
+  box.appendChild(features);
+  const status = paywallEl('p', 'hint-text', L('جاري تحميل الأسعار...', 'Loading prices...'));
+  box.appendChild(status);
+  const plans = paywallEl('div');
+  box.appendChild(plans);
+
+  let packages = [];
+  try{
+    if(!await syncPurchasesUser()) throw new Error('not identified');
+    const offerings = await RC.getOfferings();
+    packages = (offerings && offerings.current && offerings.current.availablePackages) || [];
+  }catch(e){ console.warn('offerings failed', e); }
+  if(!packages.length){
+    status.textContent = L('ما قدرنا نجيب الأسعار الحين. تأكد من الإنترنت وجرب مرة ثانية.', "We couldn't load the prices right now. Check your connection and try again.");
+    const retry = paywallEl('button', 'btn btn-ghost', L('حاول مرة ثانية', 'Try again'));
+    retry.onclick = renderPaywall;
+    plans.appendChild(retry);
+  } else {
+    status.textContent = '';
+    packages.forEach((pkg, i)=>{
+      const product = pkg.product || {};
+      const period = PAYWALL_PERIODS[pkg.packageType];
+      let label = (period ? L(period[0], period[1]) : (product.title || pkg.identifier)) + ' · ' + product.priceString;
+      if(product.introPrice && product.introPrice.price === 0) label += L(' · تجربة مجانية', ' · free trial');
+      const btn = paywallEl('button', 'btn ' + (i === 0 ? 'btn-primary' : 'btn-gold'), label);
+      btn.onclick = ()=> startPurchase(pkg, status);
+      plans.appendChild(btn);
+    });
+  }
+  const restore = paywallEl('button', 'btn btn-ghost', L('استعادة المشتريات', 'Restore purchases'));
+  restore.onclick = ()=> restorePurchases(status);
+  box.appendChild(restore);
+
+  const store = window.Capacitor.getPlatform() === 'ios' ? 'App Store' : 'Google Play';
+  const legal = paywallEl('p', 'paywall-legal', L(
+    `يندفع الاشتراك من حسابك في ${store}، ويتجدد تلقائياً بنفس السعر في نهاية كل فترة إلا إذا ألغيته قبل نهايتها بـ 24 ساعة على الأقل. تقدر تدير اشتراكك أو تلغيه من إعدادات حسابك في ${store}. `,
+    `Payment is charged to your ${store} account. The subscription renews automatically at the same price at the end of each period unless you cancel it at least 24 hours before the period ends. You can manage or cancel it in your ${store} account settings. `));
+  const terms = paywallEl('button', '', L('الشروط والأحكام', 'Terms of Use'));
+  terms.onclick = ()=> openInfo('terms');
+  const privacy = paywallEl('a', '', L('سياسة الخصوصية', 'Privacy Policy'));
+  privacy.href = PUBLIC_URL + 'privacy.html';
+  privacy.target = '_blank';
+  legal.appendChild(terms);
+  legal.appendChild(document.createTextNode(' · '));
+  legal.appendChild(privacy);
+  if(store === 'App Store'){
+    const eula = paywallEl('a', '', L('اتفاقية الترخيص (EULA)', 'License Agreement (EULA)'));
+    eula.href = 'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/';
+    eula.target = '_blank';
+    legal.appendChild(document.createTextNode(' · '));
+    legal.appendChild(eula);
+  }
+  box.appendChild(legal);
+}
+
+function isPurchaseCancelled(e){
+  return !!(e && (e.userCancelled || String(e.code) === '1'));
+}
+
+async function startPurchase(pkg, status){
+  if(paywallBusy) return;
+  paywallBusy = true;
+  status.textContent = L('جاري فتح الدفع...', 'Opening payment...');
+  try{
+    if(!await syncPurchasesUser()) throw new Error('not identified');
+    const result = await RC.purchasePackage({aPackage: pkg});
+    if(hasPremium(result && result.customerInfo)) await waitForSubscription(status);
+    else status.textContent = '';
+  }catch(e){
+    if(isPurchaseCancelled(e)) status.textContent = '';
+    else {
+      console.warn('purchase failed', e);
+      status.textContent = L('ما تم الدفع. جرب مرة ثانية، أو تواصل معنا إذا تكررت المشكلة.', "The payment didn't go through. Try again, or contact us if it keeps happening.");
+    }
+  }finally{ paywallBusy = false; }
+}
+
+async function restorePurchases(status){
+  if(paywallBusy) return;
+  paywallBusy = true;
+  status.textContent = L('جاري البحث عن اشتراكك...', 'Looking for your subscription...');
+  try{
+    if(!await syncPurchasesUser()) throw new Error('not identified');
+    const result = await RC.restorePurchases();
+    if(hasPremium(result && result.customerInfo)) await waitForSubscription(status);
+    else status.textContent = L('ما لقينا اشتراك فعّال مرتبط بحساب المتجر هذا.', "We couldn't find an active subscription for this store account.");
+  }catch(e){
+    console.warn('restore failed', e);
+    status.textContent = L('ما قدرنا نستعيد المشتريات الحين، جرب مرة ثانية.', "We couldn't restore purchases right now, please try again.");
+  }finally{ paywallBusy = false; }
+}
+
+// المتجر أكّد الدفع، وننتظر خادم RevenueCat يفعّل الاشتراك في قاعدة البيانات (عادةً ثواني)
+async function waitForSubscription(status){
+  status.textContent = L('تم الدفع ✓ جاري تفعيل اشتراكك...', 'Payment done ✓ Activating your subscription...');
+  for(let i = 0; i < 15; i++){
+    await loadRoles();
+    if(isSubscriber()){ openAdmin(); return; }
+    await new Promise(r=> setTimeout(r, 2000));
+  }
+  status.textContent = L('تم الدفع ✓ اشتراكك بيتفعّل خلال دقائق. ارجع لهالصفحة بعد شوي، وإذا ما تفعّل تواصل معنا.', "Payment done ✓ Your subscription will be active within a few minutes. Come back to this page shortly, and contact us if it isn't.");
+}
+
 /* ---------------- admin ---------------- */
 const CARD_TYPES = ['سؤال','تحدي'];
 let adminLevel = 'light';
@@ -1916,7 +2089,17 @@ async function openAdmin(){
     subtitle.textContent = '';
     const lockedText = document.getElementById('admin-locked-text');
     const loginBtn = document.getElementById('admin-locked-login');
-    if(isGuest()){
+    document.getElementById('admin-paywall').classList.add('hidden');
+    if(purchasesEnabled()){
+      if(isGuest()){
+        lockedText.textContent = L('كتابة تحدياتك الخاصة ميزة للمشتركين. سجّل دخولك أول، عشان يكون اشتراكك محفوظ في حسابك ويشتغل على أي جهاز.', 'Writing your own challenges is a subscriber feature. Sign in first, so your subscription is saved to your account and works on any device.');
+        loginBtn.classList.remove('hidden');
+      } else {
+        lockedText.textContent = '';
+        loginBtn.classList.add('hidden');
+        renderPaywall();
+      }
+    } else if(isGuest()){
       lockedText.textContent = L('تعديل التحديات وإضافة تحدياتك الخاصة ميزة للمشتركين. سجّل دخولك أول، وبعدها تقدر تشترك.', 'Editing challenges and adding your own is a subscriber feature. Sign in first, then you can subscribe.');
       loginBtn.classList.remove('hidden');
     } else {
